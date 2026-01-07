@@ -1,7 +1,9 @@
 import NewsletterForm from "./NewsletterForm";
 
 const Footer = () => {
-  const helpLinks = [{ label: "CONTACT", href: "mailto:hello@mimihoalua.com" }];
+  const helpLinks = [
+    { label: "CONTACT: 0348211187", href: "tel:0348211187" },
+  ];
 
   const socialLinks = [
     { label: "ZALO", href: "https://zalo.me/0348211187" },
