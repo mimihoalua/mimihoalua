@@ -1,3 +1,8 @@
+export default defineConfig({
+  base: '/mimihoalua/', // Thêm dòng này, thay 'mimihoalua' bằng tên repo của bạn
+  plugins: [react()],
+  // ... các phần khác giữ nguyên
+})
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
