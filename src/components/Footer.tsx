@@ -3,6 +3,7 @@ import NewsletterForm from "./NewsletterForm";
 const Footer = () => {
   const helpLinks = [
     { label: "CONTACT: 0348211187", href: "tel:0348211187" },
+    { label: "EMAIL: thamnguyen987@gmail.com", href: "mailto:thamnguyen987@gmail.com" },
   ];
 
   const socialLinks = [
