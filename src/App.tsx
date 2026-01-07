@@ -17,7 +17,7 @@ const Layout = () => (
   </>
 );
 
-// Create router with automatic scroll restoration
+// SỬA TẠI ĐÂY: Thêm tham số thứ 2 là { basename: "/mimihoalua" }
 const router = createBrowserRouter([
   {
     element: <Layout />,
@@ -36,7 +36,9 @@ const router = createBrowserRouter([
       },
     ],
   },
-]);
+], {
+  basename: "/mimihoalua",
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
