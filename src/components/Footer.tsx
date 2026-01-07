@@ -4,9 +4,8 @@ const Footer = () => {
   const helpLinks = [{ label: "CONTACT", href: "mailto:hello@mimihoalua.com" }];
 
   const socialLinks = [
-    { label: "INSTAGRAM", href: "https://instagram.com" },
-    { label: "TWITTER", href: "https://twitter.com" },
-    { label: "PINTEREST", href: "https://pinterest.com" },
+    { label: "ZALO", href: "https://zalo.me/0348211187" },
+    { label: "TIKTOK", href: "https://tiktok.com/@mimishophoalua" },
   ];
 
   return (
