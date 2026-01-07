@@ -9,7 +9,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="font-serif text-2xl md:text-3xl font-bold italic">
-            Vesper
+            Mimihoalua
           </Link>
 
           {/* Right Side Actions */}
