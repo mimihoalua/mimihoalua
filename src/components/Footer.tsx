@@ -4,6 +4,7 @@ const Footer = () => {
   const helpLinks = [
     { label: "CONTACT: 0348211187", href: "tel:0348211187" },
     { label: "EMAIL: thamnguyen987@gmail.com", href: "mailto:thamnguyen987@gmail.com" },
+    { label: "ĐỊA CHỈ: Số 3 Ngõ Văn Chỉ 1, Thôn Phù Mã, Xã Sóc Sơn, TP. Hà Nội", href: "https://maps.google.com/?q=Sóc+Sơn,+Hà+Nội" },
   ];
 
   const socialLinks = [
