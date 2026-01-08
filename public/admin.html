@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mimihoalua — Intelligent Admin v4.5</title>
+  <title>Mimihoalua — Smart Admin v5.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -38,7 +38,12 @@
 
     <main class="flex-1 p-6 lg:p-12">
       <header class="flex justify-between items-center mb-10">
-        <h1 id="viewTitle" class="text-3xl font-extrabold tracking-tight">Tổng quan</h1>
+        <div>
+            <h1 id="viewTitle" class="text-3xl font-extrabold tracking-tight">Tổng quan</h1>
+            <button id="btnEnableSound" class="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:opacity-80 transition">
+                <i class="fa-solid fa-volume-high"></i> <span>Kích hoạt âm thanh thông báo</span>
+            </button>
+        </div>
         <div id="uidBox" class="text-[10px] bg-indigo-50 text-indigo-400 px-4 py-2 rounded-full font-mono shadow-sm">UID: ---</div>
       </header>
 
@@ -57,47 +62,36 @@
             <div class="text-5xl font-black" id="st-c">0</div>
           </div>
         </div>
-        <div id="newOrderAlert" class="hidden bg-indigo-600 text-white p-8 rounded-[2.5rem] flex items-center justify-between shadow-xl shadow-indigo-100">
+        <div id="newOrderAlert" class="hidden bg-indigo-600 text-white p-8 rounded-[2.5rem] flex items-center justify-between shadow-xl">
             <div class="flex items-center gap-6">
                 <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl pulse-new"><i class="fa-solid fa-bell"></i></div>
                 <div>
                     <h3 class="text-xl font-bold">Vừa có đơn hàng mới!</h3>
-                    <p class="opacity-80 text-sm">Hãy kiểm tra và xác nhận ngay để giao cho khách nhé Mimihoalua.</p>
+                    <p class="opacity-80 text-sm">Chuông đã reo, hãy kiểm tra ngay Mimihoalua nhé.</p>
                 </div>
             </div>
-            <button onclick="document.querySelector('[data-tab=orders]').click()" class="bg-white text-indigo-600 px-8 py-3 rounded-2xl font-black text-sm uppercase">Xem ngay</button>
         </div>
       </section>
 
       <section id="view-orders" class="view-content hidden space-y-6">
-        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Danh sách đơn hàng</h2></div>
         <div class="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-slate-100">
             <table class="w-full text-left text-sm border-collapse">
                 <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
                     <tr><th class="p-6">Ngày đặt</th><th class="p-6">Khách hàng</th><th class="p-6">Tổng tiền</th><th class="p-6">Trạng thái</th><th class="p-6">Thao tác</th></tr>
                 </thead>
-                <tbody id="ordersTable" class="divide-y divide-slate-50">
-                    <tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Đang tải đơn hàng...</td></tr>
-                </tbody>
+                <tbody id="ordersTable" class="divide-y divide-slate-50"></tbody>
             </table>
         </div>
       </section>
 
       <section id="view-products" class="view-content hidden space-y-6">
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold">Kho hàng</h2>
-            <button id="btnNewProduct" class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg hover:scale-105 transition">+ Thêm hoa mới</button>
-        </div>
+        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Kho hàng</h2><button id="btnNewProduct" class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold text-sm">+ Thêm mới</button></div>
         <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
       </section>
-
       <section id="view-categories" class="view-content hidden space-y-6">
         <div class="bg-white p-8 rounded-[2.5rem] shadow-sm space-y-6">
-            <h2 class="text-xl font-bold">Danh mục MimiFlower</h2>
-            <div class="flex gap-3">
-                <input id="catNameInput" class="flex-1 bg-slate-50 rounded-2xl px-6 py-4 outline-none border border-transparent focus:border-indigo-500" placeholder="Tên danh mục mới...">
-                <button id="btnAddCat" class="bg-black text-white px-10 rounded-2xl font-bold">THÊM</button>
-            </div>
+            <h2 class="text-xl font-bold">Quản lý danh mục</h2>
+            <div class="flex gap-3"><input id="catNameInput" class="flex-1 bg-slate-50 rounded-2xl px-6 py-4 outline-none" placeholder="Tên danh mục..."><button id="btnAddCat" class="bg-black text-white px-10 rounded-2xl font-bold">THÊM</button></div>
             <div id="catTable" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
         </div>
       </section>
@@ -105,54 +99,26 @@
   </div>
 
   <div id="authOverlay" class="fixed inset-0 bg-[#f8fafc] z-[9999] flex items-center justify-center hidden">
-    <div class="w-full max-w-sm text-center space-y-8 p-10">
-      <div class="text-5xl font-black italic tracking-tighter text-indigo-600">Mimihoalua</div>
-      <div class="space-y-4">
-        <input id="aEmail" class="w-full bg-white shadow-sm rounded-2xl px-6 py-5 outline-none border border-slate-100" placeholder="Email quản trị">
-        <input id="aPass" type="password" class="w-full bg-white shadow-sm rounded-2xl px-6 py-5 outline-none border border-slate-100" placeholder="Mật khẩu">
-        <button id="btnSignIn" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold text-xl shadow-xl">ĐĂNG NHẬP</button>
-      </div>
-    </div>
+    <div class="w-full max-w-sm text-center space-y-8 p-10"><div class="text-5xl font-black italic text-indigo-600">Mimihoalua</div>
+    <div class="space-y-4"><input id="aEmail" class="w-full bg-white shadow-sm rounded-2xl px-6 py-5 outline-none" placeholder="Email"><input id="aPass" type="password" class="w-full bg-white shadow-sm rounded-2xl px-6 py-5 outline-none" placeholder="Mật khẩu"><button id="btnSignIn" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold text-xl">ĐĂNG NHẬP</button></div></div>
   </div>
 
   <div id="pmModal" class="fixed inset-0 bg-slate-900/40 z-[1000] hidden items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-[3rem] w-full max-w-2xl p-10 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center">
-        <h3 class="text-2xl font-bold">Thông tin hoa Mimi</h3>
-        <button id="btnClosePm" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200">✕</button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="space-y-4">
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Tên sản phẩm<input id="pmName" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none"></label>
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Giá tiền (VND)<input id="pmPrice" type="number" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none"></label>
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Danh mục<select id="pmCategory" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none"></select></label>
+        <div class="flex justify-between items-center"><h3 class="text-2xl font-bold">Chi tiết sản phẩm</h3><button id="btnClosePm" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100">✕</button></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4"><label class="block text-xs font-bold text-slate-400">Tên sản phẩm<input id="pmName" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none"></label><label class="block text-xs font-bold text-slate-400">Giá (VND)<input id="pmPrice" type="number" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none"></label><label class="block text-xs font-bold text-slate-400">Danh mục<select id="pmCategory" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none"></select></label></div>
+            <div class="space-y-4"><label class="block text-xs font-bold text-slate-400">Link ảnh<textarea id="pmImages" rows="4" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none text-xs"></textarea></label><div class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl"><input type="checkbox" id="pmActive" class="w-6 h-6 accent-indigo-600" checked><span class="text-sm font-bold">Hiển thị shop</span></div></div>
         </div>
-        <div class="space-y-4">
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest">Link ảnh<textarea id="pmImages" rows="4" class="w-full mt-2 bg-slate-50 rounded-2xl px-5 py-4 outline-none text-xs" placeholder="Mỗi dòng 1 link ảnh"></textarea></label>
-          <div class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl"><input type="checkbox" id="pmActive" class="w-6 h-6 accent-indigo-600" checked><span class="text-sm font-bold">Hiển thị shop</span></div>
-        </div>
-      </div>
-      <button id="btnSaveProduct" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold text-lg shadow-xl hover:bg-indigo-700 transition">LƯU TÁC PHẨM</button>
+        <button id="btnSaveProduct" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold">LƯU TÁC PHẨM</button>
     </div>
   </div>
 
   <div id="odModal" class="fixed inset-0 bg-slate-900/40 z-[1000] hidden items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-[3rem] w-full max-w-xl p-10 shadow-2xl space-y-8">
-        <div class="flex justify-between items-center">
-            <h3 class="text-2xl font-bold">Chi tiết đơn hàng</h3>
-            <button onclick="el('odModal').classList.remove('modal-active')" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100">✕</button>
-        </div>
+        <div class="flex justify-between items-center"><h3 class="text-2xl font-bold">Chi tiết đơn hàng</h3><button onclick="el('odModal').classList.remove('modal-active')" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100">✕</button></div>
         <div id="odContent" class="space-y-4 text-sm"></div>
-        <div class="pt-6 border-t space-y-4">
-            <select id="odStatusSelect" class="w-full bg-slate-50 p-4 rounded-2xl font-bold outline-none">
-                <option value="new">Đơn mới (New)</option>
-                <option value="confirmed">Đã xác nhận</option>
-                <option value="shipping">Đang giao hàng</option>
-                <option value="done">Hoàn thành</option>
-                <option value="cancel">Hủy đơn</option>
-            </select>
-            <button id="btnUpdateOrderStatus" class="w-full bg-black text-white py-5 rounded-2xl font-bold">CẬP NHẬT TRẠNG THÁI</button>
-        </div>
+        <div class="pt-6 border-t space-y-4"><select id="odStatusSelect" class="w-full bg-slate-50 p-4 rounded-2xl font-bold"><option value="new">Đơn mới</option><option value="confirmed">Xác nhận</option><option value="shipping">Đang giao</option><option value="done">Hoàn thành</option><option value="cancel">Hủy đơn</option></select><button id="btnUpdateOrderStatus" class="w-full bg-black text-white py-5 rounded-2xl font-bold">CẬP NHẬT</button></div>
     </div>
   </div>
 
@@ -167,16 +133,27 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-
     const el = (id) => document.getElementById(id);
-    const slugify = (t) => t.toString().toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
     const fmt = (n) => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
+
+    // ÂM THANH THÔNG BÁO (Chuông cao cấp)
+    const orderSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+    let soundEnabled = false;
+    let initialLoad = true;
+    let lastOrderCount = 0;
+
+    el('btnEnableSound').onclick = () => {
+        soundEnabled = true;
+        orderSound.play().catch(()=>{}); // Chơi thử một tiếng để trình duyệt cấp quyền
+        el('btnEnableSound').innerHTML = '<i class="fa-solid fa-bell text-emerald-600"></i> <span class="text-emerald-600">Âm thanh đã sẵn sàng</span>';
+        toast('success', 'Đã bật chuông thông báo đơn hàng!');
+    };
 
     function toast(type, msg) {
       const t = document.createElement('div');
@@ -186,60 +163,38 @@
       setTimeout(() => t.remove(), 3000);
     }
 
-    // AUTH
-    onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        el('authOverlay').classList.add('hidden');
-        el('whoami').innerText = u.email;
-        el('uidBox').innerText = `UID: ${u.uid}`;
-        const adm = await getDoc(doc(db, "admins", u.uid));
-        if (!adm.exists()) toast('error', 'Bạn chưa được cấp quyền Admin!');
-      } else el('authOverlay').classList.remove('hidden');
-    });
-
-    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => toast('error', 'Sai thông tin!'));
-    el('btnSignOut').onclick = () => signOut(auth).then(() => location.reload());
-
-    // TAB SYSTEM
-    const tabs = document.querySelectorAll(".tab-btn");
-    tabs.forEach(t => {
-      t.onclick = () => {
-        tabs.forEach(b => b.classList.remove('tab-active'));
-        t.classList.add('tab-active');
-        document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
-        el(`view-${t.dataset.tab}`).classList.remove('hidden');
-        el('viewTitle').innerText = t.innerText;
-      };
-    });
-
-    // REAL-TIME ORDERS (INSTANT SYNC)
+    // REAL-TIME ORDERS + SOUND LOGIC
     onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snap) => {
       const tbody = el('ordersTable');
       tbody.innerHTML = "";
       let newCount = 0;
-
+      
+      // Kiểm tra có đơn mới không để reo chuông
+      if (!initialLoad && soundEnabled && snap.size > lastOrderCount) {
+          orderSound.play().catch(e => console.log("Chuông chưa được kích hoạt"));
+          toast('success', '🔔 BẠN CÓ ĐƠN HÀNG MỚI!');
+      }
+      
       snap.forEach(d => {
         const o = d.data();
-        const id = d.id;
         const isNew = o.status === 'new';
         if (isNew) newCount++;
-
         const tr = document.createElement('tr');
         tr.className = `group hover:bg-slate-50 transition ${isNew ? 'new-order-row' : ''}`;
-        tr.innerHTML = `
-          <td class="p-6 font-medium text-slate-400 text-xs">${o.createdAt?.toDate().toLocaleString() || 'Vừa xong'}</td>
-          <td class="p-6 font-bold">${o.customerName} <br> <span class="text-[10px] text-slate-400 font-normal">${o.customerPhone}</span></td>
+        tr.innerHTML = `<td class="p-6 text-xs text-slate-400">${o.createdAt?.toDate().toLocaleString() || 'Vừa xong'}</td>
+          <td class="p-6 font-bold">${o.customerName} <br><span class="text-[10px] font-normal">${o.customerPhone}</span></td>
           <td class="p-6 font-black text-indigo-600">${fmt(o.totals?.total || 0)}</td>
-          <td class="p-6"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${o.status === 'new' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}">${o.status}</span></td>
-          <td class="p-6"><button onclick="window.viewOrder('${id}')" class="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-bold">XỬ LÝ</button></td>
-        `;
+          <td class="p-6"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}">${o.status}</span></td>
+          <td class="p-6"><button onclick="window.viewOrder('${d.id}')" class="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-bold">XỬ LÝ</button></td>`;
         tbody.appendChild(tr);
       });
 
-      // UI Indicators for New Orders
       el('st-new-orders').innerText = newCount;
       el('newOrderBadge').classList.toggle('hidden', newCount === 0);
       el('newOrderAlert').classList.toggle('hidden', newCount === 0);
+      
+      lastOrderCount = snap.size;
+      initialLoad = false;
     });
 
     // ORDER PROCESSING
@@ -248,17 +203,7 @@
         activeOrderId = id;
         const s = await getDoc(doc(db, "orders", id));
         const o = s.data();
-        el('odContent').innerHTML = `
-            <div class="space-y-2">
-                <p><b>Mã đơn:</b> #${id.slice(0,8)}</p>
-                <p><b>Khách hàng:</b> ${o.customerName}</p>
-                <p><b>Điện thoại:</b> ${o.customerPhone}</p>
-                <p><b>Địa chỉ:</b> ${o.address}</p>
-                <div class="bg-slate-50 p-4 rounded-xl mt-4">
-                    <p class="font-bold mb-2 uppercase text-[10px]">Sản phẩm:</p>
-                    ${o.items.map(it => `<div>• ${it.name} x1</div>`).join('')}
-                </div>
-            </div>`;
+        el('odContent').innerHTML = `<div class="space-y-2"><p><b>Mã:</b> #${id.slice(0,8)}</p><p><b>Khách:</b> ${o.customerName}</p><p><b>SĐT:</b> ${o.customerPhone}</p><p><b>Địa chỉ:</b> ${o.address}</p><div class="bg-slate-50 p-4 rounded-xl mt-4"><p class="font-bold mb-2 uppercase text-[10px]">Sản phẩm:</p>${o.items.map(it => `<div>• ${it.name}</div>`).join('')}</div></div>`;
         el('odStatusSelect').value = o.status;
         el('odModal').classList.add('modal-active');
     };
@@ -269,85 +214,29 @@
         toast('success', 'Đã cập nhật đơn hàng!');
     };
 
-    // REAL-TIME CATEGORIES
+    // TABS & AUTH (Giữ nguyên logic bản 4.5)
+    const tabs = document.querySelectorAll(".tab-btn");
+    tabs.forEach(t => t.onclick = () => { tabs.forEach(b => b.classList.remove('tab-active')); t.classList.add('tab-active'); document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden')); el(`view-${t.dataset.tab}`).classList.remove('hidden'); el('viewTitle').innerText = t.innerText; });
+    onAuthStateChanged(auth, async (u) => { if (u) { el('authOverlay').classList.add('hidden'); el('whoami').innerText = u.email; el('uidBox').innerText = `UID: ${u.uid}`; const adm = await getDoc(doc(db, "admins", u.uid)); if (!adm.exists()) toast('error', 'Chưa có quyền Admin!'); } else el('authOverlay').classList.remove('hidden'); });
+    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => toast('error', 'Sai thông tin!'));
+    el('btnSignOut').onclick = () => signOut(auth).then(() => location.reload());
+
+    // PRODUCTS & CATEGORIES
     onSnapshot(collection(db, "categories"), (snap) => {
-      const table = el('catTable');
-      const select = el('pmCategory');
-      table.innerHTML = "";
-      select.innerHTML = `<option value="">-- Chọn danh mục --</option>`;
-      snap.forEach(d => {
-        const c = d.data();
-        table.innerHTML += `<div class="bg-white p-5 rounded-3xl border shadow-sm flex justify-between items-center"><span class="font-bold">${c.name}</span><button onclick="window.delCat('${d.id}')" class="text-rose-500"><i class="fa-solid fa-trash-can"></i></button></div>`;
-        select.innerHTML += `<option value="${d.id}">${c.name}</option>`;
-      });
+      const table = el('catTable'); const select = el('pmCategory'); table.innerHTML = ""; select.innerHTML = `<option value="">-- Chọn danh mục --</option>`;
+      snap.forEach(d => { const c = d.data(); table.innerHTML += `<div class="bg-white p-5 rounded-3xl border flex justify-between items-center"><span class="font-bold">${c.name}</span><button onclick="window.delCat('${d.id}')" class="text-rose-500"><i class="fa-solid fa-trash-can"></i></button></div>`; select.innerHTML += `<option value="${d.id}">${c.name}</option>`; });
       el('st-c').innerText = snap.size;
     });
-
-    el('btnAddCat').onclick = async () => {
-      const name = el('catNameInput').value.trim();
-      if(!name) return;
-      await setDoc(doc(db, "categories", slugify(name)), { name, createdAt: serverTimestamp() });
-      el('catNameInput').value = "";
-      toast('success', 'Đã thêm danh mục!');
-    };
-
+    el('btnAddCat').onclick = async () => { const name = el('catNameInput').value.trim(); if(!name) return; await setDoc(doc(db, "categories", name.toLowerCase().replace(/\s+/g, '-')), { name, createdAt: serverTimestamp() }); el('catNameInput').value = ""; toast('success', 'Đã thêm danh mục!'); };
     window.delCat = async (id) => { if(confirm("Xoá danh mục này?")) await deleteDoc(doc(db, "categories", id)); };
-
-    // REAL-TIME PRODUCTS
     onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
-        const grid = el('productsGrid');
-        grid.innerHTML = "";
-        snap.forEach(d => {
-            const p = d.data();
-            const id = d.id;
-            const card = document.createElement('div');
-            card.className = "bg-white p-6 rounded-[2.5rem] shadow-sm relative group border border-transparent hover:border-indigo-100 transition";
-            card.innerHTML = `
-                <img src="${p.images?.[0] || ''}" class="w-full h-40 object-cover rounded-[1.5rem] mb-4 bg-slate-50">
-                <span class="text-[9px] bg-indigo-50 text-indigo-500 px-3 py-1 rounded-full font-black uppercase">${p.category}</span>
-                <h4 class="font-bold text-lg mt-2 truncate">${p.name}</h4>
-                <p class="text-indigo-600 font-black">${fmt(p.basePrice)}</p>
-                <div class="mt-4 flex gap-2">
-                    <button onclick="window.editP('${id}')" class="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-[10px] hover:bg-black hover:text-white transition uppercase">Sửa</button>
-                    <button onclick="window.delP('${id}')" class="px-4 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
-                </div>
-                <div class="absolute top-6 right-6 h-2 w-2 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-300'}"></div>`;
-            grid.appendChild(card);
-        });
+        const grid = el('productsGrid'); grid.innerHTML = "";
+        snap.forEach(d => { const p = d.data(); const id = d.id; const card = document.createElement('div'); card.className = "bg-white p-6 rounded-[2.5rem] shadow-sm relative group border border-transparent hover:border-indigo-100 transition"; card.innerHTML = `<img src="${p.images?.[0] || ''}" class="w-full h-40 object-cover rounded-[1.5rem] mb-4 bg-slate-50"><span class="text-[9px] bg-indigo-50 text-indigo-500 px-3 py-1 rounded-full font-black uppercase">${p.category}</span><h4 class="font-bold text-lg mt-2 truncate">${p.name}</h4><p class="text-indigo-600 font-black">${fmt(p.basePrice)}</p><div class="mt-4 flex gap-2"><button onclick="window.editP('${id}')" class="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-[10px] uppercase">Sửa</button><button onclick="window.delP('${id}')" class="px-4 bg-rose-50 text-rose-500 rounded-2xl"><i class="fa-solid fa-trash"></i></button></div><div class="absolute top-6 right-6 h-2 w-2 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-300'}"></div>`; grid.appendChild(card); });
         el('st-p').innerText = snap.size;
     });
-
-    el('btnNewProduct').onclick = () => {
-        el('pmName').value = ''; el('pmPrice').value = ''; el('pmImages').value = '';
-        el('pmModal').classList.add('modal-active');
-        el('btnSaveProduct').onclick = async () => {
-            await addDoc(collection(db, "products"), {
-                name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
-                images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, createdAt: serverTimestamp()
-            });
-            el('pmModal').classList.remove('modal-active');
-            toast('success', 'Đã thêm hoa Mimi mới!');
-        };
-    };
-
-    window.editP = async (id) => {
-        const s = await getDoc(doc(db, "products", id));
-        const p = s.data();
-        el('pmName').value = p.name; el('pmPrice').value = p.basePrice; el('pmCategory').value = p.category;
-        el('pmImages').value = (p.images || []).join('\n'); el('pmActive').checked = p.active;
-        el('pmModal').classList.add('modal-active');
-        el('btnSaveProduct').onclick = async () => {
-            await setDoc(doc(db, "products", id), {
-                name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
-                images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, updatedAt: serverTimestamp()
-            }, { merge: true });
-            el('pmModal').classList.remove('modal-active');
-            toast('success', 'Đã cập nhật MimiFlower!');
-        };
-    };
-
+    el('btnNewProduct').onclick = () => { el('pmName').value = ''; el('pmPrice').value = ''; el('pmImages').value = ''; el('pmModal').classList.add('modal-active'); el('btnSaveProduct').onclick = async () => { await addDoc(collection(db, "products"), { name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value, images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, createdAt: serverTimestamp() }); el('pmModal').classList.remove('modal-active'); toast('success', 'Đã thêm hoa Mimi mới!'); }; };
+    window.editP = async (id) => { const s = await getDoc(doc(db, "products", id)); const p = s.data(); el('pmName').value = p.name; el('pmPrice').value = p.basePrice; el('pmCategory').value = p.category; el('pmImages').value = (p.images || []).join('\n'); el('pmActive').checked = p.active; el('pmModal').classList.add('modal-active'); el('btnSaveProduct').onclick = async () => { await setDoc(doc(db, "products", id), { name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value, images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, updatedAt: serverTimestamp() }, { merge: true }); el('pmModal').classList.remove('modal-active'); toast('success', 'Đã cập nhật MimiFlower!'); }; };
     window.delP = async (id) => { if(confirm("Xoá tác phẩm này khỏi kho?")) await deleteDoc(doc(db, "products", id)); };
-
     el('btnClosePm').onclick = () => el('pmModal').classList.remove('modal-active');
   </script>
 </body>
