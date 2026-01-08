@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MimiFlower Admin v2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-white border-r hidden md:flex flex-col">
+            <div class="p-6 border-b flex items-center gap-3">
+                <i class="fa-solid fa-leaf text-green-600 text-2xl"></i>
+                <h1 class="font-bold text-xl tracking-tight">Mimi Admin</h1>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-green-50 text-green-700 rounded-lg font-medium">
+                    <i class="fa-solid fa-box-open"></i> Sản phẩm
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition">
+                    <i class="fa-solid fa-list"></i> Danh mục
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
+                <button class="md:hidden text-gray-600"><i class="fa-solid fa-bars text-xl"></i></button>
+                <h2 class="text-lg font-semibold">Quản lý Kho Hàng</h2>
+                <button onclick="openModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm mới
+                </button>
+            </header>
+
+            <div class="p-6">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-600 font-medium border-b">
+                                <tr>
+                                    <th class="px-6 py-4">Hình ảnh</th>
+                                    <th class="px-6 py-4">Tên sản phẩm</th>
+                                    <th class="px-6 py-4">Phân loại</th>
+                                    <th class="px-6 py-4">Giá gốc</th>
+                                    <th class="px-6 py-4 text-center">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody" class="divide-y divide-gray-100">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="productModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Thông tin sản phẩm</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <form id="productForm" class="p-6 space-y-6">
+                <input type="hidden" id="productId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
+                        <input type="text" id="name" class="w-full border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 border p-2.5" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục (ID)</label>
+                        <input type="text" id="category" class="w-full border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 border p-2.5" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
+                    <textarea id="description" rows="3" class="w-full border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 border p-2.5"></textarea>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-semibold text-gray-700">📋 Danh sách Biến thể (Mẫu)</h4>
+                        <span class="text-xs text-gray-500 bg-white px-2 py-1 rounded border" id="variantCountBadge">0 mẫu</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm bg-white rounded-lg border">
+                            <thead>
+                                <tr class="bg-gray-100 text-left">
+                                    <th class="p-2">Ảnh</th>
+                                    <th class="p-2">Tên mẫu</th>
+                                    <th class="p-2">Giá (VNĐ)</th>
+                                    <th class="p-2">Link Ảnh</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variantListContainer">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Hủy</button>
+                    <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-md">Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
+            authDomain: "esomar-vnn.firebaseapp.com",
+            projectId: "esomar-vnn",
+            storageBucket: "esomar-vnn.firebasestorage.app",
+            messagingSenderId: "1023271897973",
+            appId: "1:1023271897973:web:c7207b0e8321fc271fe13c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // LOAD DATA
+        function loadProducts() {
+            db.collection("products").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+                const tbody = document.getElementById("productTableBody");
+                tbody.innerHTML = "";
+                
+                snapshot.forEach((doc) => {
+                    const p = doc.data();
+                    const hasVariants = p.variants && p.variants.length > 0;
+                    
+                    // Lấy ảnh đại diện (ưu tiên ảnh biến thể đầu tiên hoặc ảnh bìa)
+                    let thumb = "https://via.placeholder.com/150";
+                    if (p.images && p.images.length > 0) thumb = p.images[0];
+                    if (hasVariants && p.variants[0].image) thumb = p.variants[0].image;
+
+                    // Hiển thị giá
+                    let priceDisplay = new Intl.NumberFormat('vi-VN').format(p.basePrice) + ' đ';
+                    if (hasVariants) {
+                        // Tìm giá min-max nếu có nhiều biến thể
+                        const prices = p.variants.map(v => v.price);
+                        const minP = Math.min(...prices);
+                        const maxP = Math.max(...prices);
+                        if(minP !== maxP) priceDisplay = `${new Intl.NumberFormat('vi-VN').format(minP)} - ${new Intl.NumberFormat('vi-VN').format(maxP)} đ`;
+                    }
+
+                    const row = `
+                        <tr class="hover:bg-gray-50 transition group">
+                            <td class="px-6 py-4">
+                                <div class="w-16 h-16 rounded-lg overflow-hidden border bg-white">
+                                    <img src="${thumb}" class="w-full h-full object-cover">
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-900 line-clamp-2" title="${p.name}">${p.name}</div>
+                                <div class="text-xs text-gray-500 mt-1">ID: ${doc.id.substring(0,8)}...</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                ${hasVariants 
+                                    ? `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">${p.variants.length} mẫu</span>` 
+                                    : `<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">Đơn thể</span>`}
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-green-600">${priceDisplay}</td>
+                            <td class="px-6 py-4 text-center">
+                                <button onclick="editProduct('${doc.id}')" class="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteProduct('${doc.id}')" class="text-red-600 hover:bg-red-50 p-2 rounded-full transition ml-2"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            });
+        }
+
+        // EDIT PRODUCT (Logic quan trọng)
+        async function editProduct(id) {
+            const doc = await db.collection("products").doc(id).get();
+            const p = doc.data();
+            
+            document.getElementById("productId").value = id;
+            document.getElementById("name").value = p.name;
+            document.getElementById("category").value = p.category;
+            document.getElementById("description").value = p.description;
+            
+            // Render Variants ra bảng edit
+            const variantContainer = document.getElementById("variantListContainer");
+            variantContainer.innerHTML = "";
+            document.getElementById("variantCountBadge").innerText = `${p.variants ? p.variants.length : 0} mẫu`;
+
+            if (p.variants && p.variants.length > 0) {
+                p.variants.forEach((v, index) => {
+                    const row = `
+                        <tr class="border-b last:border-0">
+                            <td class="p-2">
+                                <img src="${v.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-cover rounded border">
+                            </td>
+                            <td class="p-2">
+                                <input type="text" value="${v.name}" class="w-full text-sm border-gray-200 rounded p-1" data-index="${index}" data-field="name">
+                            </td>
+                            <td class="p-2">
+                                <input type="number" value="${v.price}" class="w-24 text-sm border-gray-200 rounded p-1" data-index="${index}" data-field="price">
+                            </td>
+                            <td class="p-2">
+                                <input type="text" value="${v.image || ''}" class="w-full text-xs text-gray-400 border-gray-200 rounded p-1" data-index="${index}" data-field="image">
+                            </td>
+                        </tr>
+                    `;
+                    variantContainer.innerHTML += row;
+                });
+            } else {
+                variantContainer.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">Không có biến thể</td></tr>`;
+            }
+
+            document.getElementById("productModal").classList.remove("hidden");
+        }
+
+        // SUBMIT FORM
+        document.getElementById("productForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("productId").value;
+            
+            // Thu thập dữ liệu biến thể từ bảng
+            const variantRows = document.querySelectorAll("#variantListContainer tr");
+            let updatedVariants = [];
+            
+            if (variantRows.length > 0 && !variantRows[0].innerText.includes("Không có biến thể")) {
+                variantRows.forEach(row => {
+                    const nameInput = row.querySelector('[data-field="name"]');
+                    const priceInput = row.querySelector('[data-field="price"]');
+                    const imgInput = row.querySelector('[data-field="image"]');
+                    
+                    if (nameInput) {
+                        updatedVariants.push({
+                            name: nameInput.value,
+                            price: Number(priceInput.value),
+                            image: imgInput.value,
+                            originalImage: imgInput.value // Giữ nguyên logic cũ
+                        });
+                    }
+                });
+            }
+
+            const data = {
+                name: document.getElementById("name").value,
+                category: document.getElementById("category").value,
+                description: document.getElementById("description").value,
+                variants: updatedVariants,
+                // Update giá basePrice theo giá thấp nhất của biến thể mới
+                basePrice: updatedVariants.length > 0 ? Math.min(...updatedVariants.map(v => v.price)) : 0
+            };
+
+            if (id) {
+                await db.collection("products").doc(id).update(data);
+                alert("Đã cập nhật!");
+            }
+            closeModal();
+        };
+
+        function deleteProduct(id) {
+            if(confirm("Bạn chắc chắn muốn xóa?")) db.collection("products").doc(id).delete();
+        }
+
+        function openModal() {
+            document.getElementById("productForm").reset();
+            document.getElementById("productId").value = "";
+            document.getElementById("variantListContainer").innerHTML = "";
+            document.getElementById("productModal").classList.remove("hidden");
+        }
+        function closeModal() { document.getElementById("productModal").classList.add("hidden"); }
+
+        loadProducts();
+    </script>
+</body>
+</html>
