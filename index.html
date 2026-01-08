@@ -3,119 +3,146 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SilkFlower Studio — Hoa lụa cao cấp</title>
+  <title>Mimihoalua Studio — Nghệ thuật Hoa Lụa Cao Cấp</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
-    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+    :root { --accent: #6366f1; --bg: #fdfdfc; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: #1a1a1a; scroll-behavior: smooth; }
     .serif { font-family: 'Playfair Display', serif; }
-    .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); }
-    .cart-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .product-card:hover img { transform: scale(1.05); }
-    .toast-pop { animation: slideUp 0.4s ease-out forwards; }
-    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .product-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .product-card:hover { transform: translateY(-8px); }
+    .product-card:hover .btn-quick-add { opacity: 1; transform: translateY(0); }
+    
+    .glass-nav { background: rgba(253, 253, 252, 0.7); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.03); }
+    
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
     .no-scroll { overflow: hidden; }
   </style>
 </head>
 
-<body class="bg-[#faf9f6] text-slate-900">
-  <div id="toastHost" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] space-y-2"></div>
+<body>
+  <div id="toastHost" class="fixed top-24 right-6 z-[100] space-y-3"></div>
 
-  <nav class="glass-nav sticky top-0 z-50 border-b border-slate-100">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <a href="#/" class="text-2xl font-bold serif italic tracking-tighter">SilkFlower</a>
+  <nav class="glass-nav sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="#/" class="text-3xl font-bold serif italic tracking-tighter">Mimihoalua</a>
       
-      <div class="hidden md:flex space-x-8 text-[11px] uppercase tracking-[0.2em] font-bold">
-        <a href="#/" class="hover:text-indigo-600 transition">Trang chủ</a>
-        <a href="#/shop" class="hover:text-indigo-600 transition">Cửa hàng</a>
-        <a href="#/policy" class="hover:text-indigo-600 transition">Chính sách</a>
+      <div class="hidden md:flex space-x-10 text-[10px] uppercase tracking-[0.3em] font-black opacity-60">
+        <a href="#/" class="hover:opacity-100 transition">Trang chủ</a>
+        <a href="#/shop" class="hover:opacity-100 transition">Cửa hàng</a>
+        <a href="#/policy" class="hover:opacity-100 transition">Chính sách</a>
       </div>
 
-      <div class="flex items-center gap-4">
-        <button id="btnCart" class="relative p-2">
-          <i class="fa-solid fa-bag-shopping text-xl"></i>
-          <span id="cartBadge" class="hidden absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">0</span>
+      <div class="flex items-center gap-6">
+        <button id="btnCart" class="relative group">
+          <i class="fa-solid fa-cart-shopping text-xl opacity-80 group-hover:opacity-100 transition"></i>
+          <span id="cartBadge" class="hidden absolute -top-2 -right-2 bg-black text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
         </button>
-        <a href="admin.html" class="text-xs bg-black text-white px-4 py-2 rounded-full font-bold">ADMIN</a>
+        <a href="admin.html" class="text-[10px] border border-black px-5 py-2 rounded-full font-black hover:bg-black hover:text-white transition">ADMIN</a>
       </div>
     </div>
   </nav>
 
   <main>
-    <section id="view-hero" class="relative h-[70vh] flex items-center justify-center overflow-hidden">
-      <img src="https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&q=80&w=2000" class="absolute inset-0 w-full h-full object-cover" alt="Hero">
-      <div class="absolute inset-0 bg-black/30"></div>
-      <div class="relative text-center text-white p-6 space-y-6">
-        <h1 class="text-5xl md:text-7xl serif">Vẻ đẹp vĩnh cửu</h1>
-        <p class="max-w-md mx-auto text-sm font-light tracking-widest uppercase">Hoa lụa thiết kế cao cấp cho không gian sống</p>
-        <a href="#/shop" class="inline-block bg-white text-black px-12 py-4 rounded-full font-bold text-xs tracking-[0.3em] uppercase hover:bg-black hover:text-white transition">Khám phá ngay</a>
+    <section id="view-hero" class="relative h-[85vh] flex items-center justify-center overflow-hidden bg-black">
+      <img src="https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&q=80&w=2400" class="absolute inset-0 w-full h-full object-cover opacity-60 scale-110" style="animation: zoomOut 20s infinite alternate;" alt="Hero">
+      <div class="relative text-center text-white px-6 space-y-8">
+        <div class="space-y-2">
+            <span class="text-[11px] uppercase tracking-[0.5em] font-light">Tuyệt tác MimiFlower 2026</span>
+            <h1 class="text-6xl md:text-8xl serif italic leading-tight">Vẻ đẹp trường tồn</h1>
+        </div>
+        <p class="max-w-xl mx-auto text-sm font-light leading-relaxed opacity-80">Mimihoalua trao gửi những giá trị thẩm mỹ vĩnh cửu, tinh tế trong từng cánh hoa lụa cao cấp.</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="#/shop" class="bg-white text-black px-12 py-5 rounded-full font-bold text-xs tracking-[0.3em] uppercase hover:bg-black hover:text-white transition shadow-2xl">Mua ngay</a>
+            <a href="#/shop" class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-12 py-5 rounded-full font-bold text-xs tracking-[0.3em] uppercase hover:bg-white hover:text-black transition">Bộ sưu tập</a>
+        </div>
       </div>
     </section>
 
-    <section id="view-shop" class="hidden max-w-7xl mx-auto px-4 py-16">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
-        <div>
-          <h2 class="text-4xl serif">Cửa hàng</h2>
-          <p class="text-slate-500 mt-2">Tìm mẫu hoa ưng ý nhất cho bạn</p>
+    <section id="view-shop" class="hidden max-w-7xl mx-auto px-6 py-24 fade-in">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-16">
+        <div class="space-y-2">
+          <h2 class="text-5xl serif">Cửa hàng trực tuyến</h2>
+          <div class="h-1 w-20 bg-black"></div>
         </div>
-        <div class="flex flex-wrap gap-3 w-full md:w-auto">
-          <input id="qSearch" class="flex-1 md:w-64 bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-100" placeholder="Tìm tên hoa...">
-          <select id="qCategory" class="bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm outline-none">
+        <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 opacity-30 text-sm"></i>
+              <input id="qSearch" class="w-full sm:w-72 bg-white border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm outline-none shadow-sm focus:ring-4 focus:ring-slate-50 transition" placeholder="Tìm tên hoa Mimi...">
+          </div>
+          <select id="qCategory" class="bg-white border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold outline-none shadow-sm focus:ring-4 focus:ring-slate-50 transition">
             <option value="">Tất cả danh mục</option>
           </select>
         </div>
       </div>
       
-      <div id="shopLoading" class="text-center py-20 text-slate-400">Đang đồng bộ kho hàng...</div>
-      <div id="productGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6"></div>
+      <div id="shopLoading" class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="space-y-4"><div class="skeleton aspect-[4/5] rounded-[2.5rem]"></div><div class="skeleton h-4 w-2/3 mx-auto"></div></div>
+          <div class="space-y-4"><div class="skeleton aspect-[4/5] rounded-[2.5rem]"></div><div class="skeleton h-4 w-2/3 mx-auto"></div></div>
+          <div class="space-y-4"><div class="skeleton aspect-[4/5] rounded-[2.5rem]"></div><div class="skeleton h-4 w-2/3 mx-auto"></div></div>
+          <div class="space-y-4"><div class="skeleton aspect-[4/5] rounded-[2.5rem]"></div><div class="skeleton h-4 w-2/3 mx-auto"></div></div>
+      </div>
+      <div id="productGrid" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16"></div>
     </section>
 
-    <section id="view-product" class="hidden max-w-7xl mx-auto px-4 py-16">
-        <div id="productDetail" class="grid grid-cols-1 md:grid-cols-2 gap-12"></div>
+    <section id="view-product" class="hidden max-w-7xl mx-auto px-6 py-24 fade-in">
+        <div id="productDetail" class="grid grid-cols-1 md:grid-cols-2 gap-20"></div>
     </section>
 
-    <section id="view-checkout" class="hidden max-w-4xl mx-auto px-4 py-16">
-        <h2 class="text-3xl serif mb-8">Thanh toán</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div class="space-y-6">
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 space-y-4">
-                    <h3 class="font-bold">Thông tin giao hàng</h3>
-                    <input id="fName" class="w-full bg-slate-50 rounded-xl p-4 text-sm outline-none" placeholder="Họ và tên *">
-                    <input id="fPhone" class="w-full bg-slate-50 rounded-xl p-4 text-sm outline-none" placeholder="Số điện thoại *">
-                    <textarea id="fAddress" class="w-full bg-slate-50 rounded-xl p-4 text-sm outline-none" placeholder="Địa chỉ giao hàng *"></textarea>
+    <section id="view-checkout" class="hidden max-w-5xl mx-auto px-6 py-24 fade-in">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+            <div class="space-y-10">
+                <h2 class="text-4xl serif">Thanh toán</h2>
+                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
+                    <h3 class="font-black text-xs uppercase tracking-widest opacity-40">Thông tin người nhận</h3>
+                    <div class="space-y-4">
+                        <input id="fName" class="w-full bg-slate-50 rounded-2xl p-5 text-sm outline-none" placeholder="Họ và tên *">
+                        <input id="fPhone" class="w-full bg-slate-50 rounded-2xl p-5 text-sm outline-none" placeholder="Số điện thoại *">
+                        <textarea id="fAddress" rows="3" class="w-full bg-slate-50 rounded-2xl p-5 text-sm outline-none" placeholder="Địa chỉ giao hàng đầy đủ *"></textarea>
+                    </div>
                 </div>
-                <button id="btnPlaceOrder" class="w-full bg-black text-white py-5 rounded-2xl font-bold shadow-xl hover:bg-slate-800 transition">XÁC NHẬN ĐẶT HÀNG</button>
+                <button id="btnPlaceOrder" class="w-full bg-black text-white py-6 rounded-2xl font-black text-sm tracking-widest uppercase shadow-2xl hover:bg-slate-800 transition">Xác nhận đặt hàng</button>
             </div>
-            <div id="checkoutSummary" class="bg-indigo-50/50 p-8 rounded-[2.5rem] h-fit"></div>
+            <div id="checkoutSummary" class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm"></div>
         </div>
     </section>
 
-    <section id="view-thanks" class="hidden py-20 text-center space-y-6">
-        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-check"></i></div>
-        <h2 class="text-4xl serif">Cảm ơn bạn!</h2>
-        <p class="text-slate-500">Đơn hàng của bạn đã được tiếp nhận thành công.</p>
-        <div id="thankOrderCode" class="text-xl font-mono font-bold"></div>
-        <a href="#/shop" class="inline-block bg-black text-white px-10 py-4 rounded-full font-bold uppercase text-xs">Tiếp tục mua sắm</a>
+    <section id="view-thanks" class="hidden py-32 text-center space-y-10 fade-in">
+        <div class="w-24 h-24 bg-black text-white rounded-full flex items-center justify-center mx-auto text-4xl shadow-2xl rotate-12"><i class="fa-solid fa-heart"></i></div>
+        <div class="space-y-3">
+            <h2 class="text-5xl serif italic">Cảm ơn vì đã tin chọn</h2>
+            <p class="text-slate-400 font-light">Mimihoalua sẽ sớm liên hệ để xác nhận tác phẩm hoa dành cho bạn.</p>
+        </div>
+        <div id="thankOrderCode" class="inline-block bg-slate-100 px-8 py-3 rounded-full text-sm font-mono font-black"></div>
+        <br>
+        <a href="#/shop" class="inline-block border-b-2 border-black pb-2 font-black text-xs uppercase tracking-widest mt-10">Tiếp tục mua sắm</a>
     </section>
   </main>
 
-  <div id="cartBackdrop" class="fixed inset-0 bg-black/40 z-[100] hidden backdrop-blur-sm"></div>
-  <aside id="cartDrawer" class="cart-drawer fixed top-0 right-0 h-full w-full max-w-md bg-white z-[110] shadow-2xl translate-x-full flex flex-col">
-    <div class="p-6 border-b flex justify-between items-center">
-      <h3 class="text-xl font-bold">Giỏ hàng</h3>
-      <button id="btnCloseCart" class="text-2xl">✕</button>
+  <div id="cartBackdrop" class="fixed inset-0 bg-black/60 z-[100] hidden backdrop-blur-md"></div>
+  <aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[110] shadow-2xl translate-x-full transition-transform duration-500 flex flex-col">
+    <div class="p-8 border-b flex justify-between items-center">
+      <h3 class="text-2xl serif italic">Giỏ hàng của bạn</h3>
+      <button id="btnCloseCart" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50">✕</button>
     </div>
-    <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
-    <div class="p-6 border-t bg-slate-50 space-y-4">
-      <div class="flex justify-between font-bold text-lg"><span>Tổng cộng:</span><span id="cartTotal">0 đ</span></div>
-      <button id="btnCheckout" class="w-full bg-black text-white py-4 rounded-2xl font-bold">TIẾN HÀNH THANH TOÁN</button>
+    <div id="cartItems" class="flex-1 overflow-y-auto p-8 space-y-6"></div>
+    <div class="p-8 bg-slate-50 space-y-6">
+      <div class="flex justify-between font-black text-xl serif"><span>Tổng thanh toán</span><span id="cartTotal">0 đ</span></div>
+      <button id="btnCheckout" class="w-full bg-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Tiến hành thanh toán</button>
     </div>
   </aside>
 
   <script type="module">
+    // --- FIREBASE CONFIG (DỰ ÁN: esomar-vnn) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
       authDomain: "esomar-vnn.firebaseapp.com",
@@ -135,60 +162,63 @@
     const el = (id) => document.getElementById(id);
     const fmt = (n) => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
 
-    let cart = JSON.parse(localStorage.getItem('sf_cart') || '[]');
+    let cart = JSON.parse(localStorage.getItem('mimi_cart_pro') || '[]');
     let currentUID = null;
 
-    // TOAST
     function showToast(msg) {
         const t = document.createElement('div');
-        t.className = "toast-pop bg-black text-white px-8 py-4 rounded-full shadow-2xl font-bold text-sm";
-        t.innerText = msg;
+        t.className = "fade-in bg-white border border-slate-100 text-black px-8 py-4 rounded-2xl shadow-2xl font-bold text-xs uppercase tracking-widest flex items-center gap-3";
+        t.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> ${msg}`;
         el('toastHost').appendChild(t);
-        setTimeout(() => t.remove(), 3000);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 3000);
     }
 
-    // AUTH
     onAuthStateChanged(auth, (u) => { 
         if (u) currentUID = u.uid; 
         else signInAnonymously(auth); 
     });
 
-    // DYNAMIC CATEGORIES
+    // SYNC CATEGORIES FROM ADMIN
     onSnapshot(collection(db, "categories"), (snap) => {
         const select = el('qCategory');
         select.innerHTML = '<option value="">Tất cả danh mục</option>';
-        snap.forEach(d => {
-            select.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
-        });
+        snap.forEach(d => { select.innerHTML += `<option value="${d.id}">${d.data().name}</option>`; });
     });
 
-    // LOAD PRODUCTS
-    onSnapshot(query(collection(db, "products"), where("active", "==", true), orderBy("createdAt", "desc")), (snap) => {
+    // SYNC PRODUCTS (REQUIRES INDEX!)
+    const qProducts = query(collection(db, "products"), where("active", "==", true), orderBy("createdAt", "desc"));
+    onSnapshot(qProducts, (snap) => {
         el('shopLoading').classList.add('hidden');
+        el('productGrid').classList.remove('hidden');
         renderShop(snap);
     });
 
     function renderShop(snap) {
         const grid = el('productGrid');
         grid.innerHTML = "";
+        if(snap.empty) grid.innerHTML = '<p class="col-span-full text-center py-20 text-slate-400 font-light">Mimihoalua đang chuẩn bị thêm mẫu hoa mới...</p>';
         snap.forEach(d => {
             const p = d.data();
             const id = d.id;
             grid.innerHTML += `
                 <div class="product-card group cursor-pointer" onclick="location.hash='#/product/${id}'">
-                    <div class="aspect-[4/5] rounded-[2rem] overflow-hidden bg-white mb-4">
-                        <img src="${p.images?.[0] || ''}" class="w-full h-full object-cover transition duration-500">
+                    <div class="aspect-[4/5] rounded-[2.8rem] overflow-hidden bg-white mb-6 shadow-sm border border-slate-50 relative">
+                        <img src="${p.images?.[0] || 'https://placehold.co/800x1000?text=Mimihoalua'}" class="w-full h-full object-cover transition duration-1000">
+                        <div class="absolute inset-x-4 bottom-4 btn-quick-add opacity-0 translate-y-2 transition duration-500">
+                            <button class="w-full bg-white/90 backdrop-blur-md text-black py-4 rounded-2xl font-black text-[10px] tracking-widest uppercase">Chi tiết tác phẩm</button>
+                        </div>
                     </div>
-                    <p class="text-[10px] font-black uppercase text-indigo-500 tracking-widest">${p.category}</p>
-                    <h4 class="font-bold text-lg truncate">${p.name}</h4>
-                    <p class="font-black text-indigo-600">${fmt(p.basePrice)}</p>
+                    <div class="px-2 space-y-1">
+                        <p class="text-[9px] font-black uppercase text-indigo-500 tracking-[0.2em]">${p.category}</p>
+                        <h4 class="font-bold text-lg leading-tight truncate">${p.name}</h4>
+                        <p class="font-black text-indigo-600">${fmt(p.basePrice)}</p>
+                    </div>
                 </div>`;
         });
     }
 
-    // CART LOGIC
     window.updateCart = () => {
-        localStorage.setItem('sf_cart', JSON.stringify(cart));
+        localStorage.setItem('mimi_cart_pro', JSON.stringify(cart));
         el('cartBadge').innerText = cart.length;
         el('cartBadge').classList.toggle('hidden', cart.length === 0);
         renderCart();
@@ -196,15 +226,15 @@
 
     function renderCart() {
         const host = el('cartItems');
-        host.innerHTML = cart.length ? "" : '<p class="text-center text-slate-400 py-10">Giỏ hàng đang trống</p>';
+        host.innerHTML = cart.length ? "" : '<div class="h-full flex flex-col items-center justify-center space-y-4 opacity-30"><i class="fa-solid fa-box-open text-5xl"></i><p class="text-[10px] font-black uppercase tracking-widest">Giỏ hàng trống</p></div>';
         let total = 0;
         cart.forEach((item, index) => {
             total += item.price;
             host.innerHTML += `
-                <div class="flex gap-4 items-center">
-                    <img src="${item.img}" class="w-16 h-16 rounded-xl object-cover">
-                    <div class="flex-1"><h5 class="font-bold text-sm">${item.name}</h5><p class="text-xs text-indigo-600">${fmt(item.price)}</p></div>
-                    <button onclick="removeItem(${index})" class="text-slate-300 hover:text-red-500">✕</button>
+                <div class="flex gap-5 items-center bg-slate-50 p-4 rounded-3xl group">
+                    <img src="${item.img}" class="w-20 h-20 rounded-2xl object-cover">
+                    <div class="flex-1 space-y-1"><h5 class="font-bold text-sm leading-tight">${item.name}</h5><p class="text-xs font-black text-indigo-600">${fmt(item.price)}</p></div>
+                    <button onclick="removeItem(${index})" class="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm opacity-0 group-hover:opacity-100 transition">✕</button>
                 </div>`;
         });
         el('cartTotal').innerText = fmt(total);
@@ -212,20 +242,14 @@
 
     window.removeItem = (idx) => { cart.splice(idx, 1); updateCart(); };
 
-    // ROUTING
     const route = async () => {
         const hash = location.hash || '#/';
         document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-        
         if (hash === '#/') el('view-hero').classList.remove('hidden');
         else if (hash === '#/shop') el('view-shop').classList.remove('hidden');
-        else if (hash === '#/checkout') { renderCheckout(); el('view-checkout').classList.remove('hidden'); }
+        else if (hash === '#/checkout') { if(!cart.length){ location.hash='#/shop'; return; } renderCheckout(); el('view-checkout').classList.remove('hidden'); }
         else if (hash === '#/thanks') el('view-thanks').classList.remove('hidden');
-        else if (hash.startsWith('#/product/')) {
-            const id = hash.split('/')[2];
-            renderProductDetail(id);
-            el('view-product').classList.remove('hidden');
-        }
+        else if (hash.startsWith('#/product/')) { renderProductDetail(hash.split('/')[2]); el('view-product').classList.remove('hidden'); }
         window.scrollTo(0,0);
     };
 
@@ -234,58 +258,43 @@
         if (!s.exists()) return;
         const p = s.data();
         el('productDetail').innerHTML = `
-            <div class="rounded-[3rem] overflow-hidden"><img src="${p.images?.[0]}" class="w-full"></div>
-            <div class="space-y-6">
-                <span class="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-full text-xs font-bold uppercase">${p.category}</span>
-                <h2 class="text-4xl serif">${p.name}</h2>
-                <p class="text-3xl font-black text-indigo-600">${fmt(p.basePrice)}</p>
-                <button onclick="addToCart('${id}', '${p.name}', ${p.basePrice}, '${p.images?.[0]}')" class="w-full bg-black text-white py-5 rounded-2xl font-bold shadow-xl">THÊM VÀO GIỎ HÀNG</button>
-                <div class="pt-6 border-t text-sm text-slate-500 leading-relaxed">${p.description || 'Sản phẩm thủ công tinh xảo, chất liệu lụa cao cấp.'}</div>
+            <div class="rounded-[3.5rem] overflow-hidden shadow-2xl"><img src="${p.images?.[0] || ''}" class="w-full"></div>
+            <div class="flex flex-col justify-center space-y-8">
+                <div class="space-y-4">
+                    <span class="bg-indigo-50 text-indigo-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest w-fit">${p.category}</span>
+                    <h2 class="text-5xl md:text-6xl serif italic leading-tight">${p.name}</h2>
+                    <p class="text-4xl font-black text-indigo-600">${fmt(p.basePrice)}</p>
+                </div>
+                <div class="text-slate-500 text-sm leading-relaxed font-light">${p.description || 'Tác phẩm hoa lụa MimiFlower cao cấp, thủ công 100%.'}</div>
+                <button onclick="addToCart('${id}', '${p.name}', ${p.basePrice}, '${p.images?.[0]}')" class="w-full bg-black text-white py-6 rounded-2xl font-black text-xs tracking-widest uppercase">Thêm vào giỏ hàng</button>
             </div>`;
     }
 
-    window.addToCart = (id, name, price, img) => {
-        cart.push({ id, name, price, img });
-        updateCart();
-        showToast("Đã thêm vào giỏ hàng!");
-    };
+    window.addToCart = (id, name, price, img) => { cart.push({ id, name, price, img }); updateCart(); showToast("Đã thêm vào giỏ hàng"); };
 
     function renderCheckout() {
-        let total = 0;
-        let html = '<h3 class="font-bold mb-4">Tóm tắt đơn hàng</h3><div class="space-y-3">';
-        cart.forEach(item => {
-            total += item.price;
-            html += `<div class="flex justify-between text-sm"><span>${item.name}</span><span class="font-bold">${fmt(item.price)}</span></div>`;
-        });
-        html += `</div><div class="border-t mt-4 pt-4 flex justify-between font-black text-xl"><span>Tổng tiền</span><span>${fmt(total)}</span></div>`;
+        let total = cart.reduce((a,b) => a + b.price, 0);
+        let html = '<h3 class="font-black text-[10px] uppercase tracking-widest opacity-40 mb-8">Tóm tắt đơn hàng</h3><div class="space-y-6">';
+        cart.forEach(item => { html += `<div class="flex justify-between items-center text-sm"><span>${item.name}</span><span class="font-black">${fmt(item.price)}</span></div>`; });
+        html += `</div><div class="border-t border-slate-100 mt-8 pt-8 flex justify-between font-black text-2xl serif italic"><span>Tổng cộng</span><span>${fmt(total)}</span></div>`;
         el('checkoutSummary').innerHTML = html;
     }
 
-    // PLACE ORDER
     el('btnPlaceOrder').onclick = async () => {
         if (!el('fName').value || !el('fPhone').value || !el('fAddress').value) return showToast("Vui lòng điền đủ thông tin!");
-        
         const orderData = {
-            uid: currentUID,
-            customerName: el('fName').value,
-            customerPhone: el('fPhone').value,
-            address: el('fAddress').value,
-            items: cart,
-            totals: { total: cart.reduce((a,b) => a + b.price, 0) },
-            status: "new",
-            createdAt: serverTimestamp()
+            uid: currentUID, customerName: el('fName').value.trim(), customerPhone: el('fPhone').value.trim(),
+            address: el('fAddress').value.trim(), items: cart, totals: { total: cart.reduce((a,b) => a + b.price, 0) },
+            status: "new", createdAt: serverTimestamp()
         };
-
         const docRef = await addDoc(collection(db, "orders"), orderData);
         el('thankOrderCode').innerText = `Mã đơn: #${docRef.id.slice(0,8).toUpperCase()}`;
-        cart = []; updateCart();
-        location.hash = "#/thanks";
+        cart = []; updateCart(); location.hash = "#/thanks";
     };
 
-    // UI Events
     el('btnCart').onclick = () => { el('cartBackdrop').classList.remove('hidden'); el('cartDrawer').classList.remove('translate-x-full'); document.body.classList.add('no-scroll'); };
     el('btnCloseCart').onclick = () => { el('cartBackdrop').classList.add('hidden'); el('cartDrawer').classList.add('translate-x-full'); document.body.classList.remove('no-scroll'); };
-    el('btnCheckout').onclick = () => { if(!cart.length) return showToast("Giỏ hàng đang trống!"); el('btnCloseCart').click(); location.hash = "#/checkout"; };
+    el('btnCheckout').onclick = () => { if(!cart.length) return showToast("Giỏ hàng trống!"); el('btnCloseCart').click(); location.hash = "#/checkout"; };
 
     window.addEventListener('hashchange', route);
     window.onload = () => { route(); updateCart(); };
