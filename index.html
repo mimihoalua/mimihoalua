@@ -7,196 +7,288 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
-    body{font-family:Inter,sans-serif}
-    .serif{font-family:"Playfair Display",serif}
-    .nav-link{position:relative;transition:color .25s ease}
-    .nav-link:after{content:"";position:absolute;width:0;height:1px;bottom:-2px;left:0;background-color:currentColor;transition:width .25s ease}
-    .nav-link:hover:after{width:100%}
-    .shadow-soft{box-shadow:0 10px 30px rgba(0,0,0,.08)}
-    .modal-backdrop{background:rgba(0,0,0,.45)}
-    .no-scroll{overflow:hidden}
-    .toast{animation:slideDown .2s ease}
-    @keyframes slideDown{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+    .serif { font-family: 'Playfair Display', serif; }
+    .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); }
+    .cart-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .product-card:hover img { transform: scale(1.05); }
+    .toast-pop { animation: slideUp 0.4s ease-out forwards; }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .no-scroll { overflow: hidden; }
   </style>
 </head>
 
-<body class="bg-[#faf9f6] text-gray-900">
-  <div id="toastHost" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-2xl space-y-3"></div>
+<body class="bg-[#faf9f6] text-slate-900">
+  <div id="toastHost" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] space-y-2"></div>
 
-  <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <a href="#/" class="text-xl sm:text-2xl font-bold tracking-tight uppercase serif italic">SilkFlower</a>
-
-      <div class="hidden md:flex space-x-8 text-xs font-medium tracking-[0.2em] uppercase">
-        <a href="#/" class="nav-link">Trang chủ</a>
-        <a href="#/shop" class="nav-link">Cửa hàng</a>
-        <a href="#/collections" class="nav-link">Bộ sưu tập</a>
-        <a href="#/policy" class="nav-link">Chính sách</a>
-        <a href="#/contact" class="nav-link">Liên hệ</a>
+  <nav class="glass-nav sticky top-0 z-50 border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <a href="#/" class="text-2xl font-bold serif italic tracking-tighter">SilkFlower</a>
+      
+      <div class="hidden md:flex space-x-8 text-[11px] uppercase tracking-[0.2em] font-bold">
+        <a href="#/" class="hover:text-indigo-600 transition">Trang chủ</a>
+        <a href="#/shop" class="hover:text-indigo-600 transition">Cửa hàng</a>
+        <a href="#/policy" class="hover:text-indigo-600 transition">Chính sách</a>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="btnSearch" class="p-2 hover:bg-gray-100 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.3-4.3m1.8-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
-        <button id="btnCart" class="relative p-2 hover:bg-gray-100 rounded-full transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 7h13L17 13M7 13H5.4M9 21a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z"/></svg>
-          <span id="cartBadge" class="hidden absolute -top-1 -right-1 bg-black text-white text-[10px] rounded-full px-1.5 py-0.5"></span>
+      <div class="flex items-center gap-4">
+        <button id="btnCart" class="relative p-2">
+          <i class="fa-solid fa-bag-shopping text-xl"></i>
+          <span id="cartBadge" class="hidden absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">0</span>
         </button>
-        <a href="admin.html" class="hidden sm:inline-flex text-xs px-3 py-2 rounded-full border border-gray-200 hover:bg-white transition">Admin</a>
+        <a href="admin.html" class="text-xs bg-black text-white px-4 py-2 rounded-full font-bold">ADMIN</a>
       </div>
     </div>
   </nav>
 
-  <header id="view-hero" class="relative w-full h-[62vh] overflow-hidden bg-gray-200">
-    <img src="https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&q=80&w=2400" class="w-full h-full object-cover" alt="Hoa lụa" />
-    <div class="absolute inset-0 bg-black/25 flex flex-col items-center justify-center text-center text-white p-6">
-      <span class="uppercase tracking-[0.35em] text-xs mb-4 font-light">Hoa lụa cao cấp • Giao nhanh</span>
-      <h1 class="text-4xl md:text-6xl mb-6 max-w-3xl font-normal leading-tight serif">Hoa đẹp bền lâu — tinh tế cho mọi dịp</h1>
-      <div class="flex flex-col sm:flex-row gap-3">
-        <a href="#/shop" class="bg-white text-black px-10 py-4 uppercase text-[11px] tracking-widest font-bold hover:bg-black hover:text-white transition">Mua ngay</a>
-        <a href="#/collections" class="bg-transparent border border-white/70 text-white px-10 py-4 uppercase text-[11px] tracking-widest font-bold hover:bg-white hover:text-black transition">Xem bộ sưu tập</a>
+  <main>
+    <section id="view-hero" class="relative h-[70vh] flex items-center justify-center overflow-hidden">
+      <img src="https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&q=80&w=2000" class="absolute inset-0 w-full h-full object-cover" alt="Hero">
+      <div class="absolute inset-0 bg-black/30"></div>
+      <div class="relative text-center text-white p-6 space-y-6">
+        <h1 class="text-5xl md:text-7xl serif">Vẻ đẹp vĩnh cửu</h1>
+        <p class="max-w-md mx-auto text-sm font-light tracking-widest uppercase">Hoa lụa thiết kế cao cấp cho không gian sống</p>
+        <a href="#/shop" class="inline-block bg-white text-black px-12 py-4 rounded-full font-bold text-xs tracking-[0.3em] uppercase hover:bg-black hover:text-white transition">Khám phá ngay</a>
       </div>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-    <section id="view-shop" class="hidden">
-      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-        <div><h2 class="text-3xl sm:text-4xl font-normal serif">Cửa hàng</h2></div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-[680px]">
-          <input id="qSearch" class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" placeholder="Tìm kiếm...">
-          <select id="qCategory" class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
-            <option value="">Tất cả danh mục</option>
-            <option value="bo-hoa">Bó hoa</option>
-            <option value="gio-hoa">Giỏ hoa</option>
-            <option value="binh-hoa">Bình hoa</option>
-          </select>
-          <select id="qSort" class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
-            <option value="new">Mới nhất</option>
-            <option value="price_asc">Giá tăng dần</option>
-            <option value="price_desc">Giá giảm dần</option>
-          </select>
-        </div>
-      </div>
-      <div id="shopLoading" class="py-10 text-center text-gray-500">Đang tải sản phẩm...</div>
-      <div id="productGrid" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
-      <div class="mt-10 text-center"><button id="btnLoadMore" class="hidden px-6 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition text-sm">Tải thêm</button></div>
     </section>
 
-    <section id="view-product" class="hidden">
-      <div class="flex items-center justify-between mb-6">
-        <a href="#/shop" class="text-sm text-gray-600 hover:text-black">← Quay lại cửa hàng</a>
-        <button id="btnProductToCart" class="text-sm px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50">Mở giỏ hàng</button>
-      </div>
-      <div id="productViewLoading" class="py-10 text-center text-gray-500">Đang tải sản phẩm...</div>
-      <div id="productView" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-soft">
+    <section id="view-shop" class="hidden max-w-7xl mx-auto px-4 py-16">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
         <div>
-          <div class="aspect-[4/5] bg-gray-100 rounded-xl overflow-hidden"><img id="pvMainImg" class="w-full h-full object-cover" alt="Ảnh"></div>
-          <div id="pvThumbs" class="mt-4 grid grid-cols-5 gap-2"></div>
+          <h2 class="text-4xl serif">Cửa hàng</h2>
+          <p class="text-slate-500 mt-2">Tìm mẫu hoa ưng ý nhất cho bạn</p>
         </div>
-        <div class="space-y-5">
-          <div>
-            <div id="pvTags" class="flex flex-wrap gap-2 mb-3"></div>
-            <h1 id="pvName" class="text-3xl serif"></h1>
-            <p id="pvDesc" class="text-gray-600 text-sm mt-2"></p>
-            <div class="mt-4 flex items-baseline gap-3">
-              <div id="pvPrice" class="text-2xl font-semibold"></div>
-              <div id="pvCompare" class="text-sm text-gray-400 line-through hidden"></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label class="text-xs uppercase tracking-widest text-gray-500">Kích thước</label><select id="pvVariant" class="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm"></select></div>
-            <div><label class="text-xs uppercase tracking-widest text-gray-500">Màu wrap</label><select id="pvWrapColor" class="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm"></select></div>
-          </div>
-          <div><label class="text-xs uppercase tracking-widest text-gray-500">Nội dung thiệp</label><textarea id="pvCardMsg" rows="3" class="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Ví dụ: Chúc mừng sinh nhật..."></textarea></div>
-          <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white">
-              <button id="pvQtyMinus" class="px-4 py-3 hover:bg-gray-50">-</button>
-              <div id="pvQty" class="px-4 py-3 text-sm w-10 text-center">1</div>
-              <button id="pvQtyPlus" class="px-4 py-3 hover:bg-gray-50">+</button>
-            </div>
-            <div class="flex gap-3 w-full justify-end">
-              <button id="pvAddToCart" class="px-6 py-3 rounded-xl bg-black text-white hover:bg-gray-800 transition text-sm">Thêm vào giỏ</button>
-              <button id="pvBuyNow" class="px-6 py-3 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition text-sm">Mua ngay</button>
-            </div>
-          </div>
+        <div class="flex flex-wrap gap-3 w-full md:w-auto">
+          <input id="qSearch" class="flex-1 md:w-64 bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-100" placeholder="Tìm tên hoa...">
+          <select id="qCategory" class="bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm outline-none">
+            <option value="">Tất cả danh mục</option>
+          </select>
         </div>
       </div>
+      
+      <div id="shopLoading" class="text-center py-20 text-slate-400">Đang đồng bộ kho hàng...</div>
+      <div id="productGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </section>
 
-    <section id="view-checkout" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <aside class="lg:col-span-2">
-          <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-soft lg:sticky lg:top-24">
-            <h2 class="text-lg serif">Đơn hàng</h2>
-            <div id="sumItems" class="mt-4 space-y-3"></div>
-            <div class="mt-5 pt-5 border-t border-gray-100 space-y-2 text-sm">
-              <div class="flex justify-between"><span>Tạm tính</span><span id="sumSubtotal"></span></div>
-              <div class="flex justify-between"><span>Phí ship</span><span id="sumShip"></span></div>
-              <div class="flex justify-between text-base font-semibold pt-2"><span>Tổng cộng</span><span id="sumTotal"></span></div>
-            </div>
-          </div>
-        </aside>
-        <section class="lg:col-span-3">
-          <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-soft">
-            <h2 class="text-xl serif">Thông tin giao hàng</h2>
-            <div class="mt-6 space-y-4">
-              <input id="fName" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Họ và tên">
-              <input id="fPhone" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Số điện thoại">
-              <input id="fStreet" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Địa chỉ cụ thể">
-              <button id="btnPlaceOrder" class="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-gray-800 transition">XÁC NHẬN ĐẶT HÀNG</button>
-            </div>
-          </div>
-        </section>
-      </div>
+    <section id="view-product" class="hidden max-w-7xl mx-auto px-4 py-16">
+        <div id="productDetail" class="grid grid-cols-1 md:grid-cols-2 gap-12"></div>
     </section>
 
-    <section id="view-thanks" class="hidden text-center">
-      <div class="max-w-2xl mx-auto bg-white border border-gray-100 rounded-2xl p-8 shadow-soft">
-        <h2 class="text-3xl serif">Đặt hàng thành công</h2>
-        <p class="text-gray-600 mt-3">Chúng tôi sẽ liên hệ sớm nhất.</p>
-        <div class="mt-6 p-4 bg-gray-50 rounded-xl text-left"><div class="text-sm text-gray-500">Mã đơn:</div><div id="thankCode" class="text-2xl font-semibold"></div></div>
-        <a href="#/shop" class="mt-8 inline-block px-10 py-4 bg-black text-white rounded-xl">Quay lại cửa hàng</a>
-      </div>
+    <section id="view-checkout" class="hidden max-w-4xl mx-auto px-4 py-16">
+        <h2 class="text-3xl serif mb-8">Thanh toán</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 space-y-4">
+                    <h3 class="font-bold">Thông tin giao hàng</h3>
+                    <input id="fName" class="w-full bg-slate-50 rounded-xl p-4 text-sm outline-none" placeholder="Họ và tên *">
+                    <input id="fPhone" class="w-full bg-slate-50 rounded-xl p-4 text-sm outline-none" placeholder="Số điện thoại *">
+                    <textarea id="fAddress" class="w-full bg-slate-50 rounded-xl p-4 text-sm outline-none" placeholder="Địa chỉ giao hàng *"></textarea>
+                </div>
+                <button id="btnPlaceOrder" class="w-full bg-black text-white py-5 rounded-2xl font-bold shadow-xl hover:bg-slate-800 transition">XÁC NHẬN ĐẶT HÀNG</button>
+            </div>
+            <div id="checkoutSummary" class="bg-indigo-50/50 p-8 rounded-[2.5rem] h-fit"></div>
+        </div>
+    </section>
+
+    <section id="view-thanks" class="hidden py-20 text-center space-y-6">
+        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-check"></i></div>
+        <h2 class="text-4xl serif">Cảm ơn bạn!</h2>
+        <p class="text-slate-500">Đơn hàng của bạn đã được tiếp nhận thành công.</p>
+        <div id="thankOrderCode" class="text-xl font-mono font-bold"></div>
+        <a href="#/shop" class="inline-block bg-black text-white px-10 py-4 rounded-full font-bold uppercase text-xs">Tiếp tục mua sắm</a>
     </section>
   </main>
 
+  <div id="cartBackdrop" class="fixed inset-0 bg-black/40 z-[100] hidden backdrop-blur-sm"></div>
+  <aside id="cartDrawer" class="cart-drawer fixed top-0 right-0 h-full w-full max-w-md bg-white z-[110] shadow-2xl translate-x-full flex flex-col">
+    <div class="p-6 border-b flex justify-between items-center">
+      <h3 class="text-xl font-bold">Giỏ hàng</h3>
+      <button id="btnCloseCart" class="text-2xl">✕</button>
+    </div>
+    <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+    <div class="p-6 border-t bg-slate-50 space-y-4">
+      <div class="flex justify-between font-bold text-lg"><span>Tổng cộng:</span><span id="cartTotal">0 đ</span></div>
+      <button id="btnCheckout" class="w-full bg-black text-white py-4 rounded-2xl font-bold">TIẾN HÀNH THANH TOÁN</button>
+    </div>
+  </aside>
+
   <script type="module">
-    // --- FIREBASE CONFIG (DỰ ÁN: esomar-vnn) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
       authDomain: "esomar-vnn.firebaseapp.com",
       projectId: "esomar-vnn",
       storageBucket: "esomar-vnn.firebasestorage.app",
       messagingSenderId: "1023271897973",
-      appId: "1:1023271897973:web:c7207b0e8321fc271fe13c",
-      measurementId: "G-L078YGNJ3J"
+      appId: "1:1023271897973:web:c7207b0e8321fc271fe13c"
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, query, where, orderBy, limit, getDocs, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, query, where, orderBy, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const el = (id) => document.getElementById(id);
+    const fmt = (n) => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
 
-    // Xử lý Route đơn giản
-    const route = () => {
-      const hash = window.location.hash || '#/';
-      document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-      if (hash === '#/') document.getElementById('view-hero').classList.remove('hidden');
-      if (hash.startsWith('#/shop')) document.getElementById('view-shop').classList.remove('hidden');
-      if (hash.startsWith('#/product')) document.getElementById('view-product').classList.remove('hidden');
-      if (hash === '#/checkout') document.getElementById('view-checkout').classList.remove('hidden');
-      if (hash === '#/thanks') document.getElementById('view-thanks').classList.remove('hidden');
-    };
-    window.addEventListener('hashchange', route);
-    window.addEventListener('load', () => {
-        route();
-        signInAnonymously(auth); // Cho khách đặt hàng không cần tài khoản
+    let cart = JSON.parse(localStorage.getItem('sf_cart') || '[]');
+    let currentUID = null;
+
+    // TOAST
+    function showToast(msg) {
+        const t = document.createElement('div');
+        t.className = "toast-pop bg-black text-white px-8 py-4 rounded-full shadow-2xl font-bold text-sm";
+        t.innerText = msg;
+        el('toastHost').appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    // AUTH
+    onAuthStateChanged(auth, (u) => { 
+        if (u) currentUID = u.uid; 
+        else signInAnonymously(auth); 
     });
+
+    // DYNAMIC CATEGORIES
+    onSnapshot(collection(db, "categories"), (snap) => {
+        const select = el('qCategory');
+        select.innerHTML = '<option value="">Tất cả danh mục</option>';
+        snap.forEach(d => {
+            select.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+        });
+    });
+
+    // LOAD PRODUCTS
+    onSnapshot(query(collection(db, "products"), where("active", "==", true), orderBy("createdAt", "desc")), (snap) => {
+        el('shopLoading').classList.add('hidden');
+        renderShop(snap);
+    });
+
+    function renderShop(snap) {
+        const grid = el('productGrid');
+        grid.innerHTML = "";
+        snap.forEach(d => {
+            const p = d.data();
+            const id = d.id;
+            grid.innerHTML += `
+                <div class="product-card group cursor-pointer" onclick="location.hash='#/product/${id}'">
+                    <div class="aspect-[4/5] rounded-[2rem] overflow-hidden bg-white mb-4">
+                        <img src="${p.images?.[0] || ''}" class="w-full h-full object-cover transition duration-500">
+                    </div>
+                    <p class="text-[10px] font-black uppercase text-indigo-500 tracking-widest">${p.category}</p>
+                    <h4 class="font-bold text-lg truncate">${p.name}</h4>
+                    <p class="font-black text-indigo-600">${fmt(p.basePrice)}</p>
+                </div>`;
+        });
+    }
+
+    // CART LOGIC
+    window.updateCart = () => {
+        localStorage.setItem('sf_cart', JSON.stringify(cart));
+        el('cartBadge').innerText = cart.length;
+        el('cartBadge').classList.toggle('hidden', cart.length === 0);
+        renderCart();
+    };
+
+    function renderCart() {
+        const host = el('cartItems');
+        host.innerHTML = cart.length ? "" : '<p class="text-center text-slate-400 py-10">Giỏ hàng đang trống</p>';
+        let total = 0;
+        cart.forEach((item, index) => {
+            total += item.price;
+            host.innerHTML += `
+                <div class="flex gap-4 items-center">
+                    <img src="${item.img}" class="w-16 h-16 rounded-xl object-cover">
+                    <div class="flex-1"><h5 class="font-bold text-sm">${item.name}</h5><p class="text-xs text-indigo-600">${fmt(item.price)}</p></div>
+                    <button onclick="removeItem(${index})" class="text-slate-300 hover:text-red-500">✕</button>
+                </div>`;
+        });
+        el('cartTotal').innerText = fmt(total);
+    }
+
+    window.removeItem = (idx) => { cart.splice(idx, 1); updateCart(); };
+
+    // ROUTING
+    const route = async () => {
+        const hash = location.hash || '#/';
+        document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+        
+        if (hash === '#/') el('view-hero').classList.remove('hidden');
+        else if (hash === '#/shop') el('view-shop').classList.remove('hidden');
+        else if (hash === '#/checkout') { renderCheckout(); el('view-checkout').classList.remove('hidden'); }
+        else if (hash === '#/thanks') el('view-thanks').classList.remove('hidden');
+        else if (hash.startsWith('#/product/')) {
+            const id = hash.split('/')[2];
+            renderProductDetail(id);
+            el('view-product').classList.remove('hidden');
+        }
+        window.scrollTo(0,0);
+    };
+
+    async function renderProductDetail(id) {
+        const s = await getDoc(doc(db, "products", id));
+        if (!s.exists()) return;
+        const p = s.data();
+        el('productDetail').innerHTML = `
+            <div class="rounded-[3rem] overflow-hidden"><img src="${p.images?.[0]}" class="w-full"></div>
+            <div class="space-y-6">
+                <span class="bg-indigo-50 text-indigo-600 px-4 py-1 rounded-full text-xs font-bold uppercase">${p.category}</span>
+                <h2 class="text-4xl serif">${p.name}</h2>
+                <p class="text-3xl font-black text-indigo-600">${fmt(p.basePrice)}</p>
+                <button onclick="addToCart('${id}', '${p.name}', ${p.basePrice}, '${p.images?.[0]}')" class="w-full bg-black text-white py-5 rounded-2xl font-bold shadow-xl">THÊM VÀO GIỎ HÀNG</button>
+                <div class="pt-6 border-t text-sm text-slate-500 leading-relaxed">${p.description || 'Sản phẩm thủ công tinh xảo, chất liệu lụa cao cấp.'}</div>
+            </div>`;
+    }
+
+    window.addToCart = (id, name, price, img) => {
+        cart.push({ id, name, price, img });
+        updateCart();
+        showToast("Đã thêm vào giỏ hàng!");
+    };
+
+    function renderCheckout() {
+        let total = 0;
+        let html = '<h3 class="font-bold mb-4">Tóm tắt đơn hàng</h3><div class="space-y-3">';
+        cart.forEach(item => {
+            total += item.price;
+            html += `<div class="flex justify-between text-sm"><span>${item.name}</span><span class="font-bold">${fmt(item.price)}</span></div>`;
+        });
+        html += `</div><div class="border-t mt-4 pt-4 flex justify-between font-black text-xl"><span>Tổng tiền</span><span>${fmt(total)}</span></div>`;
+        el('checkoutSummary').innerHTML = html;
+    }
+
+    // PLACE ORDER
+    el('btnPlaceOrder').onclick = async () => {
+        if (!el('fName').value || !el('fPhone').value || !el('fAddress').value) return showToast("Vui lòng điền đủ thông tin!");
+        
+        const orderData = {
+            uid: currentUID,
+            customerName: el('fName').value,
+            customerPhone: el('fPhone').value,
+            address: el('fAddress').value,
+            items: cart,
+            totals: { total: cart.reduce((a,b) => a + b.price, 0) },
+            status: "new",
+            createdAt: serverTimestamp()
+        };
+
+        const docRef = await addDoc(collection(db, "orders"), orderData);
+        el('thankOrderCode').innerText = `Mã đơn: #${docRef.id.slice(0,8).toUpperCase()}`;
+        cart = []; updateCart();
+        location.hash = "#/thanks";
+    };
+
+    // UI Events
+    el('btnCart').onclick = () => { el('cartBackdrop').classList.remove('hidden'); el('cartDrawer').classList.remove('translate-x-full'); document.body.classList.add('no-scroll'); };
+    el('btnCloseCart').onclick = () => { el('cartBackdrop').classList.add('hidden'); el('cartDrawer').classList.add('translate-x-full'); document.body.classList.remove('no-scroll'); };
+    el('btnCheckout').onclick = () => { if(!cart.length) return showToast("Giỏ hàng đang trống!"); el('btnCloseCart').click(); location.hash = "#/checkout"; };
+
+    window.addEventListener('hashchange', route);
+    window.onload = () => { route(); updateCart(); };
   </script>
 </body>
 </html>
