@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SilkFlower Studio — Intelligent Admin</title>
+  <title>SilkFlower — Smart Admin v3.0</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
     .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
     .btn-active { background: #000 !important; color: #fff !important; }
-    .toast-animate { animation: slideIn 0.3s ease-out forwards; }
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .loading-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .toast-animate { animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .modal-animate { animation: zoomIn 0.2s ease-out; }
+    @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   </style>
 </head>
 
 <body class="text-slate-800">
-  <div id="toastContainer" class="fixed top-5 right-5 z-[200] space-y-3"></div>
+  <div id="toastContainer" class="fixed top-5 right-5 z-[1000] space-y-3"></div>
 
   <div class="flex min-h-screen">
     <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col p-6 sticky top-0 h-screen">
@@ -29,148 +29,115 @@
         <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
         <span>SILKFLOWER</span>
       </div>
-      
       <nav class="space-y-2 flex-1">
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition btn-active" data-tab="dashboard">
-          <i class="fa-solid fa-chart-pie w-5"></i> Tổng quan
-        </button>
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="orders">
-          <i class="fa-solid fa-box w-5"></i> Đơn hàng
-        </button>
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="products">
-          <i class="fa-solid fa-leaf w-5"></i> Sản phẩm
-        </button>
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="vouchers">
-          <i class="fa-solid fa-ticket w-5"></i> Vouchers
-        </button>
+        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition btn-active" data-tab="dashboard"><i class="fa-solid fa-chart-pie w-5"></i> Tổng quan</button>
+        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="products"><i class="fa-solid fa-leaf w-5"></i> Sản phẩm</button>
+        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="orders"><i class="fa-solid fa-box w-5"></i> Đơn hàng</button>
       </nav>
-
       <div class="pt-6 border-t border-slate-100">
-        <button id="btnSignOut" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition">
-          <i class="fa-solid fa-right-from-bracket w-5"></i> Đăng xuất
-        </button>
+        <button id="btnSignOut" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition"><i class="fa-solid fa-right-from-bracket w-5"></i> Đăng xuất</button>
       </div>
     </aside>
 
     <main class="flex-1 p-4 lg:p-10">
-      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-        <div>
-          <h1 id="pageTitle" class="text-2xl font-bold">Tổng quan hệ thống</h1>
-          <p class="text-slate-500 text-sm" id="whoami"></p>
-        </div>
+      <header class="flex justify-between items-center mb-10">
+        <div><h1 id="pageTitle" class="text-2xl font-bold">Tổng quan</h1><p class="text-slate-500 text-sm" id="whoami"></p></div>
         <div id="uidBox" class="text-[10px] font-mono bg-slate-100 px-3 py-1 rounded-full text-slate-400">UID: ---</div>
       </header>
 
       <section id="tab-dashboard" class="tab-content space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="glass-card p-6 rounded-3xl">
-            <div class="flex justify-between items-start mb-4">
-              <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><i class="fa-solid fa-cart-shopping text-xl"></i></div>
-              <span class="text-xs font-bold text-emerald-500">+12% vs tháng trước</span>
-            </div>
-            <div class="text-sm text-slate-500 font-medium">Tổng đơn hàng</div>
+            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-4"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div class="text-sm text-slate-500 font-medium">Đơn hàng</div>
             <div class="text-3xl font-bold mt-1" id="stat-orders">0</div>
           </div>
           <div class="glass-card p-6 rounded-3xl">
-            <div class="flex justify-between items-start mb-4">
-              <div class="p-3 bg-rose-50 text-rose-600 rounded-2xl"><i class="fa-solid fa-layer-group text-xl"></i></div>
-            </div>
-            <div class="text-sm text-slate-500 font-medium">Sản phẩm hiện có</div>
+            <div class="p-3 bg-rose-50 text-rose-600 rounded-2xl w-fit mb-4"><i class="fa-solid fa-leaf"></i></div>
+            <div class="text-sm text-slate-500 font-medium">Sản phẩm</div>
             <div class="text-3xl font-bold mt-1" id="stat-products">0</div>
           </div>
           <div class="glass-card p-6 rounded-3xl">
-            <div class="flex justify-between items-start mb-4">
-              <div class="p-3 bg-amber-50 text-amber-600 rounded-2xl"><i class="fa-solid fa-tags text-xl"></i></div>
-            </div>
-            <div class="text-sm text-slate-500 font-medium">Vouchers đang chạy</div>
-            <div class="text-3xl font-bold mt-1" id="stat-vouchers">0</div>
+            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-fit mb-4"><i class="fa-solid fa-folder-tree"></i></div>
+            <div class="text-sm text-slate-500 font-medium">Danh mục</div>
+            <div class="text-3xl font-bold mt-1" id="stat-categories">0</div>
           </div>
-        </div>
-        
-        <div class="bg-indigo-600 p-8 rounded-[2rem] text-white flex items-center justify-between">
-          <div>
-            <h3 class="text-xl font-bold mb-2">Trợ lý AI đang sẵn sàng ✨</h3>
-            <p class="text-indigo-100 text-sm max-w-md">Hệ thống đang theo dõi xu hướng mua hàng của khách. Hãy thêm ảnh sản phẩm chất lượng cao để tăng 40% tỉ lệ chuyển đổi.</p>
-          </div>
-          <button class="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-2xl text-sm font-bold backdrop-blur-md">Xem gợi ý</button>
         </div>
       </section>
 
       <section id="tab-products" class="tab-content hidden space-y-6">
         <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold">Kho hàng thông minh</h2>
-          <button id="btnNewProduct" class="bg-black text-white px-6 py-3 rounded-2xl font-bold text-sm hover:scale-105 transition active:scale-95 flex items-center gap-2">
-            <i class="fa-solid fa-plus"></i> Thêm sản phẩm mới
-          </button>
+          <h2 class="text-xl font-bold">Quản lý kho hàng</h2>
+          <button id="btnNewProduct" class="bg-black text-white px-6 py-3 rounded-2xl font-bold text-sm hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Thêm mới</button>
         </div>
-        <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div class="loading-shimmer h-48 rounded-3xl"></div>
-          <div class="loading-shimmer h-48 rounded-3xl"></div>
-        </div>
+        <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
       </section>
 
-      <section id="tab-orders" class="tab-content hidden"><div class="glass-card p-10 rounded-3xl text-center">Chức năng Đơn hàng đang đồng bộ...</div></section>
-      <section id="tab-vouchers" class="tab-content hidden"><div class="glass-card p-10 rounded-3xl text-center">Chức năng Voucher đang đồng bộ...</div></section>
+      <section id="tab-orders" class="tab-content hidden text-center p-10">Đang cập nhật...</section>
     </main>
   </div>
 
-  <div id="authOverlay" class="fixed inset-0 bg-white z-[300] flex items-center justify-center p-6 hidden">
-    <div class="w-full max-w-md space-y-8">
-      <div class="text-center">
-        <h2 class="text-4xl font-black tracking-tighter">SILKFLOWER</h2>
-        <p class="text-slate-500 mt-2">Hệ thống quản trị trung tâm</p>
-      </div>
+  <div id="authOverlay" class="fixed inset-0 bg-white z-[2000] flex items-center justify-center p-6 hidden">
+    <div class="w-full max-w-md space-y-8 text-center">
+      <h2 class="text-4xl font-black italic">SILKFLOWER</h2>
       <div class="space-y-4">
         <input id="aEmail" class="w-full bg-slate-100 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Email admin">
         <input id="aPass" type="password" class="w-full bg-slate-100 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Mật khẩu">
-        <button id="btnSignIn" class="w-full bg-black text-white py-4 rounded-2xl font-bold text-lg hover:shadow-xl transition">ĐĂNG NHẬP</button>
-        <button id="btnSignUp" class="w-full text-slate-400 text-sm hover:text-black transition">Tạo tài khoản quản trị mới</button>
+        <button id="btnSignIn" class="w-full bg-black text-white py-4 rounded-2xl font-bold text-lg shadow-xl">ĐĂNG NHẬP</button>
+        <button id="btnSignUp" class="w-full text-slate-400 text-sm">Đăng ký tài khoản</button>
       </div>
+      <div id="authMsg" class="text-red-500 text-xs"></div>
     </div>
   </div>
 
   <div id="pmModal" class="fixed inset-0 bg-black/60 z-[400] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-[2.5rem] w-full max-w-2xl p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-[2.5rem] w-full max-w-2xl p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto modal-animate">
       <div class="flex justify-between items-center">
-        <h3 class="text-2xl font-bold">Cập nhật sản phẩm</h3>
-        <button onclick="el('pmModal').classList.add('hidden')" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition">✕</button>
+        <h3 class="text-2xl font-bold">Thông tin sản phẩm</h3>
+        <button onclick="el('pmModal').classList.add('hidden')" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200">✕</button>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-4">
-          <label class="block">
-            <span class="text-xs font-bold text-slate-400 uppercase">Tên sản phẩm</span>
-            <input id="pmName" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500" placeholder="VD: Hoa Hồng Sáp">
-          </label>
-          <label class="block">
-            <span class="text-xs font-bold text-slate-400 uppercase">Giá bán (VND)</span>
-            <input id="pmPrice" type="number" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500" placeholder="350000">
-          </label>
-          <label class="block">
-            <span class="text-xs font-bold text-slate-400 uppercase">Danh mục</span>
-            <select id="pmCategory" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none">
-              <option value="bo-hoa">Bó hoa</option>
-              <option value="gio-hoa">Giỏ hoa</option>
-              <option value="binh-hoa">Bình hoa</option>
-            </select>
-          </label>
-        </div>
-        <div class="space-y-4">
-          <label class="block">
-            <span class="text-xs font-bold text-slate-400 uppercase">Link ảnh sản phẩm</span>
-            <textarea id="pmImages" rows="4" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-xs" placeholder="https://..."></textarea>
-          </label>
-          <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-            <input type="checkbox" id="pmActive" class="w-5 h-5 accent-indigo-600" checked>
-            <span class="text-sm font-medium">Kích hoạt hiển thị lên cửa hàng</span>
+          <label class="block"><span class="text-xs font-bold text-slate-400 uppercase">Tên sản phẩm</span><input id="pmName" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500"></label>
+          <label class="block"><span class="text-xs font-bold text-slate-400 uppercase">Giá bán (VND)</span><input id="pmPrice" type="number" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500"></label>
+          <div class="block">
+            <span class="text-xs font-bold text-slate-400 uppercase">Danh mục thông minh</span>
+            <div class="flex gap-2 mt-1">
+              <select id="pmCategory" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"></select>
+              <button onclick="openCategoryManager()" class="w-12 h-12 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition" title="Quản lý danh mục">
+                <i class="fa-solid fa-gear"></i>
+              </button>
+            </div>
           </div>
         </div>
+        <div class="space-y-4">
+          <label class="block"><span class="text-xs font-bold text-slate-400 uppercase">Link ảnh sản phẩm</span><textarea id="pmImages" rows="4" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-xs" placeholder="https://..."></textarea></label>
+          <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl"><input type="checkbox" id="pmActive" class="w-5 h-5 accent-indigo-600" checked><span class="text-sm font-medium">Kích hoạt hiển thị shop</span></div>
+        </div>
       </div>
-      <button id="btnSaveProduct" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition">XÁC NHẬN LƯU</button>
+      <button id="btnSaveProduct" class="w-full bg-black text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition">XÁC NHẬN LƯU</button>
+    </div>
+  </div>
+
+  <div id="cmModal" class="fixed inset-0 bg-black/80 z-[500] hidden flex items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-6 modal-animate">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xl font-bold"><i class="fa-solid fa-folder-tree mr-2"></i>Quản lý danh mục</h3>
+        <button onclick="el('cmModal').classList.add('hidden')" class="text-slate-400">✕</button>
+      </div>
+      <div class="space-y-4">
+        <div class="flex gap-2">
+          <input id="cmInput" class="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 outline-none text-sm" placeholder="Tên danh mục mới...">
+          <button id="btnAddCategory" class="bg-indigo-600 text-white px-4 rounded-xl font-bold text-sm">THÊM</button>
+        </div>
+        <div id="cmList" class="max-h-60 overflow-y-auto space-y-2 border-t pt-4"></div>
+      </div>
+      <p class="text-[10px] text-slate-400 italic">Lưu ý: Xoá danh mục có thể ảnh hưởng đến hiển thị sản phẩm cũ.</p>
     </div>
   </div>
 
   <script type="module">
-    // --- FIREBASE CONFIG (DỰ ÁN: esomar-vnn) ---
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
       authDomain: "esomar-vnn.firebaseapp.com",
@@ -181,7 +148,7 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
@@ -189,150 +156,169 @@
     const auth = getAuth(app);
     const el = (id) => document.getElementById(id);
 
-    // THÔNG BÁO THÔNG MINH
+    // AI NOTIFICATIONS
     function showToast(type, msg) {
-      const container = el('toastContainer');
       const toast = document.createElement('div');
-      toast.className = `toast-animate flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl text-white font-bold text-sm ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`;
+      toast.className = `toast-animate flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`;
       toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation'}"></i> ${msg}`;
-      container.appendChild(toast);
+      el('toastContainer').appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
     }
 
-    // TAB NAVIGATION
-    const tabs = document.querySelectorAll(".tab-btn");
-    tabs.forEach(t => {
-      t.onclick = () => {
-        const target = t.dataset.tab;
-        tabs.forEach(btn => btn.classList.remove('btn-active'));
-        t.classList.add('btn-active');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-        el(`tab-${target}`).classList.remove('hidden');
-        el('pageTitle').innerText = t.innerText;
-        if(target === 'products') loadProducts();
-        if(target === 'dashboard') loadStats();
-      };
-    });
+    // SLUG HELPER
+    const slugify = (text) => text.toString().toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
 
-    // LOAD THỐNG KÊ (SMART METRICS)
-    async function loadStats() {
-      const pSnap = await getDocs(collection(db, "products"));
-      const oSnap = await getDocs(collection(db, "orders"));
-      const vSnap = await getDocs(collection(db, "vouchers"));
-      el('stat-products').innerText = pSnap.size;
-      el('stat-orders').innerText = oSnap.size;
-      el('stat-vouchers').innerText = vSnap.size;
+    // CATEGORY MANAGEMENT LOGIC
+    window.openCategoryManager = () => {
+      el('cmModal').classList.remove('hidden');
+      loadCategoriesList();
+    };
+
+    async function loadCategoriesList() {
+      const snap = await getDocs(collection(db, "categories"));
+      const list = el('cmList');
+      const select = el('pmCategory');
+      list.innerHTML = "";
+      select.innerHTML = "";
+      
+      snap.forEach(d => {
+        const cat = d.data();
+        const id = d.id;
+        // Update Modal List
+        const div = document.createElement('div');
+        div.className = "flex justify-between items-center bg-slate-50 p-3 rounded-xl";
+        div.innerHTML = `<span class="text-sm font-medium">${cat.name}</span>
+                        <button onclick="deleteCategory('${id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>`;
+        list.appendChild(div);
+        // Update Product Dropdown
+        select.innerHTML += `<option value="${id}">${cat.name}</option>`;
+      });
+      el('stat-categories').innerText = snap.size;
     }
 
-    // QUẢN LÝ SẢN PHẨM (Nâng cấp Xoá/Sửa)
+    el('btnAddCategory').onclick = async () => {
+      const name = el('cmInput').value.trim();
+      if(!name) return;
+      const id = slugify(name);
+      await setDoc(doc(db, "categories", id), { name, createdAt: serverTimestamp() });
+      el('cmInput').value = "";
+      showToast('success', 'Đã thêm danh mục mới!');
+      loadCategoriesList();
+    };
+
+    window.deleteCategory = async (id) => {
+      if(confirm("Xoá danh mục này? Các sản phẩm thuộc danh mục này sẽ không hiển thị đúng nhóm.")) {
+        await deleteDoc(doc(db, "categories", id));
+        showToast('success', 'Đã xoá danh mục!');
+        loadCategoriesList();
+      }
+    };
+
+    // PRODUCT MANAGEMENT (v3.0)
     async function loadProducts() {
       const grid = el('productsGrid');
-      grid.innerHTML = `<div class="loading-shimmer h-48 rounded-3xl col-span-full"></div>`;
-      const snap = await getDocs(collection(db, "products"));
+      grid.innerHTML = `<div class="p-10 text-slate-400 col-span-full text-center">Đang đồng bộ dữ liệu...</div>`;
+      const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
       grid.innerHTML = "";
-      
       snap.forEach(d => {
         const p = d.data();
         const id = d.id;
-        const card = document.createElement('div');
-        card.className = "glass-card p-5 rounded-[2rem] hover:shadow-xl transition group relative overflow-hidden";
-        card.innerHTML = `
+        const div = document.createElement('div');
+        div.className = "glass-card p-5 rounded-[2rem] hover:shadow-2xl transition group relative";
+        div.innerHTML = `
           <div class="flex gap-4">
-            <img src="${p.images?.[0] || 'https://placehold.co/100x100?text=No+Image'}" class="w-24 h-24 rounded-2xl object-cover bg-slate-100">
-            <div class="flex-1">
+            <img src="${p.images?.[0] || 'https://placehold.co/100x100?text=SilkFlower'}" class="w-24 h-24 rounded-2xl object-cover bg-slate-100">
+            <div class="flex-1 min-w-0">
               <span class="text-[10px] font-black uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">${p.category}</span>
               <h4 class="font-bold text-lg mt-1 truncate">${p.name}</h4>
               <p class="text-indigo-600 font-black">${new Intl.NumberFormat('vi-VN').format(p.basePrice)} đ</p>
               <div class="mt-3 flex gap-2">
-                <button onclick="editProduct('${id}')" class="text-xs bg-slate-100 hover:bg-black hover:text-white px-4 py-2 rounded-xl transition font-bold">SỬA</button>
-                <button onclick="deleteProduct('${id}')" class="text-xs bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white px-4 py-2 rounded-xl transition font-bold">XOÁ</button>
+                <button onclick="editProduct('${id}')" class="flex-1 bg-slate-100 hover:bg-black hover:text-white py-2 rounded-xl transition text-xs font-bold">SỬA</button>
+                <button onclick="deleteProduct('${id}')" class="px-4 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white py-2 rounded-xl transition text-xs"><i class="fa-solid fa-trash"></i></button>
               </div>
             </div>
           </div>
           <div class="absolute top-4 right-4 h-2 w-2 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-300'}"></div>
         `;
-        grid.appendChild(card);
+        grid.appendChild(div);
       });
+      el('stat-products').innerText = snap.size;
     }
 
-    // HÀM XOÁ (CÓ XÁC NHẬN)
     window.deleteProduct = async (id) => {
       if(confirm("Xác nhận xoá vĩnh viễn sản phẩm này?")) {
-        try {
-          await deleteDoc(doc(db, "products", id));
-          showToast('success', 'Đã xoá sản phẩm thành công!');
-          loadProducts();
-          loadStats();
-        } catch(e) { showToast('error', 'Lỗi khi xoá!'); }
+        await deleteDoc(doc(db, "products", id));
+        showToast('success', 'Đã xoá sản phẩm!');
+        loadProducts();
       }
     };
 
-    // HÀM SỬA
     window.editProduct = async (id) => {
       const snap = await getDoc(doc(db, "products", id));
-      if(snap.exists()) {
-        const p = snap.data();
-        el('pmName').value = p.name;
-        el('pmPrice').value = p.basePrice;
-        el('pmCategory').value = p.category;
-        el('pmImages').value = (p.images || []).join('\n');
-        el('pmActive').checked = p.active;
-        el('pmModal').classList.remove('hidden');
-        el('btnSaveProduct').onclick = async () => {
-           await setDoc(doc(db, "products", id), {
-              name: el('pmName').value,
-              basePrice: Number(el('pmPrice').value),
-              category: el('pmCategory').value,
-              images: el('pmImages').value.split('\n').filter(l => l),
-              active: el('pmActive').checked,
-              updatedAt: serverTimestamp()
-           }, {merge: true});
-           el('pmModal').classList.add('hidden');
-           showToast('success', 'Cập nhật thành công!');
-           loadProducts();
-        };
-      }
+      const p = snap.data();
+      el('pmName').value = p.name; el('pmPrice').value = p.basePrice; el('pmCategory').value = p.category;
+      el('pmImages').value = (p.images || []).join('\n'); el('pmActive').checked = p.active;
+      el('pmModal').classList.remove('hidden');
+      el('btnSaveProduct').onclick = async () => {
+        await setDoc(doc(db, "products", id), {
+          name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
+          images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, updatedAt: serverTimestamp()
+        }, {merge: true});
+        el('pmModal').classList.add('hidden');
+        showToast('success', 'Cập nhật thành công!');
+        loadProducts();
+      };
     };
 
     el('btnNewProduct').onclick = () => {
-        el('pmName').value = ''; el('pmPrice').value = '';
-        el('pmModal').classList.remove('hidden');
-        el('btnSaveProduct').onclick = async () => {
-            const price = Number(el('pmPrice').value);
-            if(isNaN(price) || price <= 0) { showToast('error', 'Giá tiền không hợp lệ!'); return; }
-            await addDoc(collection(db, "products"), {
-                name: el('pmName').value,
-                basePrice: price,
-                category: el('pmCategory').value,
-                images: el('pmImages').value.split('\n').filter(l => l),
-                active: el('pmActive').checked,
-                createdAt: serverTimestamp()
-            });
-            el('pmModal').classList.add('hidden');
-            showToast('success', 'Thêm sản phẩm mới thành công!');
-            loadProducts();
-            loadStats();
-        };
+      el('pmName').value = ''; el('pmPrice').value = ''; el('pmImages').value = '';
+      el('pmModal').classList.remove('hidden');
+      el('btnSaveProduct').onclick = async () => {
+        await addDoc(collection(db, "products"), {
+          name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
+          images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, createdAt: serverTimestamp()
+        });
+        el('pmModal').classList.add('hidden');
+        showToast('success', 'Đã thêm sản phẩm mới!');
+        loadProducts();
+      };
     };
 
-    // LOGIN LOGIC
-    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => showToast('error', 'Sai thông tin đăng nhập!'));
-    el('btnSignUp').onclick = () => createUserWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).then(() => showToast('success', 'Tạo tài khoản thành công!'));
+    // TABS & STATS
+    const tabs = document.querySelectorAll(".tab-btn");
+    tabs.forEach(t => {
+      t.onclick = () => {
+        tabs.forEach(b => b.classList.remove('btn-active'));
+        t.classList.add('btn-active');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        el(`tab-${t.dataset.tab}`).classList.remove('hidden');
+        if(t.dataset.tab === 'products') loadProducts();
+        if(t.dataset.tab === 'dashboard') loadStats();
+      };
+    });
+
+    async function loadStats() {
+      const p = await getDocs(collection(db, "products"));
+      const o = await getDocs(collection(db, "orders"));
+      const c = await getDocs(collection(db, "categories"));
+      el('stat-products').innerText = p.size;
+      el('stat-orders').innerText = o.size;
+      el('stat-categories').innerText = c.size;
+    }
+
+    // AUTH
+    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => el('authMsg').innerText = "Sai thông tin!");
+    el('btnSignUp').onclick = () => createUserWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value);
     el('btnSignOut').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, async (u) => {
       if (u) {
         el('authOverlay').classList.add('hidden');
-        el('uidBox').innerText = `UID: ${u.uid}`;
         el('whoami').innerText = u.email;
-        const adminSnap = await getDoc(doc(db, "admins", u.uid));
-        if (adminSnap.exists()) {
-          el('adminWarn').classList.add('hidden');
-          loadStats();
-        } else {
-          el('adminWarn').classList.remove('hidden');
-          showToast('error', 'Bạn chưa có quyền Admin!');
-        }
+        el('uidBox').innerText = `UID: ${u.uid}`;
+        const adm = await getDoc(doc(db, "admins", u.uid));
+        if (adm.exists()) loadStats(); else showToast('error', 'Chưa có quyền Admin!');
+        loadCategoriesList(); // Khởi tạo danh mục ngay khi đăng nhập
       } else {
         el('authOverlay').classList.remove('hidden');
       }
