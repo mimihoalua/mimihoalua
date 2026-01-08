@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SilkFlower Studio — Hoa lụa cao cấp</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body{font-family:Inter,sans-serif}
+    .serif{font-family:"Playfair Display",serif}
+    .nav-link{position:relative;transition:color .25s ease}
+    .nav-link:after{content:"";position:absolute;width:0;height:1px;bottom:-2px;left:0;background-color:currentColor;transition:width .25s ease}
+    .nav-link:hover:after{width:100%}
+    .shadow-soft{box-shadow:0 10px 30px rgba(0,0,0,.08)}
+    .modal-backdrop{background:rgba(0,0,0,.45)}
+    .no-scroll{overflow:hidden}
+    .toast{animation:slideDown .2s ease}
+    @keyframes slideDown{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+  </style>
+</head>
+
+<body class="bg-[#faf9f6] text-gray-900">
+  <div id="toastHost" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-2xl space-y-3"></div>
+
+  <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="#/" class="text-xl sm:text-2xl font-bold tracking-tight uppercase serif italic">SilkFlower</a>
+
+      <div class="hidden md:flex space-x-8 text-xs font-medium tracking-[0.2em] uppercase">
+        <a href="#/" class="nav-link">Trang chủ</a>
+        <a href="#/shop" class="nav-link">Cửa hàng</a>
+        <a href="#/collections" class="nav-link">Bộ sưu tập</a>
+        <a href="#/policy" class="nav-link">Chính sách</a>
+        <a href="#/contact" class="nav-link">Liên hệ</a>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btnSearch" class="p-2 hover:bg-gray-100 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.3-4.3m1.8-5.2a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
+        <button id="btnCart" class="relative p-2 hover:bg-gray-100 rounded-full transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 7h13L17 13M7 13H5.4M9 21a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z"/></svg>
+          <span id="cartBadge" class="hidden absolute -top-1 -right-1 bg-black text-white text-[10px] rounded-full px-1.5 py-0.5"></span>
+        </button>
+        <a href="admin.html" class="hidden sm:inline-flex text-xs px-3 py-2 rounded-full border border-gray-200 hover:bg-white transition">Admin</a>
+      </div>
+    </div>
+  </nav>
+
+  <header id="view-hero" class="relative w-full h-[62vh] overflow-hidden bg-gray-200">
+    <img src="https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&q=80&w=2400" class="w-full h-full object-cover" alt="Hoa lụa" />
+    <div class="absolute inset-0 bg-black/25 flex flex-col items-center justify-center text-center text-white p-6">
+      <span class="uppercase tracking-[0.35em] text-xs mb-4 font-light">Hoa lụa cao cấp • Giao nhanh</span>
+      <h1 class="text-4xl md:text-6xl mb-6 max-w-3xl font-normal leading-tight serif">Hoa đẹp bền lâu — tinh tế cho mọi dịp</h1>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a href="#/shop" class="bg-white text-black px-10 py-4 uppercase text-[11px] tracking-widest font-bold hover:bg-black hover:text-white transition">Mua ngay</a>
+        <a href="#/collections" class="bg-transparent border border-white/70 text-white px-10 py-4 uppercase text-[11px] tracking-widest font-bold hover:bg-white hover:text-black transition">Xem bộ sưu tập</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <section id="view-shop" class="hidden">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
+        <div><h2 class="text-3xl sm:text-4xl font-normal serif">Cửa hàng</h2></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-[680px]">
+          <input id="qSearch" class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" placeholder="Tìm kiếm...">
+          <select id="qCategory" class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
+            <option value="">Tất cả danh mục</option>
+            <option value="bo-hoa">Bó hoa</option>
+            <option value="gio-hoa">Giỏ hoa</option>
+            <option value="binh-hoa">Bình hoa</option>
+          </select>
+          <select id="qSort" class="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none">
+            <option value="new">Mới nhất</option>
+            <option value="price_asc">Giá tăng dần</option>
+            <option value="price_desc">Giá giảm dần</option>
+          </select>
+        </div>
+      </div>
+      <div id="shopLoading" class="py-10 text-center text-gray-500">Đang tải sản phẩm...</div>
+      <div id="productGrid" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
+      <div class="mt-10 text-center"><button id="btnLoadMore" class="hidden px-6 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition text-sm">Tải thêm</button></div>
+    </section>
+
+    <section id="view-product" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <a href="#/shop" class="text-sm text-gray-600 hover:text-black">← Quay lại cửa hàng</a>
+        <button id="btnProductToCart" class="text-sm px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50">Mở giỏ hàng</button>
+      </div>
+      <div id="productViewLoading" class="py-10 text-center text-gray-500">Đang tải sản phẩm...</div>
+      <div id="productView" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-soft">
+        <div>
+          <div class="aspect-[4/5] bg-gray-100 rounded-xl overflow-hidden"><img id="pvMainImg" class="w-full h-full object-cover" alt="Ảnh"></div>
+          <div id="pvThumbs" class="mt-4 grid grid-cols-5 gap-2"></div>
+        </div>
+        <div class="space-y-5">
+          <div>
+            <div id="pvTags" class="flex flex-wrap gap-2 mb-3"></div>
+            <h1 id="pvName" class="text-3xl serif"></h1>
+            <p id="pvDesc" class="text-gray-600 text-sm mt-2"></p>
+            <div class="mt-4 flex items-baseline gap-3">
+              <div id="pvPrice" class="text-2xl font-semibold"></div>
+              <div id="pvCompare" class="text-sm text-gray-400 line-through hidden"></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label class="text-xs uppercase tracking-widest text-gray-500">Kích thước</label><select id="pvVariant" class="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm"></select></div>
+            <div><label class="text-xs uppercase tracking-widest text-gray-500">Màu wrap</label><select id="pvWrapColor" class="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm"></select></div>
+          </div>
+          <div><label class="text-xs uppercase tracking-widest text-gray-500">Nội dung thiệp</label><textarea id="pvCardMsg" rows="3" class="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Ví dụ: Chúc mừng sinh nhật..."></textarea></div>
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white">
+              <button id="pvQtyMinus" class="px-4 py-3 hover:bg-gray-50">-</button>
+              <div id="pvQty" class="px-4 py-3 text-sm w-10 text-center">1</div>
+              <button id="pvQtyPlus" class="px-4 py-3 hover:bg-gray-50">+</button>
+            </div>
+            <div class="flex gap-3 w-full justify-end">
+              <button id="pvAddToCart" class="px-6 py-3 rounded-xl bg-black text-white hover:bg-gray-800 transition text-sm">Thêm vào giỏ</button>
+              <button id="pvBuyNow" class="px-6 py-3 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition text-sm">Mua ngay</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-checkout" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <aside class="lg:col-span-2">
+          <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-soft lg:sticky lg:top-24">
+            <h2 class="text-lg serif">Đơn hàng</h2>
+            <div id="sumItems" class="mt-4 space-y-3"></div>
+            <div class="mt-5 pt-5 border-t border-gray-100 space-y-2 text-sm">
+              <div class="flex justify-between"><span>Tạm tính</span><span id="sumSubtotal"></span></div>
+              <div class="flex justify-between"><span>Phí ship</span><span id="sumShip"></span></div>
+              <div class="flex justify-between text-base font-semibold pt-2"><span>Tổng cộng</span><span id="sumTotal"></span></div>
+            </div>
+          </div>
+        </aside>
+        <section class="lg:col-span-3">
+          <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-soft">
+            <h2 class="text-xl serif">Thông tin giao hàng</h2>
+            <div class="mt-6 space-y-4">
+              <input id="fName" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Họ và tên">
+              <input id="fPhone" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Số điện thoại">
+              <input id="fStreet" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm" placeholder="Địa chỉ cụ thể">
+              <button id="btnPlaceOrder" class="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-gray-800 transition">XÁC NHẬN ĐẶT HÀNG</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="view-thanks" class="hidden text-center">
+      <div class="max-w-2xl mx-auto bg-white border border-gray-100 rounded-2xl p-8 shadow-soft">
+        <h2 class="text-3xl serif">Đặt hàng thành công</h2>
+        <p class="text-gray-600 mt-3">Chúng tôi sẽ liên hệ sớm nhất.</p>
+        <div class="mt-6 p-4 bg-gray-50 rounded-xl text-left"><div class="text-sm text-gray-500">Mã đơn:</div><div id="thankCode" class="text-2xl font-semibold"></div></div>
+        <a href="#/shop" class="mt-8 inline-block px-10 py-4 bg-black text-white rounded-xl">Quay lại cửa hàng</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    // --- FIREBASE CONFIG (DỰ ÁN: esomar-vnn) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
+      authDomain: "esomar-vnn.firebaseapp.com",
+      projectId: "esomar-vnn",
+      storageBucket: "esomar-vnn.firebasestorage.app",
+      messagingSenderId: "1023271897973",
+      appId: "1:1023271897973:web:c7207b0e8321fc271fe13c",
+      measurementId: "G-L078YGNJ3J"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, query, where, orderBy, limit, getDocs, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // Xử lý Route đơn giản
+    const route = () => {
+      const hash = window.location.hash || '#/';
+      document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+      if (hash === '#/') document.getElementById('view-hero').classList.remove('hidden');
+      if (hash.startsWith('#/shop')) document.getElementById('view-shop').classList.remove('hidden');
+      if (hash.startsWith('#/product')) document.getElementById('view-product').classList.remove('hidden');
+      if (hash === '#/checkout') document.getElementById('view-checkout').classList.remove('hidden');
+      if (hash === '#/thanks') document.getElementById('view-thanks').classList.remove('hidden');
+    };
+    window.addEventListener('hashchange', route);
+    window.addEventListener('load', () => {
+        route();
+        signInAnonymously(auth); // Cho khách đặt hàng không cần tài khoản
+    });
+  </script>
+</body>
+</html>
