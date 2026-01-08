@@ -3,141 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SilkFlower — Smart Admin v3.0</title>
-
+  <title>SilkFlower — Ultra Admin v4.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
-    .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-    .btn-active { background: #000 !important; color: #fff !important; }
-    .toast-animate { animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
-    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .modal-animate { animation: zoomIn 0.2s ease-out; }
-    @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    .modal-active { display: flex !important; animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .tab-active { background: #000 !important; color: #fff !important; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .toast-pop { animation: pop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+    @keyframes pop { from { transform: translateY(20px) scale(0.8); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
   </style>
 </head>
-
 <body class="text-slate-800">
-  <div id="toastContainer" class="fixed top-5 right-5 z-[1000] space-y-3"></div>
+  <div id="toastHost" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] space-y-2"></div>
 
   <div class="flex min-h-screen">
-    <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col p-6 sticky top-0 h-screen">
-      <div class="text-2xl font-bold tracking-tighter mb-10 flex items-center gap-2">
-        <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
-        <span>SILKFLOWER</span>
-      </div>
-      <nav class="space-y-2 flex-1">
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition btn-active" data-tab="dashboard"><i class="fa-solid fa-chart-pie w-5"></i> Tổng quan</button>
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="products"><i class="fa-solid fa-leaf w-5"></i> Sản phẩm</button>
-        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition" data-tab="orders"><i class="fa-solid fa-box w-5"></i> Đơn hàng</button>
+    <aside class="w-64 glass border-r border-slate-200 hidden lg:flex flex-col p-6 sticky top-0 h-screen">
+      <div class="text-2xl font-black italic mb-10 text-indigo-600">SILKFLOWER</div>
+      <nav class="space-y-1 flex-1">
+        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition tab-active" data-tab="dashboard"><i class="fa-solid fa-house"></i> Tổng quan</button>
+        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition" data-tab="products"><i class="fa-solid fa-leaf"></i> Sản phẩm</button>
+        <button class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition" data-tab="categories"><i class="fa-solid fa-tags"></i> Danh mục</button>
       </nav>
-      <div class="pt-6 border-t border-slate-100">
-        <button id="btnSignOut" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition"><i class="fa-solid fa-right-from-bracket w-5"></i> Đăng xuất</button>
-      </div>
+      <button id="btnSignOut" class="w-full mt-auto p-4 rounded-2xl bg-rose-50 text-rose-500 font-bold hover:bg-rose-500 hover:text-white transition">Đăng xuất</button>
     </aside>
 
-    <main class="flex-1 p-4 lg:p-10">
-      <header class="flex justify-between items-center mb-10">
-        <div><h1 id="pageTitle" class="text-2xl font-bold">Tổng quan</h1><p class="text-slate-500 text-sm" id="whoami"></p></div>
-        <div id="uidBox" class="text-[10px] font-mono bg-slate-100 px-3 py-1 rounded-full text-slate-400">UID: ---</div>
+    <main class="flex-1 p-6 lg:p-10">
+      <header class="flex justify-between items-center mb-8">
+        <div><h1 id="viewTitle" class="text-2xl font-bold">Trình điều khiển</h1><p id="whoami" class="text-sm text-slate-500"></p></div>
+        <div id="uidBox" class="text-[10px] bg-white px-4 py-2 rounded-full shadow-sm font-mono text-slate-400">UID: ---</div>
       </header>
 
-      <section id="tab-dashboard" class="tab-content space-y-6">
+      <section id="view-dashboard" class="view-content space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="glass-card p-6 rounded-3xl">
-            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-4"><i class="fa-solid fa-cart-shopping"></i></div>
-            <div class="text-sm text-slate-500 font-medium">Đơn hàng</div>
-            <div class="text-3xl font-bold mt-1" id="stat-orders">0</div>
-          </div>
-          <div class="glass-card p-6 rounded-3xl">
-            <div class="p-3 bg-rose-50 text-rose-600 rounded-2xl w-fit mb-4"><i class="fa-solid fa-leaf"></i></div>
-            <div class="text-sm text-slate-500 font-medium">Sản phẩm</div>
-            <div class="text-3xl font-bold mt-1" id="stat-products">0</div>
-          </div>
-          <div class="glass-card p-6 rounded-3xl">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-fit mb-4"><i class="fa-solid fa-folder-tree"></i></div>
-            <div class="text-sm text-slate-500 font-medium">Danh mục</div>
-            <div class="text-3xl font-bold mt-1" id="stat-categories">0</div>
-          </div>
+          <div class="bg-white p-8 rounded-[2rem] shadow-sm"><div class="text-slate-400 text-xs font-bold uppercase mb-2">Tổng sản phẩm</div><div class="text-4xl font-black" id="st-p">0</div></div>
+          <div class="bg-white p-8 rounded-[2rem] shadow-sm"><div class="text-slate-400 text-xs font-bold uppercase mb-2">Danh mục</div><div class="text-4xl font-black" id="st-c">0</div></div>
+          <div class="bg-white p-8 rounded-[2rem] shadow-sm"><div class="text-slate-400 text-xs font-bold uppercase mb-2">Đơn hàng mới</div><div class="text-4xl font-black" id="st-o">0</div></div>
         </div>
       </section>
 
-      <section id="tab-products" class="tab-content hidden space-y-6">
+      <section id="view-products" class="view-content hidden space-y-6">
         <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold">Quản lý kho hàng</h2>
-          <button id="btnNewProduct" class="bg-black text-white px-6 py-3 rounded-2xl font-bold text-sm hover:scale-105 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Thêm mới</button>
+            <h2 class="text-xl font-bold">Kho hàng</h2>
+            <button id="btnNewProduct" class="bg-black text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg hover:scale-105 transition">+ Sản phẩm mới</button>
         </div>
         <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
       </section>
 
-      <section id="tab-orders" class="tab-content hidden text-center p-10">Đang cập nhật...</section>
+      <section id="view-categories" class="view-content hidden space-y-6">
+        <div class="flex justify-between items-center"><h2 class="text-xl font-bold">Quản lý danh mục</h2></div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm space-y-4">
+            <div class="flex gap-2">
+                <input id="catNameInput" class="flex-1 bg-slate-100 rounded-xl px-4 py-3 outline-none" placeholder="Tên danh mục mới...">
+                <button id="btnAddCat" class="bg-indigo-600 text-white px-8 rounded-xl font-bold">Thêm</button>
+            </div>
+            <div id="catTable" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+      </section>
     </main>
   </div>
 
-  <div id="authOverlay" class="fixed inset-0 bg-white z-[2000] flex items-center justify-center p-6 hidden">
-    <div class="w-full max-w-md space-y-8 text-center">
+  <div id="authOverlay" class="fixed inset-0 bg-white z-[9999] flex items-center justify-center hidden">
+    <div class="w-full max-w-sm text-center space-y-6 p-8">
       <h2 class="text-4xl font-black italic">SILKFLOWER</h2>
-      <div class="space-y-4">
-        <input id="aEmail" class="w-full bg-slate-100 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Email admin">
-        <input id="aPass" type="password" class="w-full bg-slate-100 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Mật khẩu">
-        <button id="btnSignIn" class="w-full bg-black text-white py-4 rounded-2xl font-bold text-lg shadow-xl">ĐĂNG NHẬP</button>
-        <button id="btnSignUp" class="w-full text-slate-400 text-sm">Đăng ký tài khoản</button>
+      <div class="space-y-3">
+        <input id="aEmail" class="w-full bg-slate-100 rounded-2xl px-5 py-4 outline-none" placeholder="Email">
+        <input id="aPass" type="password" class="w-full bg-slate-100 rounded-2xl px-5 py-4 outline-none" placeholder="Mật khẩu">
+        <button id="btnSignIn" class="w-full bg-black text-white py-4 rounded-2xl font-bold text-lg">ĐĂNG NHẬP</button>
+        <button id="btnSignUp" class="text-slate-400 text-xs mt-4">Đăng ký tài khoản</button>
       </div>
-      <div id="authMsg" class="text-red-500 text-xs"></div>
     </div>
   </div>
 
-  <div id="pmModal" class="fixed inset-0 bg-black/60 z-[400] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-[2.5rem] w-full max-w-2xl p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto modal-animate">
+  <div id="pmModal" class="fixed inset-0 bg-slate-900/60 z-[1000] hidden items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-[2.5rem] w-full max-w-2xl p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center">
-        <h3 class="text-2xl font-bold">Thông tin sản phẩm</h3>
-        <button onclick="el('pmModal').classList.add('hidden')" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200">✕</button>
+        <h3 class="text-2xl font-bold">Chi tiết sản phẩm</h3>
+        <button id="btnClosePm" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200">✕</button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-4">
-          <label class="block"><span class="text-xs font-bold text-slate-400 uppercase">Tên sản phẩm</span><input id="pmName" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500"></label>
-          <label class="block"><span class="text-xs font-bold text-slate-400 uppercase">Giá bán (VND)</span><input id="pmPrice" type="number" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500"></label>
-          <div class="block">
-            <span class="text-xs font-bold text-slate-400 uppercase">Danh mục thông minh</span>
-            <div class="flex gap-2 mt-1">
-              <select id="pmCategory" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"></select>
-              <button onclick="openCategoryManager()" class="w-12 h-12 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition" title="Quản lý danh mục">
-                <i class="fa-solid fa-gear"></i>
-              </button>
-            </div>
-          </div>
+          <label class="block text-xs font-bold text-slate-400 uppercase">Tên sản phẩm<input id="pmName" class="w-full mt-1 bg-slate-50 border rounded-xl px-4 py-3 outline-none focus:border-indigo-500"></label>
+          <label class="block text-xs font-bold text-slate-400 uppercase">Giá bán (VND)<input id="pmPrice" type="number" class="w-full mt-1 bg-slate-50 border rounded-xl px-4 py-3 outline-none focus:border-indigo-500"></label>
+          <label class="block text-xs font-bold text-slate-400 uppercase">Danh mục<select id="pmCategory" class="w-full mt-1 bg-slate-50 border rounded-xl px-4 py-3 outline-none"></select></label>
         </div>
         <div class="space-y-4">
-          <label class="block"><span class="text-xs font-bold text-slate-400 uppercase">Link ảnh sản phẩm</span><textarea id="pmImages" rows="4" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-xs" placeholder="https://..."></textarea></label>
-          <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl"><input type="checkbox" id="pmActive" class="w-5 h-5 accent-indigo-600" checked><span class="text-sm font-medium">Kích hoạt hiển thị shop</span></div>
+          <label class="block text-xs font-bold text-slate-400 uppercase">Link ảnh<textarea id="pmImages" rows="4" class="w-full mt-1 bg-slate-50 border rounded-xl px-4 py-3 outline-none text-xs" placeholder="Mỗi dòng 1 link"></textarea></label>
+          <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl"><input type="checkbox" id="pmActive" class="w-5 h-5 accent-indigo-600" checked><span class="text-sm font-medium">Hiển thị shop</span></div>
         </div>
       </div>
-      <button id="btnSaveProduct" class="w-full bg-black text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition">XÁC NHẬN LƯU</button>
-    </div>
-  </div>
-
-  <div id="cmModal" class="fixed inset-0 bg-black/80 z-[500] hidden flex items-center justify-center p-4 backdrop-blur-md">
-    <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-6 modal-animate">
-      <div class="flex justify-between items-center">
-        <h3 class="text-xl font-bold"><i class="fa-solid fa-folder-tree mr-2"></i>Quản lý danh mục</h3>
-        <button onclick="el('cmModal').classList.add('hidden')" class="text-slate-400">✕</button>
-      </div>
-      <div class="space-y-4">
-        <div class="flex gap-2">
-          <input id="cmInput" class="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 outline-none text-sm" placeholder="Tên danh mục mới...">
-          <button id="btnAddCategory" class="bg-indigo-600 text-white px-4 rounded-xl font-bold text-sm">THÊM</button>
-        </div>
-        <div id="cmList" class="max-h-60 overflow-y-auto space-y-2 border-t pt-4"></div>
-      </div>
-      <p class="text-[10px] text-slate-400 italic">Lưu ý: Xoá danh mục có thể ảnh hưởng đến hiển thị sản phẩm cũ.</p>
+      <button id="btnSaveProduct" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-indigo-700 transition">XÁC NHẬN LƯU</button>
     </div>
   </div>
 
   <script type="module">
-    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
       authDomain: "esomar-vnn.firebaseapp.com",
@@ -148,181 +110,145 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+
     const el = (id) => document.getElementById(id);
+    const slugify = (t) => t.toString().toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
 
-    // AI NOTIFICATIONS
-    function showToast(type, msg) {
-      const toast = document.createElement('div');
-      toast.className = `toast-animate flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`;
-      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation'}"></i> ${msg}`;
-      el('toastContainer').appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
+    function toast(type, msg) {
+      const t = document.createElement('div');
+      t.className = `toast-pop px-6 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`;
+      t.innerText = msg;
+      el('toastHost').appendChild(t);
+      setTimeout(() => t.remove(), 3000);
     }
 
-    // SLUG HELPER
-    const slugify = (text) => text.toString().toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-');
+    // Modal Controls
+    el('btnClosePm').onclick = () => el('pmModal').classList.remove('modal-active');
 
-    // CATEGORY MANAGEMENT LOGIC
-    window.openCategoryManager = () => {
-      el('cmModal').classList.remove('hidden');
-      loadCategoriesList();
-    };
-
-    async function loadCategoriesList() {
-      const snap = await getDocs(collection(db, "categories"));
-      const list = el('cmList');
-      const select = el('pmCategory');
-      list.innerHTML = "";
-      select.innerHTML = "";
-      
-      snap.forEach(d => {
-        const cat = d.data();
-        const id = d.id;
-        // Update Modal List
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center bg-slate-50 p-3 rounded-xl";
-        div.innerHTML = `<span class="text-sm font-medium">${cat.name}</span>
-                        <button onclick="deleteCategory('${id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>`;
-        list.appendChild(div);
-        // Update Product Dropdown
-        select.innerHTML += `<option value="${id}">${cat.name}</option>`;
-      });
-      el('stat-categories').innerText = snap.size;
-    }
-
-    el('btnAddCategory').onclick = async () => {
-      const name = el('cmInput').value.trim();
-      if(!name) return;
-      const id = slugify(name);
-      await setDoc(doc(db, "categories", id), { name, createdAt: serverTimestamp() });
-      el('cmInput').value = "";
-      showToast('success', 'Đã thêm danh mục mới!');
-      loadCategoriesList();
-    };
-
-    window.deleteCategory = async (id) => {
-      if(confirm("Xoá danh mục này? Các sản phẩm thuộc danh mục này sẽ không hiển thị đúng nhóm.")) {
-        await deleteDoc(doc(db, "categories", id));
-        showToast('success', 'Đã xoá danh mục!');
-        loadCategoriesList();
-      }
-    };
-
-    // PRODUCT MANAGEMENT (v3.0)
-    async function loadProducts() {
-      const grid = el('productsGrid');
-      grid.innerHTML = `<div class="p-10 text-slate-400 col-span-full text-center">Đang đồng bộ dữ liệu...</div>`;
-      const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
-      grid.innerHTML = "";
-      snap.forEach(d => {
-        const p = d.data();
-        const id = d.id;
-        const div = document.createElement('div');
-        div.className = "glass-card p-5 rounded-[2rem] hover:shadow-2xl transition group relative";
-        div.innerHTML = `
-          <div class="flex gap-4">
-            <img src="${p.images?.[0] || 'https://placehold.co/100x100?text=SilkFlower'}" class="w-24 h-24 rounded-2xl object-cover bg-slate-100">
-            <div class="flex-1 min-w-0">
-              <span class="text-[10px] font-black uppercase text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">${p.category}</span>
-              <h4 class="font-bold text-lg mt-1 truncate">${p.name}</h4>
-              <p class="text-indigo-600 font-black">${new Intl.NumberFormat('vi-VN').format(p.basePrice)} đ</p>
-              <div class="mt-3 flex gap-2">
-                <button onclick="editProduct('${id}')" class="flex-1 bg-slate-100 hover:bg-black hover:text-white py-2 rounded-xl transition text-xs font-bold">SỬA</button>
-                <button onclick="deleteProduct('${id}')" class="px-4 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white py-2 rounded-xl transition text-xs"><i class="fa-solid fa-trash"></i></button>
-              </div>
-            </div>
-          </div>
-          <div class="absolute top-4 right-4 h-2 w-2 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-300'}"></div>
-        `;
-        grid.appendChild(div);
-      });
-      el('stat-products').innerText = snap.size;
-    }
-
-    window.deleteProduct = async (id) => {
-      if(confirm("Xác nhận xoá vĩnh viễn sản phẩm này?")) {
-        await deleteDoc(doc(db, "products", id));
-        showToast('success', 'Đã xoá sản phẩm!');
-        loadProducts();
-      }
-    };
-
-    window.editProduct = async (id) => {
-      const snap = await getDoc(doc(db, "products", id));
-      const p = snap.data();
-      el('pmName').value = p.name; el('pmPrice').value = p.basePrice; el('pmCategory').value = p.category;
-      el('pmImages').value = (p.images || []).join('\n'); el('pmActive').checked = p.active;
-      el('pmModal').classList.remove('hidden');
-      el('btnSaveProduct').onclick = async () => {
-        await setDoc(doc(db, "products", id), {
-          name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
-          images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, updatedAt: serverTimestamp()
-        }, {merge: true});
-        el('pmModal').classList.add('hidden');
-        showToast('success', 'Cập nhật thành công!');
-        loadProducts();
-      };
-    };
-
-    el('btnNewProduct').onclick = () => {
-      el('pmName').value = ''; el('pmPrice').value = ''; el('pmImages').value = '';
-      el('pmModal').classList.remove('hidden');
-      el('btnSaveProduct').onclick = async () => {
-        await addDoc(collection(db, "products"), {
-          name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
-          images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, createdAt: serverTimestamp()
-        });
-        el('pmModal').classList.add('hidden');
-        showToast('success', 'Đã thêm sản phẩm mới!');
-        loadProducts();
-      };
-    };
-
-    // TABS & STATS
+    // Tab Navigation
     const tabs = document.querySelectorAll(".tab-btn");
     tabs.forEach(t => {
       t.onclick = () => {
-        tabs.forEach(b => b.classList.remove('btn-active'));
-        t.classList.add('btn-active');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-        el(`tab-${t.dataset.tab}`).classList.remove('hidden');
-        if(t.dataset.tab === 'products') loadProducts();
-        if(t.dataset.tab === 'dashboard') loadStats();
+        tabs.forEach(b => b.classList.remove('tab-active'));
+        t.classList.add('tab-active');
+        document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+        el(`view-${t.dataset.tab}`).classList.remove('hidden');
+        el('viewTitle').innerText = t.innerText;
       };
     });
 
-    async function loadStats() {
-      const p = await getDocs(collection(db, "products"));
-      const o = await getDocs(collection(db, "orders"));
-      const c = await getDocs(collection(db, "categories"));
-      el('stat-products').innerText = p.size;
-      el('stat-orders').innerText = o.size;
-      el('stat-categories').innerText = c.size;
-    }
+    // Real-time Categories & Dropdown Sync
+    onSnapshot(collection(db, "categories"), (snap) => {
+      const table = el('catTable');
+      const select = el('pmCategory');
+      table.innerHTML = "";
+      select.innerHTML = `<option value="">-- Chọn danh mục --</option>`;
+      snap.forEach(d => {
+        const c = d.data();
+        const id = d.id;
+        table.innerHTML += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
+            <span class="font-bold text-sm">${c.name}</span>
+            <button onclick="window.delCat('${id}')" class="text-rose-500 px-3 py-1 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-trash-can"></i></button>
+        </div>`;
+        select.innerHTML += `<option value="${id}">${c.name}</option>`;
+      });
+      el('st-c').innerText = snap.size;
+    });
 
-    // AUTH
-    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => el('authMsg').innerText = "Sai thông tin!");
-    el('btnSignUp').onclick = () => createUserWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value);
-    el('btnSignOut').onclick = () => signOut(auth);
+    el('btnAddCat').onclick = async () => {
+      const name = el('catNameInput').value.trim();
+      if(!name) return;
+      await setDoc(doc(db, "categories", slugify(name)), { name, createdAt: serverTimestamp() });
+      el('catNameInput').value = "";
+      toast('success', 'Đã thêm danh mục!');
+    };
 
+    window.delCat = async (id) => {
+      if(confirm("Xoá danh mục này?")) {
+        await deleteDoc(doc(db, "categories", id));
+        toast('success', 'Đã xoá danh mục!');
+      }
+    };
+
+    // Product Logic
+    onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
+        const grid = el('productsGrid');
+        grid.innerHTML = "";
+        snap.forEach(d => {
+            const p = d.data();
+            const id = d.id;
+            const card = document.createElement('div');
+            card.className = "bg-white p-5 rounded-[2rem] shadow-sm relative group";
+            card.innerHTML = `
+                <img src="${p.images?.[0] || ''}" class="w-full h-40 object-cover rounded-2xl mb-4 bg-slate-50">
+                <span class="text-[10px] bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold uppercase">${p.category}</span>
+                <h4 class="font-bold text-lg mt-2 truncate">${p.name}</h4>
+                <p class="text-indigo-600 font-black">${new Intl.NumberFormat('vi-VN').format(p.basePrice)} đ</p>
+                <div class="mt-4 flex gap-2">
+                    <button onclick="window.editP('${id}')" class="flex-1 bg-slate-100 py-3 rounded-xl font-bold text-xs hover:bg-black hover:text-white transition">SỬA</button>
+                    <button onclick="window.delP('${id}')" class="px-4 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div class="absolute top-4 right-4 h-2 w-2 rounded-full ${p.active ? 'bg-emerald-500' : 'bg-slate-300'}"></div>`;
+            grid.appendChild(card);
+        });
+        el('st-p').innerText = snap.size;
+    });
+
+    el('btnNewProduct').onclick = () => {
+        el('pmName').value = ''; el('pmPrice').value = ''; el('pmImages').value = '';
+        el('pmModal').classList.add('modal-active');
+        el('btnSaveProduct').onclick = async () => {
+            await addDoc(collection(db, "products"), {
+                name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
+                images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, createdAt: serverTimestamp()
+            });
+            el('pmModal').classList.remove('modal-active');
+            toast('success', 'Đã thêm sản phẩm!');
+        };
+    };
+
+    window.editP = async (id) => {
+        const s = await getDoc(doc(db, "products", id));
+        const p = s.data();
+        el('pmName').value = p.name; el('pmPrice').value = p.basePrice; el('pmCategory').value = p.category;
+        el('pmImages').value = (p.images || []).join('\n'); el('pmActive').checked = p.active;
+        el('pmModal').classList.add('modal-active');
+        el('btnSaveProduct').onclick = async () => {
+            await setDoc(doc(db, "products", id), {
+                name: el('pmName').value, basePrice: Number(el('pmPrice').value), category: el('pmCategory').value,
+                images: el('pmImages').value.split('\n').filter(l => l), active: el('pmActive').checked, updatedAt: serverTimestamp()
+            }, { merge: true });
+            el('pmModal').classList.remove('modal-active');
+            toast('success', 'Cập nhật thành công!');
+        };
+    };
+
+    window.delP = async (id) => {
+        if(confirm("Xoá sản phẩm này?")) {
+            await deleteDoc(doc(db, "products", id));
+            toast('success', 'Đã xoá!');
+        }
+    };
+
+    // Auth
     onAuthStateChanged(auth, async (u) => {
       if (u) {
         el('authOverlay').classList.add('hidden');
         el('whoami').innerText = u.email;
         el('uidBox').innerText = `UID: ${u.uid}`;
         const adm = await getDoc(doc(db, "admins", u.uid));
-        if (adm.exists()) loadStats(); else showToast('error', 'Chưa có quyền Admin!');
-        loadCategoriesList(); // Khởi tạo danh mục ngay khi đăng nhập
-      } else {
-        el('authOverlay').classList.remove('hidden');
-      }
+        if (!adm.exists()) toast('error', 'Chưa có quyền Admin!');
+      } else el('authOverlay').classList.remove('hidden');
     });
+
+    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => toast('error', 'Sai thông tin!'));
+    el('btnSignOut').onclick = () => signOut(auth);
   </script>
 </body>
 </html>
