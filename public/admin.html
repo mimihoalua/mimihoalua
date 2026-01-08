@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin — SilkFlower</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -16,45 +17,90 @@
 <body class="bg-[#faf9f6] text-gray-900">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     <div class="flex items-center justify-between mb-6">
-      <a href="index.html" class="text-xl serif italic font-bold uppercase">SilkFlower Admin</a>
+      <a href="index.html#/" class="text-xl serif italic font-bold uppercase">SilkFlower Admin</a>
       <div class="flex items-center gap-2">
         <span id="whoami" class="text-xs text-gray-500"></span>
         <button id="btnSignOut" class="hidden px-3 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm">Đăng xuất</button>
       </div>
     </div>
 
-    <div id="authBox" class="max-w-md bg-white border border-gray-100 rounded-2xl p-6 shadow-soft mx-auto mt-20">
-      <h1 class="text-2xl serif">Đăng nhập Admin</h1>
+    <div id="authBox" class="max-w-md bg-white border border-gray-100 rounded-2xl p-6 shadow-soft mx-auto mt-10">
+      <h1 class="text-2xl serif">Đăng nhập quản trị</h1>
       <div class="mt-5 space-y-3">
-        <input id="aEmail" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" placeholder="Email">
-        <input id="aPass" type="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none" placeholder="Mật khẩu">
+        <input id="aEmail" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-200" placeholder="Email">
+        <input id="aPass" type="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-200" placeholder="Mật khẩu">
       </div>
       <div class="mt-4 grid grid-cols-2 gap-3">
-        <button id="btnSignIn" class="py-3 rounded-xl bg-black text-white font-semibold">Đăng nhập</button>
-        <button id="btnSignUp" class="py-3 rounded-xl bg-white border border-gray-200 text-sm">Đăng ký mới</button>
+        <button id="btnSignIn" class="py-3 rounded-xl bg-black text-white hover:bg-gray-800 transition font-semibold">Đăng nhập</button>
+        <button id="btnSignUp" class="py-3 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition font-semibold">Đăng ký</button>
       </div>
-      <div id="authMsg" class="mt-4 text-xs text-red-600"></div>
-      <div class="mt-4 text-[10px] text-gray-400">UID: <span id="uidDisplay">---</span></div>
+      <div class="mt-4 text-[10px] text-gray-400">UID: <span id="uidBox" class="font-mono"></span></div>
+      <div id="authMsg" class="mt-4 text-sm text-red-600"></div>
     </div>
 
     <div id="appBox" class="hidden">
       <div id="adminWarn" class="hidden mb-4 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm">
-        Tài khoản chưa được cấp quyền Admin trong Firestore (admins/UID).
+        Tài khoản đã đăng nhập nhưng chưa được cấp quyền Admin trong Firestore.
       </div>
-      
-      <div class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6">
-         <div class="flex gap-4 mb-6 border-b pb-4">
-             <button class="font-bold border-b-2 border-black">Đơn hàng</button>
-             <button class="text-gray-400">Sản phẩm</button>
-             <button class="text-gray-400">Vouchers</button>
-         </div>
-         <div id="content" class="text-sm">Đang tải dữ liệu...</div>
+
+      <div class="bg-white border border-gray-100 rounded-2xl shadow-soft overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+            <button class="tab px-4 py-2 rounded-full bg-black text-white text-sm" data-tab="orders">Đơn hàng</button>
+            <button class="tab px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm" data-tab="products">Sản phẩm</button>
+            <button class="tab px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm" data-tab="vouchers">Voucher</button>
+        </div>
+
+        <section id="tab-orders" class="p-5">
+          <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold">Danh sách đơn hàng</h2>
+              <button id="btnRefreshOrders" class="text-xs bg-gray-100 px-3 py-1 rounded">Làm mới</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-50">
+                <tr><th class="p-3">Mã đơn</th><th class="p-3">Khách</th><th class="p-3">Tổng</th><th class="p-3">Trạng thái</th><th class="p-3">Thao tác</th></tr>
+              </thead>
+              <tbody id="ordersTbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-products" class="hidden p-5">
+          <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold">Quản lý sản phẩm</h2>
+              <button id="btnNewProduct" class="bg-black text-white px-4 py-2 rounded-full text-xs">+ Thêm mới</button>
+          </div>
+          <div id="productsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+        <section id="tab-vouchers" class="hidden p-5">
+            <h2 class="text-xl font-bold mb-4">Mã giảm giá</h2>
+            <div id="vouchersList" class="space-y-2"></div>
+        </section>
       </div>
     </div>
   </div>
 
+  <div id="pmModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <h3 class="text-xl font-bold mb-4">Thông tin sản phẩm</h3>
+          <div class="space-y-3">
+              <input id="pmName" class="w-full border rounded-xl p-3 text-sm" placeholder="Tên sản phẩm">
+              <input id="pmPrice" type="number" class="w-full border rounded-xl p-3 text-sm" placeholder="Giá bán (VND)">
+              <input id="pmCategory" class="w-full border rounded-xl p-3 text-sm" placeholder="Danh mục (bo-hoa, gio-hoa...)">
+              <textarea id="pmImages" class="w-full border rounded-xl p-3 text-sm" placeholder="Link ảnh (mỗi dòng 1 link)"></textarea>
+              <div class="flex items-center gap-2">
+                  <input type="checkbox" id="pmActive" checked> <label for="pmActive">Hiển thị lên shop</label>
+              </div>
+          </div>
+          <div class="flex gap-2 mt-6">
+              <button id="btnSaveProduct" class="flex-1 bg-black text-white py-3 rounded-xl font-bold">LƯU</button>
+              <button onclick="document.getElementById('pmModal').classList.add('hidden')" class="flex-1 bg-gray-100 py-3 rounded-xl">HỦY</button>
+          </div>
+      </div>
+  </div>
+
   <script type="module">
-    // --- FIREBASE CONFIG (DỰ ÁN: esomar-vnn) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
       authDomain: "esomar-vnn.firebaseapp.com",
@@ -66,41 +112,88 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Xử lý Login/Logout
     const el = (id) => document.getElementById(id);
-    
-    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => el('authMsg').innerText = e.message);
-    el('btnSignUp').onclick = () => createUserWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value).catch(e => el('authMsg').innerText = e.message);
+
+    // XỬ LÝ CHUYỂN TAB
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach(t => {
+        t.onclick = () => {
+            const target = t.dataset.tab;
+            tabs.forEach(btn => btn.className = "tab px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-sm");
+            t.className = "tab px-4 py-2 rounded-full bg-black text-white text-sm";
+            
+            document.getElementById('tab-orders').classList.add('hidden');
+            document.getElementById('tab-products').classList.add('hidden');
+            document.getElementById('tab-vouchers').classList.add('hidden');
+            document.getElementById(`tab-${target}`).classList.remove('hidden');
+            
+            if(target === 'products') loadProducts();
+        };
+    });
+
+    // LOAD SẢN PHẨM
+    async function loadProducts() {
+        const host = el('productsList');
+        host.innerHTML = "Đang tải...";
+        const snap = await getDocs(collection(db, "products"));
+        host.innerHTML = "";
+        snap.forEach(d => {
+            const p = d.data();
+            host.innerHTML += `
+                <div class="border p-4 rounded-xl bg-gray-50">
+                    <img src="${p.images?.[0] || ''}" class="w-full h-32 object-cover rounded-lg mb-2">
+                    <div class="font-bold">${p.name}</div>
+                    <div class="text-sm text-gray-500">${new Intl.NumberFormat('vi-VN').format(p.basePrice)} đ</div>
+                </div>
+            `;
+        });
+    }
+
+    // THÊM SẢN PHẨM MỚI
+    el('btnNewProduct').onclick = () => el('pmModal').classList.remove('hidden');
+    el('btnSaveProduct').onclick = async () => {
+        const payload = {
+            name: el('pmName').value,
+            basePrice: Number(el('pmPrice').value),
+            category: el('pmCategory').value,
+            images: el('pmImages').value.split('\n').filter(l => l),
+            active: el('pmActive').checked,
+            createdAt: serverTimestamp()
+        };
+        await addDoc(collection(db, "products"), payload);
+        el('pmModal').classList.add('hidden');
+        loadProducts();
+    };
+
+    // AUTH LOGIC
+    el('btnSignIn').onclick = () => signInWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value);
+    el('btnSignUp').onclick = () => createUserWithEmailAndPassword(auth, el('aEmail').value, el('aPass').value);
     el('btnSignOut').onclick = () => signOut(auth);
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        el('authBox').classList.add('hidden');
-        el('appBox').classList.remove('hidden');
-        el('btnSignOut').classList.remove('hidden');
-        el('uidDisplay').innerText = user.uid;
-        el('whoami').innerText = user.email;
-
-        // Kiểm tra quyền Admin
-        const adminSnap = await getDoc(doc(db, "admins", user.uid));
-        if (adminSnap.exists()) {
-            el('adminWarn').classList.add('hidden');
-            el('content').innerText = "Chào Admin! Bạn đã có quyền quản lý hệ thống.";
+    onAuthStateChanged(auth, async (u) => {
+        if (u) {
+            el('authBox').classList.add('hidden');
+            el('appBox').classList.remove('hidden');
+            el('uidBox').innerText = u.uid;
+            el('btnSignOut').classList.remove('hidden');
+            
+            const adminSnap = await getDoc(doc(db, "admins", u.uid));
+            if (adminSnap.exists()) {
+                el('adminWarn').classList.add('hidden');
+            } else {
+                el('adminWarn').classList.remove('hidden');
+            }
         } else {
-            el('adminWarn').classList.remove('hidden');
-            el('content').innerText = "Vui lòng liên hệ chủ hệ thống để cấp quyền cho UID trên.";
+            el('authBox').classList.remove('hidden');
+            el('appBox').classList.add('hidden');
         }
-      } else {
-        el('authBox').classList.remove('hidden');
-        el('appBox').classList.add('hidden');
-      }
     });
   </script>
 </body>
