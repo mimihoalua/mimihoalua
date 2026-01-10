@@ -56,7 +56,7 @@
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
                     <!-- NÚT TẢI ỨNG DỤNG THÔNG MINH -->
-                    <button onclick="openInstallGuide()" class="hover:text-gray-200 font-medium flex items-center gap-1"><i class="fa-solid fa-mobile-screen-button"></i> Tải ứng dụng</button>
+                    <button onclick="openInstallGuide()" class="hover:text-gray-200 font-medium flex items-center gap-1"><i class="fa-solid fa-mobile-screen-button"></i> Tải App</button>
                 </div>
                 <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
             </div>
@@ -111,30 +111,31 @@
         </div>
     </footer>
 
-    <!-- MODAL HƯỚNG DẪN CÀI ĐẶT (INSTALL APP) -->
-    <div id="installModal" class="fixed inset-0 z-[80] hidden flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0">
-        <div class="bg-white w-full md:w-[400px] md:rounded-2xl rounded-t-2xl p-6 shadow-2xl transform translate-y-full md:translate-y-0 transition-transform duration-300" id="installContent">
-            <div class="flex justify-between items-start mb-4">
-                <div class="flex gap-4">
-                    <div class="w-16 h-16 bg-gradient-to-tr from-[#ee4d2d] to-[#ff9068] rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fa-solid fa-leaf text-3xl"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-lg text-gray-800">MimiFlower App</h3>
-                        <p class="text-sm text-gray-500">Mua sắm tiện lợi hơn</p>
-                        <div class="flex gap-1 mt-1"><i class="fa-solid fa-star text-yellow-400 text-xs"></i><i class="fa-solid fa-star text-yellow-400 text-xs"></i><i class="fa-solid fa-star text-yellow-400 text-xs"></i><i class="fa-solid fa-star text-yellow-400 text-xs"></i><i class="fa-solid fa-star text-yellow-400 text-xs"></i></div>
-                    </div>
+    <!-- MODAL HƯỚNG DẪN CÀI ĐẶT THÔNG MINH -->
+    <div id="installModal" class="fixed inset-0 z-[100] hidden flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white w-full md:w-[400px] md:rounded-2xl rounded-t-2xl p-6 shadow-2xl transform translate-y-full md:translate-y-0 transition-transform duration-300 relative" id="installContent">
+            <!-- Nút đóng -->
+            <button onclick="closeInstallModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"><i class="fa-solid fa-times text-xl"></i></button>
+            
+            <div class="flex gap-4 items-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-tr from-[#ee4d2d] to-[#ff9068] rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
+                    <i class="fa-solid fa-leaf text-3xl"></i>
                 </div>
-                <button onclick="closeInstallModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">Cài đặt MimiFlower</h3>
+                    <p class="text-sm text-gray-500">Truy cập nhanh từ màn hình chính</p>
+                </div>
             </div>
-            <div class="border-t border-gray-100 py-4">
-                <p id="installInstructions" class="text-gray-600 text-sm leading-relaxed"></p>
+            
+            <div class="border-t border-gray-100 py-4" id="installInstructions">
+                <!-- Nội dung hướng dẫn sẽ được JS tự động điền tùy theo điện thoại -->
             </div>
-            <button onclick="closeInstallModal()" class="w-full bg-[#ee4d2d]/10 text-[#ee4d2d] font-bold py-3 rounded-xl hover:bg-[#ee4d2d]/20 transition">Đã hiểu</button>
+            
+            <button onclick="closeInstallModal()" class="w-full bg-[#ee4d2d] text-white font-bold py-3 rounded-xl hover:bg-[#d73211] transition shadow-lg shadow-orange-500/30">Đã hiểu, tôi sẽ làm ngay!</button>
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT SẢN PHẨM -->
+    <!-- MODAL CHI TIẾT SẢN PHẨM (ONE-FRAME) -->
     <div id="detailModal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0 overflow-y-auto">
         <div class="bg-white w-full h-full md:w-[1000px] md:h-auto md:max-h-[90vh] md:rounded-lg shadow-2xl flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300 overflow-y-auto md:overflow-hidden" id="modalContent">
             <button onclick="closeDetail()" class="absolute top-4 right-4 z-50 w-9 h-9 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 backdrop-blur-md shadow-lg transition-transform active:scale-90"><i class="fa-solid fa-times"></i></button>
@@ -192,7 +193,6 @@
                     <label class="flex items-center gap-2 cursor-pointer border p-3 rounded has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 flex-1"><input type="radio" name="deliveryMethod" value="store" onchange="toggleDeliveryMethod()" class="accent-[#ee4d2d]"><span class="font-medium">Nhận tại cửa hàng</span></label>
                 </div>
             </div>
-            
             <div class="flex flex-col lg:flex-row gap-6">
                 <div class="w-full lg:w-2/3 space-y-4">
                     <div id="formProgressContainer" class="bg-white px-6 pt-4 pb-2 rounded-t shadow-sm border-b relative">
