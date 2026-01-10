@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Firebase SDK (Phải khớp version với index.html) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> <!-- Quan trọng: Auth -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     
@@ -324,17 +324,25 @@
             appId: "1:1023271897973:web:c7207b0e8321fc271fe13c"
         };
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
 
         // --- AUTH LOGIC (SIMPLE) ---
         function checkAuth() {
-            const isAuth = localStorage.getItem('mimi_admin_auth');
-            if(isAuth === 'true') {
-                document.getElementById('loginOverlay').classList.add('hidden');
-                switchTab('dashboard'); // Load default
-            } else {
-                document.getElementById('loginOverlay').classList.remove('hidden');
-            }
+            // TỰ ĐỘNG KẾT NỐI FIREBASE ĐỂ LẤY QUYỀN ĐỌC DỮ LIỆU
+            auth.signInAnonymously().then(() => {
+                console.log("Admin System Connected");
+                const isAuth = localStorage.getItem('mimi_admin_auth');
+                if(isAuth === 'true') {
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    switchTab('dashboard'); // Load default
+                } else {
+                    document.getElementById('loginOverlay').classList.remove('hidden');
+                }
+            }).catch((error) => {
+                console.error("Connect error:", error);
+                alert("Lỗi kết nối máy chủ. Vui lòng tải lại trang.");
+            });
         }
 
         function handleLogin(e) {
