@@ -168,7 +168,7 @@
                 </div>
             </div>
 
-            <!-- PRODUCTS TAB (NÂNG CẤP GIAO DIỆN CHỐNG BẤM NHẦM) -->
+            <!-- PRODUCTS TAB (NÂNG CẤP GIAO DIỆN CHỐNG BẤM NHẦM + TỐI ƯU FORM) -->
             <div id="tab-products" class="p-4 md:p-8 overflow-y-auto h-full pb-20 hidden custom-scrollbar">
                 <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#f8fafc] z-10 py-2">
                     <h2 class="text-2xl font-bold text-gray-800">Sản Phẩm</h2>
@@ -177,7 +177,6 @@
                     </button>
                 </div>
                 
-                <!-- PRODUCT GRID (Cards tối ưu chống bấm nhầm) -->
                 <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     <!-- Products Injected Here -->
                 </div>
@@ -185,10 +184,9 @@
         </div>
     </div>
 
-    <!-- MODAL CHI TIẾT ĐƠN HÀNG (FULL CÔNG CỤ) -->
+    <!-- MODAL CHI TIẾT ĐƠN HÀNG -->
     <div id="orderDetailModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
         <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transform scale-95 transition-transform duration-200" id="orderDetailContent">
-            <!-- Header Modal -->
             <div class="p-4 border-b flex justify-between items-center bg-gray-50">
                 <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
                     <i class="fa-solid fa-file-invoice text-[#ee4d2d]"></i> Chi Tiết Đơn Hàng <span id="odIdHeader" class="text-sm font-mono bg-gray-200 px-2 py-0.5 rounded text-gray-600"></span>
@@ -197,9 +195,7 @@
             </div>
             
             <div class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white">
-                <!-- Thông tin & Công cụ -->
                 <div class="flex flex-col md:flex-row gap-6 mb-6">
-                    <!-- Cột Trái: Thông tin khách -->
                     <div class="flex-1 space-y-3 text-sm bg-blue-50/50 p-4 rounded-lg border border-blue-100">
                         <div class="font-bold text-blue-800 border-b border-blue-200 pb-2 mb-2 uppercase text-xs tracking-wider flex items-center gap-2"><i class="fa-solid fa-user"></i> Khách hàng</div>
                         <p class="flex justify-between border-b border-dashed border-blue-200 pb-1"><span class="text-gray-500">Họ tên:</span> <span id="odName" class="font-bold text-gray-800"></span></p>
@@ -208,24 +204,14 @@
                         <p class="flex flex-col"><span class="text-gray-500 mb-1">Ghi chú:</span> <span id="odNote" class="italic text-gray-600 bg-yellow-50 px-2 py-1 rounded border border-yellow-100"></span></p>
                     </div>
                     
-                    <!-- Cột Phải: Công cụ xử lý (4 Nút Quyền Lực) -->
                     <div class="flex-1 space-y-4">
                          <div class="grid grid-cols-2 gap-3">
-                            <button onclick="printOrder()" class="bg-gray-700 text-white py-3 rounded-lg text-xs font-bold hover:bg-gray-800 flex flex-col items-center justify-center gap-1 shadow hover:shadow-md transition">
-                                <i class="fa-solid fa-print text-lg"></i> In Đơn Hàng
-                            </button>
-                            <button onclick="exportOrder()" class="bg-green-600 text-white py-3 rounded-lg text-xs font-bold hover:bg-green-700 flex flex-col items-center justify-center gap-1 shadow hover:shadow-md transition">
-                                <i class="fa-solid fa-file-export text-lg"></i> Xuất File TXT
-                            </button>
-                            <button onclick="shareOrder('zalo')" class="bg-blue-500 text-white py-3 rounded-lg text-xs font-bold hover:bg-blue-600 flex flex-col items-center justify-center gap-1 shadow hover:shadow-md transition">
-                                <i class="fa-solid fa-share-nodes text-lg"></i> Gửi Nhanh Zalo
-                            </button>
-                            <button onclick="deleteOrder(event)" class="bg-red-50 text-red-600 border border-red-200 py-3 rounded-lg text-xs font-bold hover:bg-red-100 flex flex-col items-center justify-center gap-1 shadow-sm transition">
-                                <i class="fa-solid fa-trash-can text-lg"></i> Xóa Đơn Hàng
-                            </button>
+                            <button onclick="printOrder()" class="bg-gray-700 text-white py-3 rounded-lg text-xs font-bold hover:bg-gray-800 flex flex-col items-center justify-center gap-1 shadow hover:shadow-md transition"><i class="fa-solid fa-print text-lg"></i> In Đơn Hàng</button>
+                            <button onclick="exportOrder()" class="bg-green-600 text-white py-3 rounded-lg text-xs font-bold hover:bg-green-700 flex flex-col items-center justify-center gap-1 shadow hover:shadow-md transition"><i class="fa-solid fa-file-export text-lg"></i> Xuất File TXT</button>
+                            <button onclick="shareOrder('zalo')" class="bg-blue-500 text-white py-3 rounded-lg text-xs font-bold hover:bg-blue-600 flex flex-col items-center justify-center gap-1 shadow hover:shadow-md transition"><i class="fa-solid fa-share-nodes text-lg"></i> Gửi Nhanh Zalo</button>
+                            <button onclick="deleteOrder(event)" class="bg-red-50 text-red-600 border border-red-200 py-3 rounded-lg text-xs font-bold hover:bg-red-100 flex flex-col items-center justify-center gap-1 shadow-sm transition"><i class="fa-solid fa-trash-can text-lg"></i> Xóa Đơn Hàng</button>
                          </div>
 
-                        <!-- Trạng thái đơn -->
                         <div class="bg-white p-3 rounded-lg border-2 border-dashed border-[#ee4d2d]/30">
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Cập nhật tiến độ</label>
                             <div class="flex gap-2">
@@ -235,22 +221,18 @@
                                     <option value="done">✅ Hoàn thành</option>
                                     <option value="cancel">❌ Đã hủy</option>
                                 </select>
-                                <button onclick="updateOrderStatus()" class="bg-[#ee4d2d] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#d73211] transition shadow-md">
-                                    Lưu
-                                </button>
+                                <button onclick="updateOrderStatus()" class="bg-[#ee4d2d] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#d73211] transition shadow-md">Lưu</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Danh sách sản phẩm -->
                 <div class="font-bold text-gray-800 border-b pb-2 mb-3 uppercase text-xs tracking-wider flex justify-between">
                     <span>Sản phẩm đặt mua (<span id="odItemCount">0</span>)</span>
                     <span id="odPayment" class="text-[#ee4d2d]"></span>
                 </div>
                 <div id="odItems" class="space-y-3 mb-6"></div>
                 
-                <!-- Tổng tiền -->
                 <div class="flex justify-end items-center pt-4 border-t border-gray-100">
                     <div class="text-right">
                         <div class="text-sm text-gray-500">Phí vận chuyển: <span id="odShip" class="font-medium text-gray-800"></span></div>
@@ -261,7 +243,7 @@
         </div>
     </div>
 
-    <!-- MODAL THÊM/SỬA SẢN PHẨM -->
+    <!-- MODAL THÊM/SỬA SẢN PHẨM (NÂNG CẤP LOGIC GÁN DỮ LIỆU) -->
     <div id="productModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
         <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transform scale-95 transition-transform duration-200" id="productModalContent">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50">
@@ -277,7 +259,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">Link Ảnh Chính (URL) *</label>
-                        <div class="flex gap-4 items-start"><div class="flex-1"><input type="text" id="pImg" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none" oninput="document.getElementById('pImgPreview').src=this.value" required></div><img id="pImgPreview" src="https://via.placeholder.com/100" class="w-20 h-20 object-cover rounded border"></div>
+                        <div class="flex gap-4 items-start"><div class="flex-1"><input type="text" id="pImg" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none" oninput="document.getElementById('pImgPreview').src=this.value; document.getElementById('pImgPreview').classList.remove('hidden');" required></div><img id="pImgPreview" src="https://via.placeholder.com/100" class="w-20 h-20 object-cover rounded border hidden"></div>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <div class="flex justify-between items-center mb-3"><label class="text-sm font-bold text-gray-700 flex items-center gap-2"><i class="fa-solid fa-layer-group text-blue-500"></i> Phân loại hàng</label><button type="button" onclick="addVariantRow()" class="text-xs bg-blue-100 text-blue-600 px-3 py-1.5 rounded-full font-bold hover:bg-blue-200 transition">+ Thêm</button></div>
@@ -306,17 +288,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- MOBILE MENU LOGIC ---
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebarBackdrop');
-            if (sidebar.classList.contains('sidebar-closed')) {
-                sidebar.classList.remove('sidebar-closed'); sidebar.classList.add('sidebar-open'); backdrop.classList.remove('hidden');
-            } else {
-                sidebar.classList.remove('sidebar-open'); sidebar.classList.add('sidebar-closed'); backdrop.classList.add('hidden');
-            }
-        }
-
         // --- AUTH ---
         function checkAuth() {
             auth.signInAnonymously().then(() => {
@@ -342,6 +313,16 @@
             if(tabId === 'dashboard') loadDashboard();
             if(tabId === 'orders') loadOrders();
             if(tabId === 'products') loadProducts();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar.classList.contains('sidebar-closed')) {
+                sidebar.classList.remove('sidebar-closed'); sidebar.classList.add('sidebar-open'); backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.remove('sidebar-open'); sidebar.classList.add('sidebar-closed'); backdrop.classList.add('hidden');
+            }
         }
 
         // --- DASHBOARD ---
@@ -410,8 +391,6 @@
                 modal.classList.remove('hidden'); requestAnimationFrame(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); content.classList.add('scale-100'); });
             });
         }
-
-        // --- ACTIONS ---
         function updateOrderStatus() { db.collection("orders").doc(currentOrderId).update({ status: document.getElementById('odStatusSelect').value }).then(() => { alert("Đã cập nhật!"); closeModal('orderDetailModal'); }); }
         function deleteOrder(event) {
             if(navigator.vibrate) navigator.vibrate(50);
@@ -426,8 +405,8 @@
             w.document.write(`<html><head><title>Hóa đơn</title><style>body{font-family:Arial,sans-serif;width:80mm;margin:0 auto;padding:10px}h2{text-align:center;margin:0 0 5px 0}.info{font-size:12px;margin-bottom:10px}table{width:100%;font-size:12px;border-collapse:collapse}th{text-align:left;border-bottom:1px solid #000}.total{text-align:right;font-weight:bold;margin-top:10px;font-size:14px}</style></head><body><h2>MIMI FLOWER</h2><div class="info">KH: ${d.customer.name}<br>SĐT: ${d.customer.phone}<br>ĐC: ${d.customer.fullAddress}</div><table><thead><tr><th>SP</th><th>SL</th><th>Tiền</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="total">Tổng: ${formatMoney(d.total)}</div><div style="text-align:center;margin-top:20px;font-size:10px">Cảm ơn quý khách!</div><script>window.print();<\/script></body></html>`); w.document.close();
         }
         function exportOrder() {
-            const d = currentOrderData; let text = `\uFEFFĐƠN HÀNG #${d.id.slice(-6).toUpperCase()}\n----------------\nKH: ${d.customer.name}\nSĐT: ${d.customer.phone}\nĐC: ${d.customer.fullAddress}\n----------------\n`;
-            d.items.forEach(i => { text += `- ${i.name} (${i.variant}) x${i.qty} = ${formatMoney(i.price*i.qty)}\n`; }); text += `----------------\nTỔNG: ${formatMoney(d.total)}`;
+            const d = currentOrderData; let text = `\uFEFFĐƠN HÀNG #${d.id.slice(-6).toUpperCase()}\r\n----------------\r\nKH: ${d.customer.name}\r\nSĐT: ${d.customer.phone}\r\nĐC: ${d.customer.fullAddress}\r\n----------------\r\n`;
+            d.items.forEach(i => { text += `- ${i.name} (${i.variant}) x${i.qty} = ${formatMoney(i.price*i.qty)}\r\n`; }); text += `----------------\r\nTỔNG: ${formatMoney(d.total)}`;
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type: "text/plain;charset=utf-8"})); a.download = `Don_${d.customer.name}.txt`; a.click();
         }
         function shareOrder(platform) {
@@ -436,7 +415,7 @@
             navigator.clipboard.writeText(text).then(() => { alert("Đã copy nội dung! Đang mở Zalo..."); window.open('https://chat.zalo.me/', '_blank'); });
         }
 
-        // --- PRODUCTS LOGIC (OPTIMIZED UI) ---
+        // --- PRODUCTS LOGIC (SAFE ZONE & FIX EDIT) ---
         function loadProducts() {
             const grid = document.getElementById('productList');
             grid.innerHTML = '<div class="loader mx-auto col-span-full"></div>';
@@ -467,7 +446,7 @@
                 grid.innerHTML = html;
             });
         }
-        function openProductModal() { document.getElementById('productForm').reset(); document.getElementById('productId').value=''; document.getElementById('variantContainer').innerHTML=''; document.getElementById('productModal').classList.remove('hidden'); }
+        function openProductModal() { document.getElementById('productForm').reset(); document.getElementById('productId').value=''; document.getElementById('variantContainer').innerHTML=''; document.getElementById('pImgPreview').classList.add('hidden'); document.getElementById('productModal').classList.remove('hidden'); }
         function closeModal(id) { const modal = document.getElementById(id); const content = modal.firstElementChild; modal.classList.add('opacity-0'); if(content) content.classList.remove('scale-100'); setTimeout(() => modal.classList.add('hidden'), 200); }
         function formatMoney(n) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n); }
         function formatDate(d) { return d ? d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }) : ''; }
@@ -475,9 +454,77 @@
         function getStatusText(s) { const map = { 'new': 'Mới', 'shipping': 'Đang giao', 'done': 'Hoàn thành', 'cancel': 'Đã hủy' }; return map[s] || s; }
         function getStatusColor(s) { const map = { 'new': 'bg-blue-100 text-blue-700', 'shipping': 'bg-orange-100 text-orange-700', 'done': 'bg-green-100 text-green-700', 'cancel': 'bg-red-100 text-red-800' }; return map[s] || 'bg-gray-100'; }
         
-        function editProduct(id) { db.collection("products").doc(id).get().then(doc => { if(doc.exists) { const p = doc.data(); document.getElementById('productId').value=id; document.getElementById('pName').value=p.name; document.getElementById('pPrice').value=p.basePrice; document.getElementById('pImg').value=p.images[0]; document.getElementById('pDesc').value=p.description; const c = document.getElementById('variantContainer'); c.innerHTML=''; if(p.variants) p.variants.forEach(v=>addVariantRow(v.name,v.price,v.image)); document.getElementById('productModal').classList.remove('hidden'); }}); }
-        function addVariantRow(n='',p='',i='') { const d=document.createElement('div'); d.className='flex gap-2 mb-2'; d.innerHTML=`<input class="v-name border p-1 w-1/3 rounded" placeholder="Tên" value="${n}"><input class="v-price border p-1 w-1/4 rounded" type="number" placeholder="Giá" value="${p}"><input class="v-img border p-1 w-1/3 rounded" placeholder="Ảnh" value="${i}"><button type="button" onclick="this.parentElement.remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button>`; document.getElementById('variantContainer').appendChild(d); }
-        window.saveProduct = function(e) { e.preventDefault(); const id = document.getElementById('productId').value; const vs = []; document.querySelectorAll('#variantContainer > div').forEach(r => { vs.push({name: r.querySelector('.v-name').value, price: parseInt(r.querySelector('.v-price').value), image: r.querySelector('.v-img').value}); }); const d = { name: document.getElementById('pName').value, basePrice: parseInt(document.getElementById('pPrice').value), description: document.getElementById('pDesc').value, images: [document.getElementById('pImg').value], variants: vs, createdAt: firebase.firestore.FieldValue.serverTimestamp() }; if(id) { delete d.createdAt; db.collection("products").doc(id).update(d).then(() => { alert("Đã lưu!"); closeModal('productModal'); loadProducts(); }); } else { db.collection("products").add(d).then(() => { alert("Đã thêm!"); closeModal('productModal'); loadProducts(); }); } };
+        function editProduct(id) { 
+            db.collection("products").doc(id).get().then(doc => { 
+                if(!doc.exists) { alert("Sản phẩm không tồn tại!"); return; }
+                const p = doc.data(); 
+                document.getElementById('productId').value = id; 
+                document.getElementById('pName').value = p.name || ''; 
+                document.getElementById('pPrice').value = p.basePrice || 0; 
+                document.getElementById('pDesc').value = p.description || '';
+                
+                // Safe Image Load
+                const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : '';
+                document.getElementById('pImg').value = imgUrl; 
+                if(imgUrl) {
+                    document.getElementById('pImgPreview').src = imgUrl;
+                    document.getElementById('pImgPreview').classList.remove('hidden');
+                } else {
+                    document.getElementById('pImgPreview').classList.add('hidden');
+                }
+
+                const c = document.getElementById('variantContainer'); 
+                c.innerHTML=''; 
+                if(p.variants && Array.isArray(p.variants)) {
+                    p.variants.forEach(v => addVariantRow(v.name, v.price, v.image));
+                }
+                
+                // Show Modal
+                const modal = document.getElementById('productModal');
+                const content = document.getElementById('productModalContent');
+                modal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                });
+            }).catch(err => {
+                console.error(err);
+                alert("Lỗi tải dữ liệu: " + err.message);
+            });
+        }
+        
+        function addVariantRow(n='',p='',i='') { const d=document.createElement('div'); d.className='flex gap-2 mb-2 variant-row'; d.innerHTML=`<input class="v-name border p-1 w-1/3 rounded" placeholder="Tên" value="${n}"><input class="v-price border p-1 w-1/4 rounded" type="number" placeholder="Giá" value="${p}"><input class="v-img border p-1 w-1/3 rounded" placeholder="Ảnh" value="${i}"><button type="button" onclick="this.parentElement.remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button>`; document.getElementById('variantContainer').appendChild(d); }
+        
+        function saveProduct(e) { 
+            e.preventDefault(); 
+            const id = document.getElementById('productId').value; 
+            const vs = []; 
+            document.querySelectorAll('.variant-row').forEach(r => { 
+                vs.push({
+                    name: r.querySelector('.v-name').value, 
+                    price: parseInt(r.querySelector('.v-price').value) || 0, 
+                    image: r.querySelector('.v-img').value
+                }); 
+            }); 
+            
+            const d = { 
+                name: document.getElementById('pName').value, 
+                basePrice: parseInt(document.getElementById('pPrice').value) || 0, 
+                description: document.getElementById('pDesc').value, 
+                images: [document.getElementById('pImg').value], 
+                variants: vs, 
+                createdAt: id ? undefined : firebase.firestore.FieldValue.serverTimestamp() 
+            }; 
+            
+            if(id) { 
+                delete d.createdAt; 
+                db.collection("products").doc(id).update(d).then(() => { alert("Đã lưu!"); closeModal('productModal'); loadProducts(); }); 
+            } else { 
+                db.collection("products").add(d).then(() => { alert("Đã thêm!"); closeModal('productModal'); loadProducts(); }); 
+            } 
+        };
+        
         function deleteProduct(id) { if(confirm("Xóa sản phẩm?")) db.collection("products").doc(id).delete().then(loadProducts); }
 
         window.onload = checkAuth;
