@@ -15,22 +15,20 @@
     
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #334155; }
-        
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .active-nav { background-color: #fff1f2; color: #ee4d2d; border-right: 3px solid #ee4d2d; font-weight: bold; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         
-        .active-nav { background-color: #fff1f2; color: #ee4d2d; border-right: 3px solid #ee4d2d; font-weight: 600; }
-        .loader { border: 3px solid #f1f5f9; border-radius: 50%; border-top: 3px solid #ee4d2d; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #ee4d2d; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
         .sidebar-closed { transform: translateX(-100%); }
         .sidebar-open { transform: translateX(0); }
 
-        .matrix-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; margin-bottom: 4px; border: 1px solid #e2e8f0; background: white; height: 20px; cursor: pointer; transition: all 0.2s ease; }
+        /* VISUAL MATRIX STYLES */
+        .matrix-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; margin-bottom: 4px; border: 1px solid #e2e8f0; background: white; height: 22px; cursor: pointer; transition: all 0.2s ease; }
         .matrix-badge:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-color: #ee4d2d; z-index: 10; }
         .dot-stock { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .bg-dot-green { background-color: #22c55e; box-shadow: 0 0 2px #22c55e; }
@@ -39,30 +37,38 @@
         .card-out-of-stock:hover { filter: grayscale(0%); opacity: 1; }
         .row-highlight { animation: flash-highlight 1.5s ease-in-out; }
         @keyframes flash-highlight { 0% { background-color: #fff7ed; border-color: #fdba74; } 50% { background-color: #ffedd5; border-color: #f97316; } 100% { background-color: white; border-color: #e5e7eb; } }
-
+        
         @media print { body * { visibility: hidden; } #printSection, #printSection * { visibility: visible; } #printSection { position: absolute; left: 0; top: 0; width: 100%; } }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden text-gray-800">
 
-    <!-- LOGIN OVERLAY -->
+    <!-- 1. LOGIN OVERLAY -->
     <div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#ee4d2d] to-[#ff9068]"></div>
             <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#ee4d2d] shadow-inner"><i class="fa-solid fa-store text-4xl"></i></div>
+                <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#ee4d2d] shadow-inner">
+                    <i class="fa-solid fa-store text-4xl"></i>
+                </div>
                 <h2 class="text-2xl font-bold text-slate-800">Kênh Người Bán</h2>
                 <p class="text-slate-500 text-sm mt-1">Hệ thống quản lý MimiFlower</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-5">
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tài khoản</label><input type="text" id="username" class="w-full border border-slate-200 p-3 rounded-lg focus:border-[#ee4d2d] outline-none text-sm placeholder-gray-400" placeholder="Bạn phải là người bán hàng"></div>
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mật khẩu</label><input type="password" id="password" class="w-full border border-slate-200 p-3 rounded-lg focus:border-[#ee4d2d] outline-none text-sm placeholder-gray-400" placeholder="Phải đăng nhập đúng quyền quản trị"></div>
-                <button type="submit" class="w-full bg-[#ee4d2d] text-white py-3 rounded-xl font-bold hover:bg-[#d73211] transition shadow-lg shadow-orange-500/30">Đăng Nhập</button>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tài khoản</label>
+                    <input type="text" id="username" class="w-full border border-slate-200 p-3 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition bg-slate-50 focus:bg-white text-sm placeholder-gray-400" placeholder="Bạn phải là người bán hàng">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mật khẩu</label>
+                    <input type="password" id="password" class="w-full border border-slate-200 p-3 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition bg-slate-50 focus:bg-white text-sm placeholder-gray-400" placeholder="Phải đăng nhập đúng quyền quản trị">
+                </div>
+                <button type="submit" class="w-full bg-[#ee4d2d] text-white py-3 rounded-xl font-bold hover:bg-[#d73211] transition shadow-lg shadow-orange-500/30 active:scale-95 transform">Đăng Nhập</button>
             </form>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
+    <!-- 2. SIDEBAR -->
     <div id="sidebar" class="fixed md:static inset-y-0 left-0 w-72 bg-white border-r border-slate-200 flex flex-col z-40 sidebar-transition sidebar-closed md:transform-none shadow-2xl md:shadow-none">
         <div class="p-6 border-b border-slate-100 flex items-center justify-between h-20">
             <div class="flex items-center gap-3"><div class="w-10 h-10 bg-[#ee4d2d] rounded-lg flex items-center justify-center text-white shadow-md"><i class="fa-solid fa-leaf"></i></div><span class="font-bold text-xl tracking-tight text-slate-800">MimiManager</span></div>
@@ -73,19 +79,23 @@
             <a href="#" onclick="switchTab('orders'); toggleSidebar()" id="nav-orders" class="flex items-center gap-4 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl transition"><i class="fa-solid fa-clipboard-list w-6 text-center text-lg"></i> Đơn Hàng <span id="badgeNewOrders" class="hidden ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">0</span></a>
             <a href="#" onclick="switchTab('products'); toggleSidebar()" id="nav-products" class="flex items-center gap-4 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-xl transition"><i class="fa-solid fa-box-open w-6 text-center text-lg"></i> Sản Phẩm</a>
         </nav>
-        <div class="p-4 border-t border-slate-100 bg-slate-50"><button onclick="logout()" class="flex items-center justify-center gap-2 text-red-600 bg-white border border-red-200 py-2.5 rounded-xl w-full hover:bg-red-50 text-sm font-bold shadow-sm transition"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button></div>
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
+            <button onclick="logout()" class="flex items-center justify-center gap-2 text-red-600 bg-white border border-red-200 py-2.5 rounded-xl w-full hover:bg-red-50 text-sm font-bold shadow-sm transition"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+        </div>
     </div>
+
     <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
 
-    <!-- MAIN CONTENT -->
+    <!-- 3. MAIN CONTENT -->
     <div class="flex-1 flex flex-col h-full overflow-hidden bg-[#f8fafc] w-full">
+        <!-- MOBILE HEADER -->
         <div class="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 shadow-sm z-20">
             <button onclick="toggleSidebar()" class="text-slate-600 hover:text-[#ee4d2d] transition"><i class="fa-solid fa-bars-staggered text-2xl"></i></button>
             <span class="font-bold text-lg text-slate-800">Quản Lý Shop</span>
             <div class="relative w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-bell text-slate-400"></i><span id="badgeNewOrdersMob" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span></div>
         </div>
+
         <div class="flex-1 overflow-hidden relative">
-            
             <!-- DASHBOARD TAB -->
             <div id="tab-dashboard" class="p-4 md:p-8 overflow-y-auto h-full pb-20 custom-scrollbar">
                 <div class="flex justify-between items-end mb-6"><div><h2 class="text-2xl font-bold text-slate-800">Tổng Quan</h2><p class="text-sm text-slate-500">Cập nhật tình hình kinh doanh hôm nay</p></div><span class="text-xs bg-white border px-3 py-1 rounded-full text-slate-500 shadow-sm" id="currentDate">--/--/----</span></div>
@@ -110,12 +120,17 @@
                 </div>
             </div>
 
-            <!-- PRODUCTS TAB -->
+            <!-- PRODUCTS TAB (VISUAL MATRIX & STOCK) -->
             <div id="tab-products" class="p-4 md:p-8 overflow-y-auto h-full pb-20 hidden custom-scrollbar">
                 <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#f8fafc] z-10 py-2">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-800">Sản Phẩm & Kho</h2>
-                        <div class="flex gap-3 text-[10px] text-slate-500 mt-1"><span class="flex items-center gap-1"><span class="dot-stock bg-dot-green"></span> Còn</span><span class="flex items-center gap-1"><span class="dot-stock bg-dot-gray"></span> Hết</span><span class="flex items-center gap-1"><i class="fa-solid fa-camera"></i> Ảnh</span><span class="flex items-center gap-1"><i class="fa-solid fa-font"></i> Chữ</span></div>
+                        <div class="flex gap-3 text-[10px] text-slate-500 mt-1">
+                            <span class="flex items-center gap-1"><span class="dot-stock bg-dot-green"></span> Còn</span>
+                            <span class="flex items-center gap-1"><span class="dot-stock bg-dot-gray"></span> Hết</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-camera"></i> Ảnh</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-font"></i> Chữ</span>
+                        </div>
                     </div>
                     <button onclick="openProductModal()" class="bg-[#ee4d2d] text-white px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/30 hover:bg-[#d73211] text-sm font-bold flex items-center gap-2 transition transform active:scale-95"><i class="fa-solid fa-plus"></i> <span class="hidden md:inline">Thêm Mới</span></button>
                 </div>
@@ -163,7 +178,7 @@
         </div>
     </div>
 
-    <!-- MODAL THÊM/SỬA SẢN PHẨM -->
+    <!-- MODAL THÊM/SỬA SẢN PHẨM (ĐÃ THÊM DANH MỤC) -->
     <div id="productModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
         <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transform scale-95 transition-transform duration-200" id="productModalContent">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
@@ -174,35 +189,24 @@
                 <form id="productForm" onsubmit="saveProduct(event)" class="space-y-6">
                     <input type="hidden" id="productId">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label class="block text-sm font-bold text-slate-700 mb-1.5">Tên sản phẩm *</label><input type="text" id="pName" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition" required placeholder="Nhập tên sản phẩm..."></div>
-                        <div><label class="block text-sm font-bold text-slate-700 mb-1.5">Giá cơ bản (VNĐ) *</label><input type="number" id="pPrice" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition" required placeholder="0"></div>
+                        <div><label class="block text-sm font-bold text-slate-700 mb-1.5">Tên sản phẩm <span class="text-red-500">*</span></label><input type="text" id="pName" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition" required placeholder="Nhập tên sản phẩm..."></div>
+                        <div><label class="block text-sm font-bold text-slate-700 mb-1.5">Giá cơ bản (VNĐ) <span class="text-red-500">*</span></label><input type="number" id="pPrice" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition" required placeholder="0"></div>
                     </div>
                     
-                    <!-- ALBUM ẢNH CHÍNH (MULTI-LINE TEXTAREA) -->
+                    <!-- DANH MỤC SẢN PHẨM (MỚI) -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Album Ảnh Chính (Mỗi dòng 1 link ảnh) *</label>
-                        <div class="flex gap-4 items-start">
-                            <div class="flex-1">
-                                <textarea id="pImg" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] outline-none transition text-sm h-24" placeholder="https://anh1.jpg&#10;https://anh2.jpg" oninput="updatePreview(this.value)" required></textarea>
-                            </div>
-                            <img id="pImgPreview" src="https://via.placeholder.com/100" class="w-24 h-24 object-cover rounded-lg border border-slate-200 bg-slate-50 hidden shadow-sm">
-                        </div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Danh mục <span class="text-red-500">*</span></label>
+                        <select id="pCategory" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition bg-white" required>
+                            <option value="">-- Chọn danh mục --</option>
+                            <!-- JS sẽ điền danh mục vào đây -->
+                        </select>
                     </div>
 
-                    <!-- NHÓM BIẾN THỂ -->
-                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                        <div class="flex justify-between items-center mb-4"><label class="text-sm font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-layer-group text-blue-500"></i> Nhóm biến thể</label><button type="button" onclick="addVariantRow()" class="text-xs bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-50 transition shadow-sm flex items-center gap-1"><i class="fa-solid fa-plus"></i> Thêm dòng</button></div>
-                        <div class="flex gap-2 text-[10px] font-bold text-slate-400 uppercase mb-2 px-2">
-                            <div class="w-1/3">Tên (Màu/Size)</div>
-                            <div class="w-1/4">Giá riêng</div>
-                            <div class="w-1/6 text-center">SL Tồn</div>
-                            <div class="w-1/4">Link ảnh</div>
-                            <div class="w-6"></div>
-                        </div>
-                        <div id="variantContainer" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
-                        <p class="text-xs text-slate-400 mt-3 italic">* Nếu không nhập biến thể, hệ thống sẽ dùng giá và ảnh chính.</p>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Album Ảnh Chính (Nhiều ảnh phân cách bằng dấu phẩy) <span class="text-red-500">*</span></label>
+                        <div class="flex gap-4 items-start"><div class="flex-1"><textarea id="pImg" class="w-full border border-slate-300 p-2.5 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none transition text-sm h-20" placeholder="https://anh1.jpg, https://anh2.jpg..." oninput="updatePreview(this.value)" required></textarea><p class="text-xs text-slate-400 mt-1">Ảnh đầu tiên sẽ là ảnh đại diện.</p></div><img id="pImgPreview" src="https://via.placeholder.com/100" class="w-20 h-20 object-cover rounded-lg border border-slate-200 bg-slate-50 hidden shadow-sm"></div>
                     </div>
-
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200"><div class="flex justify-between items-center mb-4"><label class="text-sm font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-layer-group text-blue-500"></i> Nhóm biến thể</label><button type="button" onclick="addVariantRow()" class="text-xs bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-50 transition shadow-sm flex items-center gap-1"><i class="fa-solid fa-plus"></i> Thêm dòng</button></div><div class="flex gap-2 text-[10px] font-bold text-slate-400 uppercase mb-2 px-2"><div class="w-1/3">Tên (Màu/Size)</div><div class="w-1/4">Giá riêng</div><div class="w-1/6 text-center">SL Tồn</div><div class="w-1/4">Link ảnh</div><div class="w-6"></div></div><div id="variantContainer" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div><p class="text-xs text-slate-400 mt-3 italic">* Nếu không nhập biến thể, hệ thống sẽ dùng giá và ảnh chính.</p></div>
                     <div><label class="block text-sm font-bold text-slate-700 mb-1.5">Mô tả chi tiết</label><textarea id="pDesc" class="w-full border border-slate-300 p-3 rounded-lg focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] outline-none h-28 text-sm" placeholder="Mô tả sản phẩm..."></textarea></div>
                     <div class="pt-4 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 bg-white z-10"><button type="button" onclick="closeModal('productModal')" class="px-5 py-2.5 bg-slate-100 rounded-xl text-slate-600 font-bold hover:bg-slate-200 transition">Hủy</button><button type="submit" class="px-6 py-2.5 bg-[#ee4d2d] text-white rounded-xl font-bold hover:bg-[#d73211] transition shadow-lg shadow-orange-500/30 flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Lưu Sản Phẩm</button></div>
                 </form>
@@ -225,28 +229,28 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- AUTH ---
+        // DANH MỤC ĐỒNG BỘ
+        const PRODUCT_CATEGORIES = [
+            "Trang trí nhà cửa", "Ngoài trời & Sân vườn", "Đồ trang trí tiệc", 
+            "Sắp xếp nhà cửa", "Phụ kiện cho thú cưng", "Thiết bị & phụ kiện xây dựng", 
+            "Chăm sóc nhà cửa & giặt ủi", "Đồ chơi giải trí", "Đồ dùng phòng tắm & Chăm sóc cơ thể"
+        ];
+
         function checkAuth() { auth.signInAnonymously().then(() => { const isAuth = localStorage.getItem('mimi_admin_auth'); if(isAuth === 'true') { document.getElementById('loginOverlay').classList.add('hidden'); switchTab('dashboard'); } else { document.getElementById('loginOverlay').classList.remove('hidden'); } }); }
         function handleLogin(e) { e.preventDefault(); const u = document.getElementById('username').value; const p = document.getElementById('password').value; if(u === 'admin' && p === 'admin123') { localStorage.setItem('mimi_admin_auth', 'true'); document.getElementById('loginOverlay').classList.add('hidden'); switchTab('dashboard'); } else alert('Sai thông tin!'); }
         function logout() { if(confirm("Đăng xuất?")) { localStorage.removeItem('mimi_admin_auth'); window.location.reload(); } }
-
-        // --- NAVIGATION ---
         function switchTab(tabId) { document.querySelectorAll('nav a').forEach(a => a.classList.remove('active-nav')); if(document.getElementById(`nav-${tabId}`)) document.getElementById(`nav-${tabId}`).classList.add('active-nav'); ['dashboard', 'orders', 'products'].forEach(t => document.getElementById(`tab-${t}`).classList.add('hidden')); document.getElementById(`tab-${tabId}`).classList.remove('hidden'); if(tabId === 'dashboard') loadDashboard(); if(tabId === 'orders') loadOrders(); if(tabId === 'products') loadProducts(); }
         function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const backdrop = document.getElementById('sidebarBackdrop'); if (sidebar.classList.contains('sidebar-closed')) { sidebar.classList.remove('sidebar-closed'); sidebar.classList.add('sidebar-open'); backdrop.classList.remove('hidden'); } else { sidebar.classList.remove('sidebar-open'); sidebar.classList.add('sidebar-closed'); backdrop.classList.add('hidden'); } }
 
-        // --- UTILS ---
         function formatMoney(n) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n); }
         function formatDate(d) { return d ? d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }) : ''; }
         function getTimeAgo(date) { if(!date) return ''; const s = Math.floor((new Date()-date)/1000); if(s<60) return 'Vừa xong'; const m=Math.floor(s/60); if(m<60) return `${m} phút trước`; const h=Math.floor(m/60); if(h<24) return `${h} giờ trước`; return formatDate(date); }
         function getStatusText(s) { const map = { 'new': 'Mới', 'shipping': 'Đang giao', 'done': 'Hoàn thành', 'cancel': 'Đã hủy' }; return map[s] || s; }
         function getStatusColor(s) { const map = { 'new': 'bg-blue-100 text-blue-700 border-blue-200', 'shipping': 'bg-orange-100 text-orange-700 border-orange-200', 'done': 'bg-green-100 text-green-700 border-green-200', 'cancel': 'bg-red-100 text-red-700 border-red-200' }; return map[s] || 'bg-gray-100'; }
 
-        // --- DASHBOARD ---
-        function loadDashboard() { document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN'); db.collection("orders").orderBy("createdAt", "desc").limit(50).onSnapshot(snap => { let revenue = 0, newOrders = 0, shipping = 0, html = ''; snap.forEach(doc => { const d = doc.data(); if(d.status === 'done') revenue += (d.total || 0); if(d.status === 'new') newOrders++; if(d.status === 'shipping') shipping++; if(html.length < 2000) { html += `<div class="p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer transition border-b border-slate-50 last:border-0" onclick="switchTab('orders'); setTimeout(() => viewOrder('${doc.id}'), 100)"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center font-bold text-xs shadow-sm">${d.customer?.name?d.customer.name.charAt(0).toUpperCase():'#'}</div><div><div class="font-bold text-sm text-slate-800 line-clamp-1">${d.customer?.name}</div><div class="text-xs text-slate-400">${getTimeAgo(d.createdAt?.toDate())}</div></div></div><div class="text-right"><div class="font-bold text-[#ee4d2d] text-sm">${formatMoney(d.total)}</div><div class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${getStatusColor(d.status)} inline-block scale-90 origin-right">${getStatusText(d.status)}</div></div></div>`; } }); document.getElementById('statRevenue').innerText = formatMoney(revenue); document.getElementById('statNewOrders').innerText = newOrders; document.getElementById('statShipping').innerText = shipping; document.getElementById('dashboardOrderList').innerHTML = html || '<div class="p-8 text-center text-slate-400 text-sm">Chưa có đơn hàng nào</div>'; const badge = document.getElementById('badgeNewOrders'); const badgeMob = document.getElementById('badgeNewOrdersMob'); if(newOrders>0){ badge.innerText=newOrders; badge.classList.remove('hidden'); badgeMob.classList.remove('hidden'); } else { badge.classList.add('hidden'); badgeMob.classList.add('hidden'); } }); db.collection("products").get().then(snap => document.getElementById('statProducts').innerText = snap.size); }
-
-        // --- ORDERS ---
+        function loadDashboard() { db.collection("orders").orderBy("createdAt", "desc").limit(50).onSnapshot(snap => { let revenue = 0, newOrders = 0, shipping = 0, html = ''; snap.forEach(doc => { const d = doc.data(); if(d.status === 'done') revenue += (d.total || 0); if(d.status === 'new') newOrders++; if(d.status === 'shipping') shipping++; if(html.length < 2000) { html += `<div class="p-4 flex justify-between items-center hover:bg-slate-50 cursor-pointer transition border-b border-slate-50 last:border-0" onclick="switchTab('orders'); setTimeout(() => viewOrder('${doc.id}'), 100)"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center font-bold text-xs shadow-sm">${d.customer?.name?d.customer.name.charAt(0).toUpperCase():'#'}</div><div><div class="font-bold text-sm text-slate-800 line-clamp-1">${d.customer?.name}</div><div class="text-xs text-slate-400">${getTimeAgo(d.createdAt?.toDate())}</div></div></div><div class="text-right"><div class="font-bold text-[#ee4d2d] text-sm">${formatMoney(d.total)}</div><div class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${getStatusColor(d.status)} inline-block scale-90 origin-right">${getStatusText(d.status)}</div></div></div>`; } }); document.getElementById('statRevenue').innerText = formatMoney(revenue); document.getElementById('statNewOrders').innerText = newOrders; document.getElementById('statShipping').innerText = shipping; document.getElementById('dashboardOrderList').innerHTML = html || '<div class="p-8 text-center text-slate-400 text-sm">Chưa có đơn hàng nào</div>'; const badge = document.getElementById('badgeNewOrders'); const badgeMob = document.getElementById('badgeNewOrdersMob'); if(newOrders>0){ badge.innerText=newOrders; badge.classList.remove('hidden'); badgeMob.classList.remove('hidden'); } else { badge.classList.add('hidden'); badgeMob.classList.add('hidden'); } }); db.collection("products").get().then(snap => document.getElementById('statProducts').innerText = snap.size); }
+        function loadOrders(filter = 'all') { const tbody = document.getElementById('orderTableBody'); const mobList = document.getElementById('orderListMobile'); tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12"><div class="loader mx-auto"></div></td></tr>'; document.querySelectorAll('#tab-orders button').forEach(b => { b.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-200'); b.classList.add('bg-slate-100', 'text-slate-600', 'border-transparent'); }); const btn = document.getElementById(`filter-${filter}`); if(btn) { btn.classList.remove('bg-slate-100', 'text-slate-600', 'border-transparent'); btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200'); } let query = db.collection("orders").orderBy("createdAt", "desc"); if(filter !== 'all') query = query.where("status", "==", filter); if(orderUnsub) orderUnsub(); orderUnsub = query.limit(50).onSnapshot(snap => { let htmlPC = '', htmlMob = ''; if(snap.empty) { const e = '<div class="text-center py-12 text-slate-400">Không có đơn hàng nào</div>'; tbody.innerHTML = `<tr><td colspan="6">${e}</td></tr>`; mobList.innerHTML = e; return; } snap.forEach(doc => { const d = doc.data(); const date = d.createdAt ? formatDate(d.createdAt.toDate()) : ''; const badge = `<span class="px-2 py-1 rounded-md text-xs font-bold ${getStatusColor(d.status)} border border-white/50 shadow-sm">${getStatusText(d.status)}</span>`; htmlPC += `<tr class="bg-white border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onclick="viewOrder('${doc.id}')"><td class="px-6 py-4 font-mono text-xs text-slate-500 font-bold">#${doc.id.slice(-6).toUpperCase()}</td><td class="px-6 py-4"><div class="font-bold text-slate-800 text-sm">${d.customer?.name}</div><div class="text-xs text-slate-500">${d.customer?.phone}</div></td><td class="px-6 py-4 text-xs text-slate-500">${date}</td><td class="px-6 py-4 font-bold text-[#ee4d2d]">${formatMoney(d.total)}</td><td class="px-6 py-4">${badge}</td><td class="px-6 py-4 text-right"><button class="text-slate-400 hover:text-blue-600 px-2 transition"><i class="fa-solid fa-eye"></i></button></td></tr>`; htmlMob += `<div class="mobile-card" onclick="viewOrder('${doc.id}')"><div class="flex justify-between items-start mb-3 border-b border-dashed pb-3 border-slate-200"><div class="flex items-center gap-2"><span class="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">#${doc.id.slice(-6).toUpperCase()}</span><span class="text-xs text-slate-400">${getTimeAgo(d.createdAt?.toDate())}</span></div>${badge}</div><div class="flex justify-between items-center"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-user"></i></div><div><div class="text-sm font-bold text-slate-800">${d.customer?.name}</div><div class="text-xs text-slate-500">${d.customer?.phone}</div></div></div><div class="text-lg font-bold text-[#ee4d2d]">${formatMoney(d.total)}</div></div></div>`; }); tbody.innerHTML = htmlPC; mobList.innerHTML = htmlMob; }); }
         let currentOrderId = null; let currentOrderData = null; let orderUnsub = null;
-        function loadOrders(filter = 'all') { const tbody = document.getElementById('orderTableBody'); const mobList = document.getElementById('orderListMobile'); tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12"><div class="loader mx-auto"></div></td></tr>'; document.querySelectorAll('#tab-orders button[id^="filter-"]').forEach(b => { b.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-200'); b.classList.add('bg-slate-100', 'text-slate-600', 'border-transparent'); }); const btn = document.getElementById(`filter-${filter}`); if(btn) { btn.classList.remove('bg-slate-100', 'text-slate-600', 'border-transparent'); btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200'); } let query = db.collection("orders").orderBy("createdAt", "desc"); if(filter !== 'all') query = query.where("status", "==", filter); if(orderUnsub) orderUnsub(); orderUnsub = query.limit(50).onSnapshot(snap => { let htmlPC = '', htmlMob = ''; if(snap.empty) { const e = '<div class="text-center py-12 text-slate-400">Không có đơn hàng nào</div>'; tbody.innerHTML = `<tr><td colspan="6">${e}</td></tr>`; mobList.innerHTML = e; return; } snap.forEach(doc => { const d = doc.data(); const date = d.createdAt ? formatDate(d.createdAt.toDate()) : ''; const badge = `<span class="px-2 py-1 rounded-md text-xs font-bold ${getStatusColor(d.status)} border border-white/50 shadow-sm">${getStatusText(d.status)}</span>`; htmlPC += `<tr class="bg-white border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer" onclick="viewOrder('${doc.id}')"><td class="px-6 py-4 font-mono text-xs text-slate-500 font-bold">#${doc.id.slice(-6).toUpperCase()}</td><td class="px-6 py-4"><div class="font-bold text-slate-800 text-sm">${d.customer?.name}</div><div class="text-xs text-slate-500">${d.customer?.phone}</div></td><td class="px-6 py-4 text-xs text-slate-500">${date}</td><td class="px-6 py-4 font-bold text-[#ee4d2d]">${formatMoney(d.total)}</td><td class="px-6 py-4">${badge}</td><td class="px-6 py-4 text-right"><button class="text-slate-400 hover:text-blue-600 px-2 transition"><i class="fa-solid fa-eye"></i></button></td></tr>`; htmlMob += `<div class="mobile-card" onclick="viewOrder('${doc.id}')"><div class="flex justify-between items-start mb-3 border-b border-dashed pb-3 border-slate-200"><div class="flex items-center gap-2"><span class="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">#${doc.id.slice(-6).toUpperCase()}</span><span class="text-xs text-slate-400">${getTimeAgo(d.createdAt?.toDate())}</span></div>${badge}</div><div class="flex justify-between items-center"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 text-lg"><i class="fa-solid fa-user"></i></div><div><div class="text-sm font-bold text-slate-800">${d.customer?.name}</div><div class="text-xs text-slate-500">${d.customer?.phone}</div></div></div><div class="text-lg font-bold text-[#ee4d2d]">${formatMoney(d.total)}</div></div></div>`; }); tbody.innerHTML = htmlPC; mobList.innerHTML = htmlMob; }); }
         function viewOrder(id) { currentOrderId = id; db.collection("orders").doc(id).get().then(doc => { if(!doc.exists) return; const d = doc.data(); currentOrderData = d; currentOrderData.id = id; document.getElementById('odIdHeader').innerText = `#${id.slice(-6).toUpperCase()}`; document.getElementById('odName').innerText = d.customer?.name; document.getElementById('odPhone').innerText = d.customer?.phone; document.getElementById('odAddress').innerText = d.customer?.fullAddress || d.customer?.address; document.getElementById('odNote').innerText = d.customer?.note || 'Không có'; document.getElementById('odPayment').innerText = d.paymentMethod === 'banking' ? 'Chuyển khoản (TCB)' : 'COD'; document.getElementById('odStatusSelect').value = d.status; document.getElementById('odTotal').innerText = formatMoney(d.total); document.getElementById('odShip').innerText = formatMoney(d.shippingFee || 0); document.getElementById('odItemCount').innerText = d.items ? d.items.length : 0; const itemsContainer = document.getElementById('odItems'); itemsContainer.innerHTML = ''; if(d.items) d.items.forEach(item => { itemsContainer.innerHTML += `<div class="flex gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200"><div class="w-12 h-12 shrink-0 bg-white rounded border overflow-hidden"><img src="${item.image||'https://via.placeholder.com/50'}" class="w-full h-full object-cover"></div><div class="flex-1 min-w-0"><div class="text-sm font-medium text-slate-800 line-clamp-1">${item.name}</div><div class="text-xs text-slate-500 mt-0.5">Phân loại: <span class="font-bold">${item.variant}</span></div><div class="flex justify-between items-center mt-1"><span class="text-xs bg-white border px-1.5 rounded text-slate-600">x${item.qty}</span><span class="text-sm font-bold text-[#ee4d2d]">${formatMoney(item.price)}</span></div></div></div>`; }); const modal = document.getElementById('orderDetailModal'); const content = document.getElementById('orderDetailContent'); modal.classList.remove('hidden'); requestAnimationFrame(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); content.classList.add('scale-100'); }); }); }
         function updateOrderStatus() { db.collection("orders").doc(currentOrderId).update({ status: document.getElementById('odStatusSelect').value }).then(() => { alert("Đã cập nhật!"); closeModal('orderDetailModal'); }); }
         function deleteOrder(event) { if(navigator.vibrate) navigator.vibrate(50); if(confirm("XÓA VĨNH VIỄN đơn này?")) { const btn = event.target.closest('button'); const old = btn.innerHTML; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Xóa...'; btn.disabled=true; db.collection("orders").doc(currentOrderId).delete().then(() => { alert("Đã xóa!"); closeModal('orderDetailModal'); }).catch(err => { alert("Lỗi xóa đơn!"); btn.innerHTML=old; btn.disabled=false; }); } }
@@ -254,7 +258,6 @@
         function exportOrder() { const d = currentOrderData; let text = `\uFEFFĐƠN HÀNG #${d.id.slice(-6).toUpperCase()}\r\n----------------\r\nKH: ${d.customer.name}\r\nSĐT: ${d.customer.phone}\r\nĐC: ${d.customer.fullAddress}\r\n----------------\r\n`; d.items.forEach(i => { text += `- ${i.name} (${i.variant}) x${i.qty} = ${formatMoney(i.price*i.qty)}\r\n`; }); text += `----------------\r\nTỔNG: ${formatMoney(d.total)}`; const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type: "text/plain;charset=utf-8"})); a.download = `Don_${d.customer.name}.txt`; a.click(); }
         function shareOrder(platform) { const d = currentOrderData; let text = `Đơn mới: ${d.customer.name} - ${d.customer.phone}\nĐC: ${d.customer.fullAddress}\nHàng:\n`; d.items.forEach(i => { text += `- ${i.name} (${i.variant}) x${i.qty}\n`; }); text += `Tổng: ${formatMoney(d.total)}`; navigator.clipboard.writeText(text).then(() => { alert("Đã copy nội dung! Đang mở Zalo..."); window.open('https://chat.zalo.me/', '_blank'); }); }
 
-        // --- PRODUCTS LOGIC (MULTI-LINE IMAGE INPUT & VISUAL MATRIX) ---
         function loadProducts() {
             const grid = document.getElementById('productList');
             grid.innerHTML = '<div class="loader mx-auto col-span-full"></div>';
@@ -270,6 +273,7 @@
                             const colorClass = stock > 0 ? 'bg-dot-green' : 'bg-dot-gray';
                             matrixHtml += `<span class="matrix-badge hover:border-[#ee4d2d] transition-all cursor-pointer" onclick="event.stopPropagation(); editProduct('${doc.id}', this, ${index})" title="${v.name} - Kho: ${stock}"><span class="dot-stock ${colorClass}"></span>${typeIcon}</span>`;
                         });
+                        if (p.variants.length > 10) { matrixHtml += `<span class="matrix-badge bg-slate-50 text-slate-500 font-bold hover:bg-slate-100 cursor-pointer" onclick="event.stopPropagation(); editProduct('${doc.id}', this)">+${p.variants.length-10}</span>`; }
                     } else { matrixHtml = '<span class="text-[10px] text-slate-400">Cơ bản</span>'; totalStock = 999; }
                     const isOutOfStock = (p.variants && p.variants.length > 0 && totalStock === 0);
                     const opacityClass = isOutOfStock ? 'card-out-of-stock' : '';
@@ -294,9 +298,7 @@
         }
 
         async function editProduct(id, btn, targetIndex = -1) {
-            let oldContent = '';
-            if (btn && btn.tagName === 'BUTTON') { oldContent = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...'; btn.disabled = true; }
-            else if (navigator.vibrate) navigator.vibrate(40);
+            let oldContent = ''; if (btn && btn.tagName === 'BUTTON') { oldContent = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...'; btn.disabled = true; } else if (navigator.vibrate) navigator.vibrate(40);
             try {
                 const doc = await db.collection("products").doc(id).get();
                 if(!doc.exists) { alert("Lỗi!"); loadProducts(); return; }
@@ -305,17 +307,13 @@
                 document.getElementById('pName').value = p.name || '';
                 document.getElementById('pPrice').value = p.basePrice || 0;
                 document.getElementById('pDesc').value = p.description || '';
-                
-                // MULTI-LINE IMAGE HANDLING (JOIN WITH NEWLINE)
-                document.getElementById('pImg').value = p.images ? p.images.join('\n') : '';
+                document.getElementById('pCategory').value = p.category || ''; // Set Category
+                const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : '';
+                document.getElementById('pImg').value = p.images ? p.images.join(', ') : '';
                 updatePreview(document.getElementById('pImg').value);
-
                 const c = document.getElementById('variantContainer'); c.innerHTML = '';
-                if(p.variants && Array.isArray(p.variants)) {
-                    p.variants.forEach(v => addVariantRow(v.name, v.price, v.originalImage, v.stock));
-                }
-                const modal = document.getElementById('productModal');
-                const content = document.getElementById('productModalContent');
+                if(p.variants && Array.isArray(p.variants)) { p.variants.forEach(v => addVariantRow(v.name, v.price, v.originalImage, v.stock)); }
+                const modal = document.getElementById('productModal'); const content = document.getElementById('productModalContent');
                 modal.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); content.classList.add('scale-100');
@@ -323,18 +321,8 @@
                 });
             } catch(e) { console.error(e); } finally { if (btn && btn.tagName === 'BUTTON') { btn.innerHTML = oldContent; btn.disabled = false; } }
         }
-
-        function updatePreview(val) {
-            // Get first non-empty line
-            const lines = val.split('\n');
-            let firstImg = '';
-            for(let line of lines) { if(line.trim()) { firstImg = line.trim(); break; } }
-            
-            const imgPreview = document.getElementById('pImgPreview');
-            if(firstImg) { imgPreview.src = firstImg; imgPreview.classList.remove('hidden'); }
-            else { imgPreview.classList.add('hidden'); }
-        }
         
+        function updatePreview(val) { const lines = val.split(','); let firstImg = ''; for(let line of lines) { if(line.trim()) { firstImg = line.trim(); break; } } const imgPreview = document.getElementById('pImgPreview'); if(firstImg) { imgPreview.src = firstImg; imgPreview.classList.remove('hidden'); } else { imgPreview.classList.add('hidden'); } }
         function addVariantRow(n='', p='', i='', s=10) { 
             const d=document.createElement('div'); d.className='flex gap-2 mb-2 variant-row items-center p-1 rounded transition-colors'; 
             d.innerHTML=`<input class="v-name border border-slate-200 p-1.5 w-1/3 rounded text-sm outline-none focus:border-blue-500" placeholder="Tên" value="${n}" required><input class="v-price border border-slate-200 p-1.5 w-1/4 rounded text-sm outline-none focus:border-blue-500" type="number" placeholder="Giá" value="${p}" required><input class="v-stock border border-slate-200 p-1.5 w-1/6 rounded text-sm font-bold text-center text-blue-600 outline-none focus:border-blue-500" type="number" placeholder="Kho" value="${s}" required><input class="v-img border border-slate-200 p-1.5 w-1/4 rounded text-sm outline-none focus:border-blue-500" placeholder="Link ảnh riêng" value="${i || ''}"><button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 w-6 flex justify-center"><i class="fa-solid fa-trash"></i></button>`; 
@@ -344,18 +332,30 @@
         window.saveProduct = function(e) { 
             e.preventDefault(); const id = document.getElementById('productId').value; const vs = []; 
             document.querySelectorAll('.variant-row').forEach(r => { vs.push({ name: r.querySelector('.v-name').value, price: parseInt(r.querySelector('.v-price').value) || 0, stock: parseInt(r.querySelector('.v-stock').value) || 0, originalImage: r.querySelector('.v-img').value }); }); 
-            
-            // SPLIT TEXTAREA BY NEWLINE FOR MAIN IMAGES
-            const mainImages = document.getElementById('pImg').value.split('\n').map(s => s.trim()).filter(s => s);
-
-            const d = { name: document.getElementById('pName').value, basePrice: parseInt(document.getElementById('pPrice').value) || 0, description: document.getElementById('pDesc').value, images: mainImages, variants: vs, createdAt: id ? undefined : firebase.firestore.FieldValue.serverTimestamp() }; 
-            if(id) { delete d.createdAt; db.collection("products").doc(id).update(d).then(() => { alert("Đã lưu!"); closeModal('productModal'); loadProducts(); }); } 
-            else { db.collection("products").add(d).then(() => { alert("Đã thêm!"); closeModal('productModal'); loadProducts(); }); } 
+            const mainImages = document.getElementById('pImg').value.split(',').map(s => s.trim()).filter(s => s);
+            const d = { 
+                name: document.getElementById('pName').value, 
+                category: document.getElementById('pCategory').value, // Save Category
+                basePrice: parseInt(document.getElementById('pPrice').value) || 0, 
+                description: document.getElementById('pDesc').value, 
+                images: mainImages, variants: vs, 
+                createdAt: id ? undefined : firebase.firestore.FieldValue.serverTimestamp() 
+            }; 
+            if(id) { delete d.createdAt; db.collection("products").doc(id).update(d).then(() => { alert("Đã lưu!"); closeModal('productModal'); loadProducts(); }); } else { db.collection("products").add(d).then(() => { alert("Đã thêm!"); closeModal('productModal'); loadProducts(); }); } 
         };
         
         function deleteProduct(id) { if(confirm("Xóa sản phẩm này?")) db.collection("products").doc(id).delete().then(loadProducts); }
         function openProductModal() { document.getElementById('productForm').reset(); document.getElementById('productId').value=''; document.getElementById('variantContainer').innerHTML=''; document.getElementById('pImgPreview').classList.add('hidden'); document.getElementById('productModal').classList.remove('hidden'); }
         function closeModal(id) { const modal = document.getElementById(id); const content = modal.firstElementChild; modal.classList.add('opacity-0'); if(content) content.classList.remove('scale-100'); setTimeout(() => modal.classList.add('hidden'), 200); }
+        
+        // Populate Categories for Admin Form
+        const catSelect = document.getElementById('pCategory');
+        PRODUCT_CATEGORIES.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c; opt.text = c;
+            catSelect.add(opt);
+        });
+
         window.onload = checkAuth;
     </script>
 </body>
