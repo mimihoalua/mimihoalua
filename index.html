@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
     
-    <!-- PWA CONFIGURATION: Trỏ trực tiếp vào file thực tế -->
+    <!-- PWA CONFIGURATION -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#ee4d2d">
     <meta name="mobile-web-app-capable" content="yes">
@@ -42,16 +42,14 @@
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
-        /* Nút Install App (FAB) - Smart Logic Controlled */
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
-            display: none; /* Logic Core sẽ quyết định khi nào hiện */
+            display: none; 
         }
         .install-fab:active { transform: scale(0.95); }
         .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(238, 77, 45, 0.5); }
         
-        /* Status Dot Animation */
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; position: relative; }
         .status-dot::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.7; }
         @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
@@ -59,7 +57,6 @@
         .dot-blue { background-color: #3b82f6; } .dot-blue::after { background-color: #3b82f6; }
         .dot-green { background-color: #22c55e; } .dot-green::after { background-color: #22c55e; }
 
-        /* Health Check Items */
         .health-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
         .health-item:last-child { border-bottom: none; }
         .health-label { font-size: 13px; font-weight: 600; color: #374151; }
@@ -75,8 +72,6 @@
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    
-                    <!-- NÚT HƯỚNG DẪN + STATUS DOT -->
                     <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable transition-colors hover:bg-white/20">
                         <span id="pwaStatusDot" class="status-dot dot-red"></span>
                         <span id="guideLabel">Kiểm tra hệ thống</span>
@@ -102,29 +97,17 @@
         </div>
     </header>
 
-    <!-- TAB NAVIGATION -->
     <div class="bg-white sticky top-[75px] md:top-[125px] z-30 shadow-sm border-b border-gray-100">
         <div class="container mx-auto grid grid-cols-3 text-center text-sm md:text-base font-medium text-gray-600">
-            <button onclick="switchHomeTab('all')" id="tab-all" class="py-3 tab-active transition-all flex flex-col md:flex-row items-center justify-center gap-1 clickable">
-                <i class="fa-solid fa-fire text-[#ee4d2d]"></i> <span>Gợi ý hôm nay</span>
-            </button>
-            <button onclick="switchHomeTab('categories')" id="tab-categories" class="py-3 tab-inactive transition-all flex flex-col md:flex-row items-center justify-center gap-1 hover:text-[#ee4d2d] clickable">
-                <i class="fa-solid fa-list-ul"></i> <span>Danh mục</span>
-            </button>
-            <button onclick="switchHomeTab('new')" id="tab-new" class="py-3 tab-inactive transition-all flex flex-col md:flex-row items-center justify-center gap-1 hover:text-[#ee4d2d] clickable">
-                <i class="fa-solid fa-bolt text-yellow-500"></i> <span>Mới & Hot</span>
-            </button>
+            <button onclick="switchHomeTab('all')" id="tab-all" class="py-3 tab-active transition-all flex flex-col md:flex-row items-center justify-center gap-1 clickable"><i class="fa-solid fa-fire text-[#ee4d2d]"></i> <span>Gợi ý hôm nay</span></button>
+            <button onclick="switchHomeTab('categories')" id="tab-categories" class="py-3 tab-inactive transition-all flex flex-col md:flex-row items-center justify-center gap-1 hover:text-[#ee4d2d] clickable"><i class="fa-solid fa-list-ul"></i> <span>Danh mục</span></button>
+            <button onclick="switchHomeTab('new')" id="tab-new" class="py-3 tab-inactive transition-all flex flex-col md:flex-row items-center justify-center gap-1 hover:text-[#ee4d2d] clickable"><i class="fa-solid fa-bolt text-yellow-500"></i> <span>Mới & Hot</span></button>
         </div>
     </div>
 
-    <!-- MAIN DISPLAY AREA -->
     <main class="container mx-auto px-2 md:px-4 py-4 flex-grow min-h-[500px]">
         <div id="productGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
-            <div class="bg-white rounded p-2 shadow-sm animate-pulse h-64">
-                <div class="bg-gray-200 h-40 w-full mb-2"></div>
-                <div class="bg-gray-200 h-4 w-3/4 mb-1"></div>
-                <div class="bg-gray-200 h-4 w-1/2"></div>
-            </div>
+            <div class="bg-white rounded p-2 shadow-sm animate-pulse h-64"><div class="bg-gray-200 h-40 w-full mb-2"></div><div class="bg-gray-200 h-4 w-3/4 mb-1"></div><div class="bg-gray-200 h-4 w-1/2"></div></div>
         </div>
         <div id="categoryContainer" class="hidden">
             <h3 class="text-lg font-bold text-gray-800 mb-4 px-2 border-l-4 border-[#ee4d2d] ml-1">Danh mục sản phẩm</h3>
@@ -133,68 +116,24 @@
     </main>
 
     <footer class="bg-[#2d2d2d] text-white pt-8 pb-4 mt-auto border-t-4 border-[#ee4d2d]">
-        <div class="container mx-auto px-4 text-center md:text-left">
-            <p class="text-sm font-bold text-[#ee4d2d] mb-2">MIMI FLOWER SHOP</p>
-            <p class="text-xs text-gray-400">Chuyên cung cấp sỉ lẻ hoa lụa, cây giả, đồ decor cao cấp.</p>
-            <div class="mt-4 text-xs text-gray-500 flex justify-between items-center">
-                <span>© 2025 MimiFlower. All rights reserved.</span>
-            </div>
-        </div>
+        <div class="container mx-auto px-4 text-center md:text-left"><p class="text-sm font-bold text-[#ee4d2d] mb-2">MIMI FLOWER SHOP</p><p class="text-xs text-gray-400">Chuyên cung cấp sỉ lẻ hoa lụa, cây giả, đồ decor cao cấp.</p><div class="mt-4 text-xs text-gray-500 flex justify-between items-center"><span>© 2025 MimiFlower. All rights reserved.</span></div></div>
     </footer>
 
-    <!-- ================= SMART FAB INSTALL (Logic Core Điều Khiển) ================= -->
-    <button
-      id="btnInstall"
-      class="install-fab fixed bottom-20 right-4 z-[9999]
-             bg-[#ee4d2d] text-white
-             py-3 px-6 rounded-full
-             font-bold border-2 border-white
-             items-center gap-3 cursor-pointer shadow-2xl animate-pop-in">
-      <span class="text-2xl animate-bounce">📲</span>
-      <span class="text-sm font-bold uppercase tracking-wide">Cài đặt ngay</span>
-    </button>
+    <button id="btnInstall" class="install-fab fixed bottom-20 right-4 z-[9999] bg-[#ee4d2d] text-white py-3 px-6 rounded-full font-bold border-2 border-white items-center gap-3 cursor-pointer shadow-2xl animate-pop-in"><span class="text-2xl animate-bounce">📲</span><span class="text-sm font-bold uppercase tracking-wide">Cài đặt ngay</span></button>
 
-    <!-- ================= HEALTH CHECK / GUIDE MODAL ================= -->
+    <!-- HEALTH CHECK MODAL -->
     <div id="pwaHealthModal" class="hidden fixed inset-0 z-[100000] bg-black/60 text-gray-800 flex flex-col justify-center items-center p-4 backdrop-blur-sm transition-opacity">
         <div class="w-full max-w-sm bg-white rounded-2xl p-0 shadow-2xl overflow-hidden animate-bounce-short">
-            <!-- Header -->
-            <div class="bg-[#ee4d2d] p-4 text-white flex justify-between items-center">
-                <div class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-user-doctor"></i> Bác Sĩ PWA</div>
-                <button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fa-solid fa-times text-xl"></i></button>
-            </div>
-            
-            <!-- Health Check List -->
+            <div class="bg-[#ee4d2d] p-4 text-white flex justify-between items-center"><div class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-user-doctor"></i> Bác Sĩ PWA</div><button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fa-solid fa-times text-xl"></i></button></div>
             <div class="p-5 space-y-2">
-                <div class="health-item">
-                    <span class="health-label"><i class="fa-solid fa-lock text-gray-400 w-5"></i> Bảo mật (HTTPS)</span>
-                    <span id="health-https" class="health-status text-gray-400">Checking...</span>
-                </div>
-                <div class="health-item">
-                    <span class="health-label"><i class="fa-solid fa-file-code text-gray-400 w-5"></i> Manifest File</span>
-                    <span id="health-manifest" class="health-status text-gray-400">Checking...</span>
-                </div>
-                <div class="health-item">
-                    <span class="health-label"><i class="fa-solid fa-gears text-gray-400 w-5"></i> Service Worker</span>
-                    <span id="health-sw" class="health-status text-gray-400">Checking...</span>
-                </div>
-                <div class="health-item border-t-2 border-dashed mt-2 pt-2">
-                    <span class="health-label">Trạng thái hiện tại</span>
-                    <span id="health-overall" class="health-status font-bold px-2 py-1 rounded text-xs bg-gray-100">Unknown</span>
-                </div>
+                <div class="health-item"><span class="health-label"><i class="fa-solid fa-lock text-gray-400 w-5"></i> Bảo mật (HTTPS)</span><span id="health-https" class="health-status text-gray-400">Checking...</span></div>
+                <div class="health-item"><span class="health-label"><i class="fa-solid fa-file-code text-gray-400 w-5"></i> Manifest File</span><span id="health-manifest" class="health-status text-gray-400">Checking...</span></div>
+                <div class="health-item"><span class="health-label"><i class="fa-solid fa-gears text-gray-400 w-5"></i> Service Worker</span><span id="health-sw" class="health-status text-gray-400">Checking...</span></div>
+                <div class="health-item border-t-2 border-dashed mt-2 pt-2"><span class="health-label">Trạng thái hiện tại</span><span id="health-overall" class="health-status font-bold px-2 py-1 rounded text-xs bg-gray-100">Unknown</span></div>
             </div>
-
-            <!-- Contextual Action/Guide -->
-            <div id="guideContainer" class="p-5 pt-0">
-                <!-- Nội dung hướng dẫn sẽ được inject bởi JS tùy theo Platform -->
-                <div id="guideContent" class="text-center text-sm text-gray-600"></div>
-            </div>
-
-             <div class="p-4 bg-gray-50 text-center border-t">
-                <button class="text-[#ee4d2d] font-bold text-sm hover:underline" onclick="document.getElementById('pwaHealthModal').classList.add('hidden')">Đóng bảng kiểm tra</button>
-            </div>
+            <div id="guideContainer" class="p-5 pt-0"><div id="guideContent" class="text-center text-sm text-gray-600"></div></div>
+             <div class="p-4 bg-gray-50 text-center border-t"><button class="text-[#ee4d2d] font-bold text-sm hover:underline" onclick="document.getElementById('pwaHealthModal').classList.add('hidden')">Đóng bảng kiểm tra</button></div>
         </div>
-        
-        <!-- Mũi tên chỉ dẫn cho iOS (Nằm ngoài modal) -->
         <div id="iosArrow" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 animate-bounce text-5xl text-white drop-shadow-lg z-[100001]">⬇️</div>
     </div>
 
@@ -209,7 +148,7 @@
 
     <script>
         /* =========================================================================
-           🧠 LOGIC CORE V3.0 (Smart Doctor + Real Files Integration)
+           🧠 LOGIC CORE V4.0 (Enhanced Debugging & Retry Mechanism)
            ========================================================================= */
         const logicCore = {
             deferredPrompt: null,
@@ -222,22 +161,18 @@
             },
             
             init: function() {
-                // Tự động kiểm tra sức khỏe hệ thống khi khởi động
-                this.performHealthCheck();
+                this.performHealthCheck('init'); 
                 this.attachListeners();
-                
-                // Cập nhật trạng thái ban đầu của Dot
                 this.updateStatusDot('init');
 
-                // Nếu là Standalone (App Mode) -> Ẩn mọi thứ liên quan cài đặt
                 if (this.state.isStandalone) {
                     this.updateStatusDot('installed');
                     console.log('✅ App is running in standalone mode');
                 }
             },
 
-            // 1. HEALTH CHECK SYSTEM (Bảng chẩn đoán)
-            performHealthCheck: function() {
+            // 1. HEALTH CHECK SYSTEM (Updated with detailed error reporting)
+            performHealthCheck: function(mode = 'check') {
                 const els = {
                     https: document.getElementById('health-https'),
                     manifest: document.getElementById('health-manifest'),
@@ -252,20 +187,30 @@
                     els.https.innerHTML = '<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Không bảo mật</span>';
                 }
 
-                // Check Manifest (Fetch file thật để verify JSON hợp lệ)
-                fetch('./manifest.json')
-                    .then(r => r.json()) // Cố gắng parse JSON
+                // Check Manifest (Improved fetch & error handling)
+                fetch('./manifest.json?v=' + Date.now())
+                    .then(r => {
+                        if (r.ok) return r.json();
+                        throw new Error(`HTTP ${r.status}`); // Báo mã lỗi cụ thể (ví dụ 404)
+                    }) 
                     .then(data => {
                         if(data.start_url && data.icons) els.manifest.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> Hợp lệ</span>';
                         else els.manifest.innerHTML = '<span class="text-yellow-500">Thiếu thông tin</span>';
                     })
-                    .catch(() => els.manifest.innerHTML = '<span class="text-red-500"><i class="fa-solid fa-times-circle"></i> Lỗi File</span>');
+                    .catch(err => {
+                        // Hiển thị lỗi chi tiết để debug
+                        els.manifest.innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-times-circle"></i> Lỗi: ${err.message}</span>`;
+                        console.error("Manifest Check Failed:", err);
+                    });
 
                 // Check Service Worker
                 if (this.state.hasServiceWorker) {
                      navigator.serviceWorker.getRegistration().then(reg => {
-                         if(reg && reg.active) els.sw.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> Đang chạy</span>';
-                         else els.sw.innerHTML = '<span class="text-yellow-500">Đang chờ kích hoạt</span>';
+                         if(reg && reg.active) {
+                             els.sw.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> Đang chạy</span>';
+                         } else {
+                             els.sw.innerHTML = mode === 'init' ? '<span class="text-gray-500">Đang khởi động...</span>' : '<span class="text-yellow-500">Chưa kích hoạt</span>';
+                         }
                      });
                 } else {
                     els.sw.innerHTML = '<span class="text-red-500">Trình duyệt cũ</span>';
@@ -274,7 +219,6 @@
 
             // 2. EVENT LISTENERS
             attachListeners: function() {
-                // A. BEFORE INSTALL PROMPT (Linh hồn của PWA Android)
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
@@ -282,12 +226,10 @@
                     this.showSmartFAB();
                     this.updateStatusDot('ready');
                     
-                    // Cập nhật bảng chẩn đoán
                     document.getElementById('health-overall').innerText = "Sẵn sàng cài đặt";
                     document.getElementById('health-overall').className = "health-status font-bold px-2 py-1 rounded text-xs bg-blue-100 text-blue-600";
                 });
 
-                // B. APP INSTALLED
                 window.addEventListener('appinstalled', () => {
                     this.deferredPrompt = null;
                     this.hideSmartFAB();
@@ -295,44 +237,45 @@
                     alert("Cảm ơn bạn đã cài đặt MimiFlower!");
                 });
 
-                // C. REGISTER SERVICE WORKER (REAL FILE from ./sw.js)
                 if (this.state.hasServiceWorker) {
                     window.addEventListener('load', () => {
-                        // Thêm scope rõ ràng để tránh xung đột
+                        // Register with relative scope explicitly
                         navigator.serviceWorker.register('./sw.js', { scope: './' })
                             .then(reg => {
                                 console.log('SW Registered:', reg.scope);
-                                // Kiểm tra update mỗi khi mở lại
+                                this.performHealthCheck('check');
                                 reg.update();
                             })
-                            .catch(err => console.error('SW Fail:', err));
+                            .catch(err => {
+                                console.error('SW Fail:', err);
+                                document.getElementById('health-sw').innerHTML = '<span class="text-red-500">Lỗi Đăng Ký</span>';
+                            });
                     });
                 }
                 
-                // D. GẮN SỰ KIỆN CHO NÚT GUIDE TRÊN HEADER
                 document.getElementById('btnGuide').onclick = () => this.openHealthModal();
             },
 
-            // 3. UI LOGIC (Status Dot, FAB, Modal)
+            // 3. UI LOGIC
             updateStatusDot: function(status) {
                 const dot = document.getElementById('pwaStatusDot');
                 const label = document.getElementById('guideLabel');
-                dot.className = "status-dot"; // Reset
+                dot.className = "status-dot"; 
 
                 if (status === 'init') {
-                    dot.classList.add('dot-red'); // Chưa sẵn sàng / Đang check
+                    dot.classList.add('dot-red'); 
                     label.innerText = "Kiểm tra hệ thống";
                 } else if (status === 'ready') {
-                    dot.classList.add('dot-blue'); // Sẵn sàng cài
+                    dot.classList.add('dot-blue'); 
                     label.innerText = "Cài App ngay";
                 } else if (status === 'installed') {
-                    dot.classList.add('dot-green'); // Đã cài
+                    dot.classList.add('dot-green'); 
                     label.innerText = "Đã cài đặt";
                 }
             },
 
             showSmartFAB: function() {
-                if (this.state.isStandalone) return; // Không hiện nếu đã là App
+                if (this.state.isStandalone) return; 
                 const fab = document.getElementById('btnInstall');
                 fab.style.display = 'flex';
                 fab.onclick = () => this.triggerInstall();
@@ -357,14 +300,14 @@
                 const content = document.getElementById('guideContent');
                 const arrow = document.getElementById('iosArrow');
                 
-                modal.classList.remove('hidden');
-                arrow.classList.add('hidden'); // Mặc định ẩn
+                this.performHealthCheck('check');
 
-                // LOGIC NHẬN DIỆN NỀN TẢNG ĐỂ HIỆN HƯỚNG DẪN
+                modal.classList.remove('hidden');
+                arrow.classList.add('hidden');
+
                 if (this.state.isStandalone) {
                     content.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p><p>Trải nghiệm mua sắm tốt nhất.</p>`;
                 } else if (this.state.isIOS) {
-                    // IOS LOGIC: Apple không cho auto install, phải chỉ tay
                     arrow.classList.remove('hidden');
                     content.innerHTML = `
                         <div class="font-bold text-lg mb-2">Cài đặt trên iPhone/iPad</div>
@@ -376,10 +319,8 @@
                         </div>
                     `;
                 } else if (this.state.readyToInstall) {
-                    // ANDROID LOGIC (Nếu FAB chưa được bấm)
                     content.innerHTML = `<p>Hệ thống đã sẵn sàng.</p><button onclick="logicCore.triggerInstall()" class="mt-2 bg-[#ee4d2d] text-white px-4 py-2 rounded font-bold">Bấm để Cài Đặt</button>`;
                 } else {
-                    // FALLBACK (PC hoặc trình duyệt lạ)
                     content.innerHTML = `<p>Trên máy tính: Bấm <i class="fa-solid fa-display"></i> hoặc <b>Ctrl+D</b> để lưu trang.</p>`;
                 }
             }
@@ -388,7 +329,7 @@
         // --- INIT APP ---
         document.addEventListener('DOMContentLoaded', () => {
             logicCore.init();
-            initializeAppLogic(); // Logic bán hàng cũ
+            initializeAppLogic(); 
         });
 
         /* ================= EXISTING SALES LOGIC ================= */
