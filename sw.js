@@ -1,29 +1,26 @@
-// MimiFlower Service Worker – Production V6 (Fix GitHub Pages Path)
-const CACHE_NAME = 'mimiflower-cache-v6';
+// MimiFlower Service Worker – Production V7 (Absolute Paths)
+const CACHE_NAME = 'mimiflower-cache-v7';
 
-// Quan trọng: Trên GitHub Pages, file nằm trong thư mục con /mimihoalua/
-// Dùng đường dẫn tương đối ./ là an toàn nhất khi file sw.js nằm cùng cấp index.html
+// Sử dụng đường dẫn tuyệt đối để tránh nhầm lẫn thư mục
+const BASE_PATH = '/mimihoalua';
 const STATIC_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/icon-72.png',
-  './icons/icon-96.png',
-  './icons/icon-128.png',
-  './icons/icon-144.png',
-  './icons/icon-192.png',
-  './icons/icon-384.png',
-  './icons/icon-512.png'
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/manifest.json`,
+  `${BASE_PATH}/icons/icon-72.png`,
+  `${BASE_PATH}/icons/icon-96.png`,
+  `${BASE_PATH}/icons/icon-128.png`,
+  `${BASE_PATH}/icons/icon-144.png`,
+  `${BASE_PATH}/icons/icon-192.png`,
+  `${BASE_PATH}/icons/icon-384.png`,
+  `${BASE_PATH}/icons/icon-512.png`
 ];
 
 // INSTALL
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-        console.log('[SW] Caching assets...');
-        return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
 });
 
@@ -65,9 +62,7 @@ self.addEventListener('fetch', event => {
              caches.open(CACHE_NAME).then(c => c.put(req, resClone));
           }
           return res;
-        }).catch(() => {
-           // Fallback network error
-        });
+        }).catch(() => {});
         return cached || fetchPromise;
       })
     );
