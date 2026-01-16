@@ -133,7 +133,7 @@
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= UNIVERSAL INSTALL GUIDE MODAL (PC & iOS) ================= -->
+    <!-- ================= UNIVERSAL INSTALL GUIDE MODAL (PC / ANDROID / IOS) ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
@@ -151,7 +151,7 @@
             </button>
         </div>
         
-        <!-- Mũi tên chỉ xuống (chỉ hiện cho iOS, sẽ được JS xử lý) -->
+        <!-- Mũi tên chỉ xuống (chỉ hiện cho iOS) -->
         <div id="iosArrow" class="hidden animate-bounce text-5xl mb-4 text-white">⬇️</div>
     </div>
 
@@ -343,34 +343,44 @@
                 return;
             }
 
-            // CASE B: Manual Guide Logic (iOS or PC Fallback)
+            // CASE B: Manual Guide Logic
             const guideModal = document.getElementById('installGuideModal');
-            const guideContent = document.getElementById('installGuideText');
+            const guideContent = document.getElementById('installGuideContent');
+            const guideText = document.getElementById('installGuideText');
             const iosArrow = document.getElementById('iosArrow');
             
+            // Reset state
+            guideModal.classList.remove('hidden');
+            iosArrow.classList.add('hidden'); 
+
             if (isIOS()) {
                 // iOS Guide
                 iosArrow.classList.remove('hidden');
-                guideContent.innerHTML = `
+                guideText.innerHTML = `
                     <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
                     <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
                     <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
                         Sau đó chọn <br> <i class="fa-regular fa-square-plus"></i> Thêm vào MH chính
                     </div>
                 `;
-                guideModal.classList.remove('hidden');
+            } else if (isAndroid()) {
+                // Android Manual Guide (Samsung Internet, Firefox, or Chrome denied)
+                guideText.innerHTML = `
+                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-brands fa-android"></i> Cài đặt trên Android</div>
+                    <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Bấm vào dấu <b>3 chấm</b> <i class="fa-solid fa-ellipsis-vertical text-gray-400"></i> ở góc phải trình duyệt.</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào màn hình chính"</b>.</span></p>
+                    </div>
+                `;
             } else {
-                // PC / Laptop / Other Android
-                iosArrow.classList.add('hidden'); // Ẩn mũi tên
-                guideContent.innerHTML = `
+                // PC / Laptop
+                guideText.innerHTML = `
                     <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-desktop"></i> Cài đặt trên Máy tính</div>
                     <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
                         <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Tìm biểu tượng <b>Cài đặt</b> (hình máy tính <i class="fa-solid fa-download"></i> hoặc dấu cộng <i class="fa-solid fa-plus"></i>) ở cuối thanh địa chỉ trình duyệt.</span></p>
                         <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Hoặc nhấn tổ hợp phím <b>Ctrl + D</b> để lưu trang web này vào thanh dấu trang (Bookmark).</span></p>
                     </div>
-                    <div class="text-xs text-gray-400 border-t pt-2 mt-2">Trên Android (không phải Chrome): Mở menu 3 chấm -> Thêm vào màn hình chính.</div>
                 `;
-                guideModal.classList.remove('hidden');
             }
         }
 
