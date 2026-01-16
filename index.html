@@ -140,7 +140,7 @@
 
                 <!-- Actions -->
                 <div class="grid grid-cols-2 gap-2 mt-4">
-                    <button onclick="logicCore.forceUnregisterSW()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded text-xs font-bold">♻️ Reset SW (Sửa lỗi)</button>
+                    <button onclick="logicCore.forceRegisterSW()" class="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded text-xs font-bold">🛠️ Kích hoạt SW</button>
                     <button onclick="logicCore.runDiagnostics()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded text-xs font-bold">🔍 Quét lại</button>
                 </div>
             </div>
@@ -164,7 +164,7 @@
 
     <script>
         /* =========================================================================
-           🧠 LOGIC CORE V8.0 (EXPERT DIAGNOSTICS - NO UI CHANGES TO APP)
+           🧠 LOGIC CORE V8.1 (EXPERT DIAGNOSTICS & FIX TOOL)
            ========================================================================= */
         const logicCore = {
             deferredPrompt: null,
@@ -207,7 +207,6 @@
 
             // 2. LISTENERS
             attachListeners: function() {
-                // Sự kiện quyết định: Android báo sẵn sàng cài đặt
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
@@ -226,16 +225,19 @@
                 // Đăng ký SW
                 if ('serviceWorker' in navigator) {
                     window.addEventListener('load', () => {
+                        // Thử đăng ký và bắt lỗi chi tiết
                         navigator.serviceWorker.register('./sw.js')
                             .then(reg => console.log('SW Registered:', reg.scope))
-                            .catch(err => console.error('SW Fail:', err));
+                            .catch(err => {
+                                console.error('SW Fail:', err);
+                                document.getElementById('health-sw').innerHTML = `<span class="text-red-500">Lỗi: ${err.message}</span>`;
+                            });
                     });
                 }
                 
-                // Mở modal
                 document.getElementById('btnGuide').onclick = () => {
                     document.getElementById('pwaHealthModal').classList.remove('hidden');
-                    this.runDiagnostics(); // Chạy lại chẩn đoán khi mở
+                    this.runDiagnostics();
                 };
             },
 
@@ -256,98 +258,57 @@
             // 4. ADVANCED DIAGNOSIS
             runDiagnostics: async function() {
                 const logs = document.getElementById('debug-logs');
-                logs.innerHTML = ''; // Clear logs
+                logs.innerHTML = ''; 
                 const log = (msg, color='text-gray-600') => {
                     logs.innerHTML += `<div class="${color} border-b border-gray-100 py-1 break-all">${msg}</div>`;
                 };
 
                 log(`🔍 Bắt đầu chẩn đoán...`, 'text-blue-600 font-bold');
-                log(`📍 URL hiện tại: ${window.location.href}`);
                 
-                // 1. Check Manifest Link Tag
+                // 1. Check Manifest
                 const linkTag = document.querySelector('link[rel="manifest"]');
-                if (!linkTag) {
-                    log(`❌ Lỗi: Không tìm thấy thẻ <link rel="manifest"> trong HTML`, 'text-red-500 font-bold');
-                    return;
-                }
-                log(`🏷️ Thẻ Link href: ${linkTag.getAttribute('href')}`);
-                log(`🔗 Resolved URL: ${linkTag.href}`);
-
-                // 2. Fetch Manifest (Bypass Cache)
-                log(`⏳ Đang tải Manifest từ server...`);
-                try {
-                    const res = await fetch(linkTag.href + '?debug=' + Date.now());
-                    log(`📡 Trạng thái HTTP: ${res.status} ${res.statusText}`, res.ok ? 'text-green-600 font-bold' : 'text-red-600 font-bold');
-                    
-                    if (res.status === 404) {
-                        log(`🚨 LỖI 404: File không tồn tại tại đường dẫn trên.`, 'text-red-600 font-bold');
-                        log(`💡 Gợi ý: Kiểm tra xem file manifest.json có nằm cùng thư mục với index.html trên Github không?`);
-                        log(`👉 Đường dẫn mong đợi: ${linkTag.href}`);
-                    } else if (res.ok) {
-                        const text = await res.text();
-                        try {
-                            const json = JSON.parse(text);
-                            log(`✅ JSON hợp lệ. Name: ${json.name}`, 'text-green-600');
-                        } catch (e) {
-                            log(`❌ Lỗi cú pháp JSON: ${e.message}`, 'text-red-600');
+                if(linkTag) {
+                    try {
+                        const res = await fetch(linkTag.href);
+                        if(res.ok) {
+                            document.getElementById('health-manifest').innerHTML = '<span class="text-green-600">✅ Hợp lệ</span>';
+                            log(`✅ Manifest loaded: 200 OK`, 'text-green-600');
+                        } else {
+                            document.getElementById('health-manifest').innerHTML = '<span class="text-red-500">❌ Lỗi ' + res.status + '</span>';
+                            log(`❌ Manifest failed: HTTP ${res.status}`, 'text-red-600');
                         }
+                    } catch(e) {
+                        log(`❌ Manifest fetch error: ${e.message}`, 'text-red-600');
                     }
-                } catch (e) {
-                    log(`❌ Lỗi kết nối (Fetch Error): ${e.message}`, 'text-red-600');
                 }
 
-                // 3. Service Worker Check
+                // 2. Check Service Worker
+                const swStatus = document.getElementById('health-sw');
                 if ('serviceWorker' in navigator) {
                     const reg = await navigator.serviceWorker.getRegistration();
                     if (reg) {
-                        log(`🤖 SW đã đăng ký. Scope: ${reg.scope}`, 'text-blue-600');
-                        if (reg.active) log(`🟢 SW đang chạy (Active).`);
-                        if (reg.waiting) log(`🟡 SW đang chờ (Waiting).`);
+                        if (reg.active) {
+                            swStatus.innerHTML = '<span class="text-green-600">✅ Đang chạy</span>';
+                            log(`🟢 SW Active. Scope: ${reg.scope}`);
+                        } else if (reg.installing) {
+                            swStatus.innerHTML = '<span class="text-yellow-500">⏳ Đang cài đặt</span>';
+                            log(`🟡 SW Installing...`);
+                        } else if (reg.waiting) {
+                            swStatus.innerHTML = '<span class="text-yellow-500">⏳ Đang chờ</span>';
+                            log(`🟠 SW Waiting...`);
+                        }
                     } else {
-                        log(`⚪ Chưa có Service Worker nào được đăng ký.`, 'text-yellow-600');
+                        swStatus.innerHTML = '<span class="text-red-500">❌ Chưa đăng ký</span>';
+                        log(`🔴 No SW found. Thử bấm nút "Kích hoạt SW" bên dưới.`);
                     }
                 } else {
-                    log(`⚠️ Trình duyệt không hỗ trợ Service Worker.`, 'text-red-500');
+                    swStatus.innerHTML = '<span class="text-red-500">❌ Không hỗ trợ</span>';
                 }
 
                 // UPDATE STATUS UI
                 document.getElementById('health-https').innerHTML = this.state.isHttps ? '<span class="text-green-600">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
                 
-                // Cập nhật trạng thái PWA tổng thể
-                const manifestStatus = document.getElementById('health-manifest');
-                const swStatus = document.getElementById('health-sw');
-                
-                // Nếu fetch manifest thành công thì hiện OK, ngược lại báo lỗi
-                // Logic fetch ở trên đã log chi tiết, ở đây chỉ update UI đơn giản
-                // Lưu ý: Đây là update UI dựa trên kết quả fetch bất đồng bộ
-                // Để đơn giản, ta giả định nếu fetch không throw error thì là OK (cần cải thiện nếu muốn chính xác tuyệt đối)
-                
-                // Cập nhật SW status UI
-                if ('serviceWorker' in navigator) {
-                     const reg = await navigator.serviceWorker.getRegistration();
-                     if (reg && reg.active) {
-                         swStatus.innerHTML = '<span class="text-green-600">✅ Đang chạy</span>';
-                     } else {
-                         swStatus.innerHTML = '<span class="text-yellow-500">⚠️ Chưa kích hoạt</span>';
-                     }
-                } else {
-                    swStatus.innerHTML = '<span class="text-red-500">❌ Không hỗ trợ</span>';
-                }
-                
-                // Cập nhật Manifest status UI
-                // Do fetch là async, ta thực hiện lại check đơn giản hoặc dùng kết quả từ log
-                try {
-                    const mRes = await fetch(linkTag.href);
-                    if(mRes.ok) {
-                        manifestStatus.innerHTML = '<span class="text-green-600">✅ Hợp lệ</span>';
-                    } else {
-                        manifestStatus.innerHTML = '<span class="text-red-500">❌ Lỗi ' + mRes.status + '</span>';
-                    }
-                } catch (e) {
-                    manifestStatus.innerHTML = '<span class="text-red-500">❌ Lỗi mạng</span>';
-                }
-
-                // Hiển thị hướng dẫn phù hợp
+                // Hiển thị hướng dẫn
                 const guideContent = document.getElementById('guideContent');
                 if (this.state.isStandalone) {
                     guideContent.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p>`;
@@ -355,19 +316,27 @@
                     guideContent.innerHTML = `<p>Trên iOS: Nhấn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
                     document.getElementById('iosArrow').classList.remove('hidden');
                 } else {
-                    guideContent.innerHTML = `<p>Trên máy tính: Nhấn biểu tượng cài đặt trên thanh địa chỉ.</p>`;
+                    guideContent.innerHTML = `<p>Nếu đủ điều kiện, nút cài đặt sẽ hiện lên.</p>`;
                 }
             },
 
-            forceUnregisterSW: function() {
+            // 5. CÔNG CỤ SỬA LỖI (FORCE REGISTER)
+            forceRegisterSW: function() {
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for(let registration of registrations) {
-                            registration.unregister();
-                        }
-                        alert("Đã hủy đăng ký Service Worker. Trang sẽ tải lại!");
-                        window.location.reload();
-                    });
+                    const logs = document.getElementById('debug-logs');
+                    logs.innerHTML += `<div class="text-blue-600 font-bold border-b border-gray-100 py-1">🚀 Đang cưỡng ép đăng ký SW...</div>`;
+                    
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => {
+                            logs.innerHTML += `<div class="text-green-600 font-bold border-b border-gray-100 py-1">✅ Đăng ký thành công! Scope: ${reg.scope}</div>`;
+                            this.runDiagnostics(); // Chạy lại chẩn đoán
+                            alert("Đã kích hoạt Service Worker! Hãy tải lại trang.");
+                            window.location.reload();
+                        })
+                        .catch(err => {
+                            logs.innerHTML += `<div class="text-red-600 font-bold border-b border-gray-100 py-1">❌ Thất bại: ${err.message}</div>`;
+                            alert("Lỗi: " + err.message);
+                        });
                 }
             }
         };
@@ -375,7 +344,7 @@
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             logicCore.init();
-            initializeAppLogic(); // LOGIC BÁN HÀNG CŨ VẪN CHẠY BÌNH THƯỜNG
+            initializeAppLogic(); // LOGIC BÁN HÀNG CŨ
         });
 
         /* ================= CODE BÁN HÀNG CŨ (GIỮ NGUYÊN) ================= */
