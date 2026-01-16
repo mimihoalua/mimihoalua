@@ -1,8 +1,8 @@
-// MimiFlower Service Worker v8.0 - Debug & Fix Mode
-const CACHE_NAME = 'mimi-pwa-v8-debug';
+// MimiFlower Service Worker - Safe Relative Paths v7.0
+const CACHE_NAME = 'mimi-safe-v7';
 
-// Danh sách file tĩnh
-const ASSETS = [
+// Dùng ./ để đảm bảo đúng đường dẫn trên GitHub Pages
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
@@ -10,67 +10,56 @@ const ASSETS = [
   './icons/icon-512.png'
 ];
 
-// 1. INSTALL
+// 1. Cài đặt và Cache file tĩnh
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] Installing v8.0...');
+      console.log('[SW] Caching assets...');
+      // Dùng {cache: 'reload'} để đảm bảo lấy file mới nhất
       return Promise.all(
-        ASSETS.map(url => 
-          fetch(url, {cache: 'reload'}).then(res => {
-            if(res.ok) return cache.put(url, res);
-            console.warn('[SW] Failed to load:', url, res.status);
-          }).catch(e => console.warn('[SW] Connection error:', url))
-        )
+        ASSETS_TO_CACHE.map(url => {
+            return fetch(url, { cache: 'reload' }).then(res => {
+                if(res.ok) return cache.put(url, res);
+            }).catch(err => console.log('SW Skip:', url));
+        })
       );
     })
   );
 });
 
-// 2. ACTIVATE (Xóa cache cũ ngay lập tức)
+// 2. Kích hoạt và Xóa cache cũ
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
       keys.map(key => {
-        if (key !== CACHE_NAME) {
-          console.log('[SW] Deleting old cache:', key);
-          return caches.delete(key);
-        }
+        if (key !== CACHE_NAME) return caches.delete(key);
       })
-    )).then(() => {
-      console.log('[SW] Claiming clients');
-      return self.clients.claim();
-    })
+    )).then(() => self.clients.claim())
   );
 });
 
-// 3. FETCH (Network First cho HTML/Manifest)
+// 3. Xử lý tải trang (QUAN TRỌNG: Ưu tiên mạng cho HTML)
 self.addEventListener('fetch', event => {
-  // Chỉ xử lý GET
-  if (event.request.method !== 'GET') return;
+  const req = event.request;
+  
+  // Chỉ xử lý GET request
+  if (req.method !== 'GET') return;
 
-  const url = new URL(event.request.url);
-
-  // HTML & Manifest: Luôn ưu tiên mạng để tránh lỗi 404 ảo do cache
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('manifest.json')) {
+  // HTML & Manifest: Network First (Ưu tiên mạng -> Mới nhất)
+  if (req.mode === 'navigate' || req.url.includes('manifest.json')) {
     event.respondWith(
-      fetch(event.request)
-        .then(res => {
-          // Chỉ cache nếu thành công
-          if(res.ok) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-          }
-          return res;
-        })
-        .catch(() => caches.match(event.request))
+      fetch(req).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        return res;
+      }).catch(() => caches.match(req)) // Mất mạng thì lấy cache
     );
     return;
   }
 
-  // Các file khác: Cache First
+  // Ảnh/File tĩnh: Cache First (Ưu tiên tốc độ)
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    caches.match(req).then(cached => cached || fetch(req))
   );
 });
