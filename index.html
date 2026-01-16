@@ -39,6 +39,15 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
+        
+        /* Hiệu ứng nổi bật cho nút Install */
+        .install-fab {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4), 0 2px 4px -1px rgba(238, 77, 45, 0.2);
+        }
+        .install-fab:active { transform: scale(0.95); }
+        .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(238, 77, 45, 0.5), 0 4px 6px -2px rgba(238, 77, 45, 0.3); }
+
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
@@ -111,45 +120,39 @@
         </div>
     </footer>
 
-    <!-- ================= SMART INSTALL BUTTON (UPDATED TEXT) ================= -->
+    <!-- ================= SMART INSTALL BUTTON (FIXED POSITION) ================= -->
     <button
       id="smartInstallBtn"
       onclick="triggerSmartInstall()"
-      class="fixed bottom-24 right-4 z-[99999]
+      class="install-fab fixed bottom-20 right-4 z-[9999]
              bg-[#ee4d2d] text-white
-             px-6 py-4 rounded-full
-             font-bold shadow-2xl border-2 border-white
-             text-lg flex items-center gap-2 animate-bounce-short cursor-pointer">
-      📲 Install Home Screen
+             h-12 px-4 rounded-full
+             font-bold border-2 border-white
+             flex items-center gap-2 animate-bounce-short cursor-pointer">
+      <span class="text-xl">📲</span>
+      <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= IOS VISUAL INSTALL OVERLAY ================= -->
-    <div id="iosInstallGuide"
+    <!-- ================= UNIVERSAL INSTALL GUIDE MODAL (PC & iOS) ================= -->
+    <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
-                flex flex-col justify-end items-center p-6 backdrop-blur-sm">
-
-      <div class="text-center mb-6">
-        <div class="text-2xl font-bold mb-2">Install Home Screen</div>
-        <div class="text-base">Bấm nút <b>Chia sẻ</b> phía dưới ⬇️</div>
-      </div>
-
-      <div class="animate-bounce text-5xl mb-6">⬇️</div>
-
-      <div class="bg-white text-black rounded-xl p-4 text-center w-full max-w-sm">
-        <div class="font-bold mb-1">Sau đó chọn</div>
-        <div class="text-[#ee4d2d] font-bold text-lg flex items-center justify-center gap-2">
-          <i class="fa-regular fa-square-plus"></i> Thêm vào Màn hình chính
+                flex flex-col justify-end items-center p-6 backdrop-blur-sm transition-opacity">
+        
+        <!-- Nội dung sẽ được JS thay đổi tùy thiết bị -->
+        <div id="installGuideContent" class="w-full max-w-sm bg-white text-black rounded-xl p-6 text-center shadow-2xl animate-bounce-short">
+            <div id="installGuideText"></div>
+            <button
+                class="mt-6 w-full bg-[#ee4d2d]
+                       py-3 rounded-full
+                       font-bold text-white shadow-lg active:scale-95 transition-transform"
+                onclick="document.getElementById('installGuideModal').classList.add('hidden')">
+                Đã hiểu
+            </button>
         </div>
-      </div>
-
-      <button
-        class="mt-8 bg-[#ee4d2d]
-               px-8 py-3 rounded-full
-               font-bold text-white shadow-lg active:scale-95 transition-transform"
-        onclick="hideIOSGuide()">
-        Đã hiểu, đóng lại
-      </button>
+        
+        <!-- Mũi tên chỉ xuống (chỉ hiện cho iOS, sẽ được JS xử lý) -->
+        <div id="iosArrow" class="hidden animate-bounce text-5xl mb-4 text-white">⬇️</div>
     </div>
 
     <!-- MODAL CHI TIẾT SẢN PHẨM -->
@@ -296,6 +299,12 @@
             setupCommuneSearch(); 
             setupBankInfo(); 
 
+            // Kiểm tra và hiển thị Toast nếu App vừa được cập nhật
+            if (localStorage.getItem('mimi_app_updated') === 'yes') {
+                localStorage.removeItem('mimi_app_updated');
+                showToast('App đã cập nhật', 'Phiên bản mới nhất đã sẵn sàng!', 'success');
+            }
+
             document.addEventListener('click', function(e) {
                 const dropdown = document.getElementById("communeDropdown");
                 const searchInput = document.getElementById("searchCommune");
@@ -312,22 +321,17 @@
         const getUA = () => navigator.userAgent.toLowerCase();
         const isIOS = () => /iphone|ipad|ipod/.test(getUA());
         const isAndroid = () => /android/.test(getUA());
-        const isPC = () => !isIOS() && !isAndroid();
-
+        
         // 1. CAPTURE INSTALL PROMPT (Android & Desktop Chrome)
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
             console.log('Install prompt captured');
         });
 
         // 2. MAIN TRIGGER FUNCTION
         async function triggerSmartInstall() {
-            console.log('Install triggered. Platform:', isPC() ? 'PC' : (isIOS() ? 'iOS' : 'Android'));
-
-            // CASE A: Native Prompt Available (Android / PC Chrome)
+            // CASE A: Native Prompt Available (Android / Chrome PC)
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
@@ -339,27 +343,38 @@
                 return;
             }
 
-            // CASE B: iOS Manual Guide
+            // CASE B: Manual Guide Logic (iOS or PC Fallback)
+            const guideModal = document.getElementById('installGuideModal');
+            const guideContent = document.getElementById('installGuideText');
+            const iosArrow = document.getElementById('iosArrow');
+            
             if (isIOS()) {
-                document.getElementById('iosInstallGuide').classList.remove('hidden');
-                return;
+                // iOS Guide
+                iosArrow.classList.remove('hidden');
+                guideContent.innerHTML = `
+                    <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
+                    <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
+                    <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
+                        Sau đó chọn <br> <i class="fa-regular fa-square-plus"></i> Thêm vào MH chính
+                    </div>
+                `;
+                guideModal.classList.remove('hidden');
+            } else {
+                // PC / Laptop / Other Android
+                iosArrow.classList.add('hidden'); // Ẩn mũi tên
+                guideContent.innerHTML = `
+                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-desktop"></i> Cài đặt trên Máy tính</div>
+                    <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Tìm biểu tượng <b>Cài đặt</b> (hình máy tính <i class="fa-solid fa-download"></i> hoặc dấu cộng <i class="fa-solid fa-plus"></i>) ở cuối thanh địa chỉ trình duyệt.</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Hoặc nhấn tổ hợp phím <b>Ctrl + D</b> để lưu trang web này vào thanh dấu trang (Bookmark).</span></p>
+                    </div>
+                    <div class="text-xs text-gray-400 border-t pt-2 mt-2">Trên Android (không phải Chrome): Mở menu 3 chấm -> Thêm vào màn hình chính.</div>
+                `;
+                guideModal.classList.remove('hidden');
             }
-
-            // CASE C: PC Manual Guide (Non-Chrome or already installed but detached)
-            if (isPC()) {
-                alert("Để cài đặt trên máy tính:\n\n1. Nhấn vào biểu tượng 'Cài đặt' (hình máy tính/dấu cộng) ở cuối thanh địa chỉ trình duyệt.\n2. Hoặc nhấn tổ hợp phím [ Ctrl + D ] để lưu Bookmark trang web.");
-                return;
-            }
-
-            // CASE D: Android Fallback (Samsung Internet / Firefox / Unknown)
-            alert('Vui lòng mở menu 3 chấm ở góc phải trình duyệt -> Chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".');
         }
 
         // --- UI HELPERS ---
-        function hideIOSGuide() {
-            document.getElementById('iosInstallGuide').classList.add('hidden');
-        }
-
         function hideInstallButtons() {
             const btn1 = document.getElementById('smartInstallBtn');
             const btn2 = document.getElementById('headerInstallBtn');
@@ -381,7 +396,7 @@
         }
 
         /* =========================================================
-           SERVICE WORKER – AUTO UPDATE APP
+           SERVICE WORKER – AUTO UPDATE APP (WITH TOAST)
            ========================================================= */
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', () => {
@@ -393,6 +408,8 @@
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (window.__reloading) return;
             window.__reloading = true;
+            // Đánh dấu đã update để hiển thị Toast sau khi reload
+            localStorage.setItem('mimi_app_updated', 'yes');
             window.location.reload();
           });
         }
