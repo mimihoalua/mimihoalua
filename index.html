@@ -140,7 +140,7 @@
 
                 <!-- Actions -->
                 <div class="grid grid-cols-2 gap-2 mt-4">
-                    <button onclick="logicCore.forceRegisterSW()" class="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded text-xs font-bold">🛠️ Kích hoạt SW</button>
+                    <button onclick="logicCore.forceRegisterSW()" class="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded text-xs font-bold">🛠️ Sửa Lỗi 404 (Kích hoạt SW)</button>
                     <button onclick="logicCore.runDiagnostics()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded text-xs font-bold">🔍 Quét lại</button>
                 </div>
             </div>
@@ -308,15 +308,32 @@
                 // UPDATE STATUS UI
                 document.getElementById('health-https').innerHTML = this.state.isHttps ? '<span class="text-green-600">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
                 
-                // Hiển thị hướng dẫn
+                // Hiển thị hướng dẫn và Nút cài đặt
                 const guideContent = document.getElementById('guideContent');
                 if (this.state.isStandalone) {
                     guideContent.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p>`;
                 } else if (this.state.isIOS) {
                     guideContent.innerHTML = `<p>Trên iOS: Nhấn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
                     document.getElementById('iosArrow').classList.remove('hidden');
+                } else if (this.state.deferredPrompt) {
+                     guideContent.innerHTML = `
+                        <p class="text-green-600 font-bold mb-2">🎉 Đã sẵn sàng cài đặt!</p>
+                        <button onclick="logicCore.triggerInstall()" class="w-full bg-[#ee4d2d] text-white py-3 rounded-lg font-bold shadow-lg text-sm animate-pulse">
+                            <i class="fa-solid fa-download"></i> CÀI ĐẶT APP NGAY
+                        </button>
+                    `;
                 } else {
                     guideContent.innerHTML = `<p>Nếu đủ điều kiện, nút cài đặt sẽ hiện lên.</p>`;
+                }
+            },
+            
+            triggerInstall: async function() {
+                if (!this.deferredPrompt) return;
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    this.deferredPrompt = null;
+                    this.hideSmartFAB();
                 }
             },
 
@@ -324,17 +341,21 @@
             forceRegisterSW: function() {
                 if ('serviceWorker' in navigator) {
                     const logs = document.getElementById('debug-logs');
-                    logs.innerHTML += `<div class="text-blue-600 font-bold border-b border-gray-100 py-1">🚀 Đang cưỡng ép đăng ký SW...</div>`;
+                    const timestamp = Date.now();
+                    const swUrl = `./sw.js?v=${timestamp}`;
                     
-                    navigator.serviceWorker.register('./sw.js')
+                    logs.innerHTML += `<div class="text-blue-600 font-bold border-b border-gray-100 py-1">🚀 Đang thử đăng ký lại với Cache Buster (${timestamp})...</div>`;
+                    
+                    navigator.serviceWorker.register(swUrl)
                         .then(reg => {
                             logs.innerHTML += `<div class="text-green-600 font-bold border-b border-gray-100 py-1">✅ Đăng ký thành công! Scope: ${reg.scope}</div>`;
-                            this.runDiagnostics(); // Chạy lại chẩn đoán
-                            alert("Đã kích hoạt Service Worker! Hãy tải lại trang.");
+                            this.runDiagnostics(); 
+                            alert("Đã sửa lỗi Cache 404! Đang tải lại ứng dụng...");
                             window.location.reload();
                         })
                         .catch(err => {
-                            logs.innerHTML += `<div class="text-red-600 font-bold border-b border-gray-100 py-1">❌ Thất bại: ${err.message}</div>`;
+                            logs.innerHTML += `<div class="text-red-600 font-bold border-b border-gray-100 py-1">❌ Vẫn thất bại: ${err.message}</div>`;
+                            logs.innerHTML += `<div class="text-gray-500 text-[10px]">Thử kiểm tra lại file sw.js trên GitHub có nằm đúng thư mục không.</div>`;
                             alert("Lỗi: " + err.message);
                         });
                 }
@@ -472,5 +493,3 @@
         function filterCommunes(query) { const pid = document.getElementById("selProvince").value; if (!pid) return; const prov = vietnamLocations.find(p => p.id === pid); if (!prov || !prov.communes) return; const dropdown = document.getElementById("communeDropdown"); const normalizedQuery = query.toLowerCase().trim(); const filtered = prov.communes.filter(c => c.name.toLowerCase().includes(normalizedQuery) || c.zone_hint.toLowerCase().includes(normalizedQuery)); const displayList = filtered.slice(0, 20); dropdown.innerHTML = ""; if (displayList.length === 0) { dropdown.innerHTML = `<div class="p-3 text-sm text-gray-500 text-center">Không tìm thấy kết quả</div>`; } else { displayList.forEach(c => { const div = document.createElement("div"); div.className = "commune-option p-2 cursor-pointer text-sm border-b last:border-0 transition-colors flex justify-between items-center"; let nameDisplay = c.name; let hintDisplay = c.zone_hint; if(normalizedQuery && nameDisplay.toLowerCase().includes(normalizedQuery)) { nameDisplay = nameDisplay.replace(new RegExp(normalizedQuery, "gi"), (match) => `<span class="bg-yellow-100 font-bold">${match}</span>`); } if(normalizedQuery && hintDisplay.toLowerCase().includes(normalizedQuery)) { hintDisplay = hintDisplay.replace(new RegExp(normalizedQuery, "gi"), (match) => `<span class="bg-yellow-100 font-bold">${match}</span>`); } div.innerHTML = `<span class="font-medium text-gray-700">${nameDisplay}</span><span class="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${hintDisplay}</span>`; div.onclick = () => selectCommune(c); dropdown.appendChild(div); }); } dropdown.classList.remove("hidden"); }
         function selectCommune(c) { const searchInput = document.getElementById("searchCommune"); const hiddenInput = document.getElementById("selCommune"); const dropdown = document.getElementById("communeDropdown"); const clearBtn = document.getElementById("clearCommuneBtn"); searchInput.value = `${c.name} - ${c.zone_hint}`; hiddenInput.value = c.id; dropdown.classList.add("hidden"); clearBtn.classList.remove("hidden"); searchInput.classList.remove('error-input', 'error-shake'); checkFormProgress(); }
     </script>
-</body>
-</html>
