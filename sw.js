@@ -1,36 +1,41 @@
-// MimiFlower Service Worker – Production V4 (Fix Path)
-const CACHE_NAME = 'mimiflower-cache-v4';
+// MimiFlower Service Worker – Production V5 (Fix Install Prompt)
+const CACHE_NAME = 'mimiflower-cache-v5';
 
-// Danh sách file tĩnh cần cache (Đường dẫn tương đối với sw.js)
+// Sử dụng đường dẫn tương đối linh hoạt hơn để tránh lỗi 404 trên GitHub Pages
 const STATIC_ASSETS = [
   './',
-  './index.html',
-  './manifest.json',
-  './icons/icon-72.png',
-  './icons/icon-96.png',
-  './icons/icon-128.png',
-  './icons/icon-144.png',
-  './icons/icon-192.png',
-  './icons/icon-384.png',
-  './icons/icon-512.png'
+  'index.html',
+  'manifest.json',
+  'icons/icon-72.png',
+  'icons/icon-96.png',
+  'icons/icon-128.png',
+  'icons/icon-144.png',
+  'icons/icon-192.png',
+  'icons/icon-384.png',
+  'icons/icon-512.png'
 ];
 
 // INSTALL
 self.addEventListener('install', event => {
-  self.skipWaiting();
+  console.log('[SW] Installing V5...');
+  self.skipWaiting(); // Kích hoạt ngay lập tức
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then(cache => {
+        console.log('[SW] Caching all assets');
+        return cache.addAll(STATIC_ASSETS);
+    })
   );
 });
 
-// ACTIVATE (Xóa cache cũ v1, v2, v3...)
+// ACTIVATE
 self.addEventListener('activate', event => {
+  console.log('[SW] Activating V5...');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))
     )
   );
-  self.clients.claim();
+  return self.clients.claim(); // Chiếm quyền điều khiển ngay
 });
 
 // FETCH
@@ -38,14 +43,12 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Không cache Firebase / API
-  if (
-    url.origin.includes('firebase') ||
-    url.origin.includes('googleapis') ||
-    url.pathname.includes('firestore')
-  ) return;
+  // Bỏ qua request không phải GET hoặc request đến API/Firebase
+  if (req.method !== 'GET' || url.origin.includes('firebase') || url.origin.includes('googleapis')) {
+    return;
+  }
 
-  // Cache First cho tài nguyên tĩnh
+  // Chiến thuật: Stale-While-Revalidate (Ưu tiên tốc độ, cập nhật ngầm)
   if (
     req.destination === 'document' ||
     req.destination === 'script' ||
@@ -55,16 +58,16 @@ self.addEventListener('fetch', event => {
   ) {
     event.respondWith(
       caches.match(req).then(cached => {
-        const fetchPromise = fetch(req).then(res => {
+        const networkFetch = fetch(req).then(res => {
           if (res && res.status === 200 && res.type === 'basic') {
-             const resClone = res.clone();
-             caches.open(CACHE_NAME).then(c => c.put(req, resClone));
+            const resClone = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(req, resClone));
           }
           return res;
         }).catch(() => {
-           // Fallback
+            // Network lỗi, không làm gì (đã có cached)
         });
-        return cached || fetchPromise;
+        return cached || networkFetch;
       })
     );
   }
