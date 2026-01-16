@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
     
-    <!-- PWA CONFIGURATION (Tuyệt đối hóa đường dẫn) -->
-    <link rel="manifest" href="/mimihoalua/manifest.json">
+    <!-- PWA CONFIGURATION (V12 - Anti-Cache) -->
+    <!-- Thêm ?v=12 để ép trình duyệt tải file mới nhất -->
+    <link rel="manifest" href="/mimihoalua/manifest.json?v=12">
+    
     <meta name="theme-color" content="#ee4d2d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -40,31 +42,39 @@
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
-        /* Hiệu ứng nổi bật cho nút Install App (FAB) */
+        /* FAB Install Button */
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4), 0 2px 4px -1px rgba(238, 77, 45, 0.2);
-            display: none; /* QUAN TRỌNG: Chỉ hiện khi JS kích hoạt */
+            display: none !important; /* Mặc định ẩn tuyệt đối, JS sẽ hiện */
+        }
+        .install-fab.show {
+            display: flex !important;
         }
         .install-fab:active { transform: scale(0.95); }
         .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(238, 77, 45, 0.5), 0 4px 6px -2px rgba(238, 77, 45, 0.3); }
 
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-        
-        /* BẢNG DEBUG (Hiển thị tạm thời để check lỗi) */
-        #pwa-debug-panel {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; 
-            font-family: monospace; font-size: 10px; padding: 5px; z-index: 200000;
-            border-top: 1px solid #444; max-height: 120px; overflow-y: auto; pointer-events: none;
+        /* PWA DOCTOR PANEL - Dùng để chẩn đoán lỗi */
+        #pwa-doctor {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); color: #0f0; 
+            font-family: monospace; font-size: 11px; padding: 10px; z-index: 200000;
+            border-top: 2px solid #ee4d2d; max-height: 200px; overflow-y: auto; pointer-events: none;
+            opacity: 0.8;
         }
-        .log-err { color: #ff5555; font-weight: bold; }
-        .log-ok { color: #55ff55; }
+        .doc-err { color: #ff4444; font-weight: bold; }
+        .doc-warn { color: #ffcc00; }
+        .doc-ok { color: #00ff00; }
+
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- DEBUG PANEL -->
-    <div id="pwa-debug-panel"><div>🚀 V11 System Init...</div></div>
+    <!-- PWA DOCTOR (BẢNG CHẨN ĐOÁN) -->
+    <div id="pwa-doctor">
+        <div>🩺 MimiFlower PWA Doctor v12</div>
+        <div id="doc-log"></div>
+    </div>
 
     <header class="bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] shadow-md sticky top-0 z-40 text-white">
         <div class="container mx-auto px-2 md:px-4">
@@ -135,20 +145,19 @@
         </div>
     </footer>
 
-    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB - Mặc định ẩn) ================= -->
+    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB) ================= -->
     <button
       id="btnInstall"
-      class="install-fab hidden fixed bottom-24 right-4 z-[9999]
+      class="install-fab fixed bottom-24 right-4 z-[9999]
              bg-[#ee4d2d] text-white
              h-12 px-4 rounded-full
              font-bold border-2 border-white
-             items-center gap-2 animate-bounce-short cursor-pointer"
-      style="display: none;"> <!-- Ẩn tuyệt đối lúc đầu -->
+             items-center gap-2 cursor-pointer">
       <span class="text-xl">📲</span>
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= OVERLAY HƯỚNG DẪN (Chỉ dùng cho btnGuide) ================= -->
+    <!-- ================= OVERLAY HƯỚNG DẪN ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
@@ -326,55 +335,81 @@
         });
 
         /* =========================================================
-           SMART INSTALL ENGINE (DEBUGGER V2)
+           SMART INSTALL ENGINE V12 - PWA DOCTOR INTEGRATED
            ========================================================= */
         let deferredPrompt = null; 
 
-        // Log Function
+        // Hàm Log hiển thị lên màn hình
         function logPWA(msg) {
             console.log(msg);
-            const panel = document.getElementById('pwa-debug-panel');
+            const panel = document.getElementById('doc-log');
             if(panel) {
                 const div = document.createElement('div');
                 div.innerText = msg;
-                if(msg.includes('Fail') || msg.includes('404')) div.className = 'log-err';
-                else if(msg.includes('Success') || msg.includes('Registered')) div.className = 'log-ok';
+                if(msg.includes('Error') || msg.includes('Fail') || msg.includes('404')) div.className = 'doc-err';
+                else if(msg.includes('Success') || msg.includes('Ready') || msg.includes('200')) div.className = 'doc-ok';
+                else div.className = 'doc-warn';
                 panel.appendChild(div);
             }
         }
 
-        // 1. LISTEN FOR INSTALL EVENT
+        // 1. Chẩn đoán sức khỏe PWA (Chạy ngay khi load)
+        function runDiagnostics() {
+            logPWA('🔎 Starting Diagnostics...');
+            
+            // Check Manifest
+            fetch('./manifest.json?v=12')
+                .then(r => {
+                    logPWA(`Manifest Check: ${r.status} ${r.statusText}`);
+                    if(r.status !== 200) logPWA('❌ MANIFEST ERROR! Check path.');
+                })
+                .catch(e => logPWA(`❌ Manifest Fetch Error: ${e.message}`));
+
+            // Check SW Script
+            fetch('./sw.js')
+                .then(r => logPWA(`SW Script Check: ${r.status}`))
+                .catch(e => logPWA(`❌ SW Script Error: ${e.message}`));
+
+            // Check Icon chính (192px)
+            const img = new Image();
+            img.onload = () => logPWA('✅ Icon 192px found');
+            img.onerror = () => logPWA('❌ Icon 192px MISSING (404)');
+            img.src = '/mimihoalua/icons/icon-192.png';
+        }
+        
+        // Chạy chẩn đoán sau 1 giây
+        setTimeout(runDiagnostics, 1000);
+
+        // 2. Lắng nghe sự kiện cài đặt (Quan trọng nhất)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            logPWA('✅ Ready to Install!');
+            logPWA('✅ PWA READY! (beforeinstallprompt fired)');
             
-            // SHOW FAB BUTTON
+            // HIỆN NÚT FAB
             const installBtn = document.getElementById('btnInstall');
             if (installBtn) {
-                installBtn.style.display = 'flex';
-                installBtn.classList.remove('hidden');
+                installBtn.classList.add('show');
+                logPWA('👉 Install Button Visible');
             }
         });
 
-        // 2. FAB BUTTON HANDLER
+        // 3. Xử lý nút FAB
         const btnInstall = document.getElementById('btnInstall');
         if (btnInstall) {
             btnInstall.onclick = async () => {
                 if (!deferredPrompt) {
-                    alert('Trình duyệt chưa sẵn sàng cài App. Vui lòng thử lại sau.');
+                    alert('Đang chờ trình duyệt... Thử lại sau 2 giây.');
                     return;
                 }
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 logPWA(`User choice: ${outcome}`);
-                if(outcome === 'accepted') {
-                     deferredPrompt = null;
-                }
+                deferredPrompt = null;
             };
         }
 
-        // 3. HEADER BUTTON (GUIDE)
+        // 4. Xử lý nút Hướng dẫn
         const btnGuide = document.getElementById('btnGuide'); 
         if (btnGuide) {
             btnGuide.onclick = () => {
@@ -391,37 +426,37 @@
                     iosArrow.classList.remove('hidden');
                     guideContent.innerHTML = `
                         <div class="text-xl font-bold mb-2">Cài đặt trên iOS</div>
-                        <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
+                        <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> dưới cùng.</div>
                         <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded bg-orange-50">
                             Chọn "Thêm vào MH chính"
                         </div>
                     `;
                 } else {
                     guideContent.innerHTML = `
-                        <div class="text-xl font-bold mb-3 text-[#ee4d2d]">Hướng dẫn cài đặt</div>
+                        <div class="text-xl font-bold mb-3 text-[#ee4d2d]">Hướng dẫn</div>
                         <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
-                            <p>1. Mở menu <b>3 chấm</b> trên trình duyệt.</p>
-                            <p>2. Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào màn hình chính"</b>.</p>
-                            <div class="text-xs text-gray-400 mt-2">* Nếu đang dùng Facebook/Zalo, hãy mở bằng Chrome.</div>
+                             <p>1. Nếu nút <b>Install App</b> góc dưới chưa hiện, hãy đợi "PWA Doctor" chạy xong.</p>
+                             <p>2. Hoặc vào menu 3 chấm -> "Cài đặt ứng dụng".</p>
                         </div>
+                        <button onclick="localStorage.clear(); window.location.reload()" class="text-xs text-red-500 underline mt-2">Reset App Cache</button>
                     `;
                 }
             };
         }
 
-        // 4. APP INSTALLED EVENT
+        // 5. App Installed
         window.addEventListener('appinstalled', () => {
             logPWA('🎉 App Installed!');
             deferredPrompt = null;
-            if (btnInstall) btnInstall.style.display = 'none';
+            if (btnInstall) btnInstall.classList.remove('show');
         });
 
         /* =========================================================
-           SERVICE WORKER REGISTRATION (ABSOLUTE PATH)
+           SERVICE WORKER REGISTRATION (ABSOLUTE PATH V12)
            ========================================================= */
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', () => {
-             // Sử dụng đường dẫn tuyệt đối /mimihoalua/sw.js để tránh nhầm lẫn thư mục
+             // Đăng ký SW với đường dẫn tuyệt đối
              navigator.serviceWorker.register('/mimihoalua/sw.js', {scope: '/mimihoalua/'})
              .then(reg => logPWA('SW Registered Scope: ' + reg.scope))
              .catch(err => logPWA('SW Fail: ' + err.message));
