@@ -56,7 +56,27 @@
 
         .health-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
         .health-status { font-size: 12px; font-weight: bold; }
-        .debug-box { font-family: monospace; font-size: 10px; background: #1e1e1e; color: #00ff00; padding: 10px; border-radius: 4px; max-height: 150px; overflow-y: auto; margin-top: 10px; }
+        
+        /* TERMINAL STYLE DEBUGGER */
+        .debug-box { 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            font-size: 11px; 
+            background: #1e1e1e; 
+            color: #d4d4d4; 
+            padding: 12px; 
+            border-radius: 6px; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            margin-top: 10px;
+            white-space: pre-wrap;
+            border: 1px solid #333;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .log-success { color: #4ade80; }
+        .log-error { color: #f87171; font-weight: bold; }
+        .log-warn { color: #fbbf24; }
+        .log-info { color: #60a5fa; }
+        .log-cmd { color: #c084fc; font-weight: bold; }
 
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
     </style>
@@ -70,7 +90,7 @@
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
                     <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable transition-colors hover:bg-white/20">
                         <span id="pwaStatusDot" class="status-dot dot-red"></span>
-                        <span id="guideLabel">Kiểm tra hệ thống</span>
+                        <span id="guideLabel">Hệ thống</span>
                     </button>
                 </div>
                 <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
@@ -118,35 +138,38 @@
 
     <button id="btnInstall" class="install-fab fixed bottom-20 right-4 z-[9999] bg-[#ee4d2d] text-white py-3 px-6 rounded-full font-bold border-2 border-white items-center gap-3 cursor-pointer shadow-2xl animate-pop-in"><span class="text-2xl animate-bounce">📲</span><span class="text-sm font-bold uppercase tracking-wide">Cài đặt ngay</span></button>
 
-    <!-- HEALTH CHECK MODAL (EXPERT MODE) -->
+    <!-- HEALTH CHECK MODAL (SHERLOCK HOLMES MODE) -->
     <div id="pwaHealthModal" class="hidden fixed inset-0 z-[100000] bg-black/60 text-gray-800 flex flex-col justify-center items-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="w-full max-w-md bg-white rounded-xl p-0 shadow-2xl overflow-hidden animate-bounce-short">
-            <div class="bg-[#ee4d2d] p-4 text-white flex justify-between items-center">
-                <div class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-user-doctor"></i> PWA Expert</div>
-                <button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fa-solid fa-times text-xl"></i></button>
+        <div class="w-full max-w-lg bg-white rounded-xl p-0 shadow-2xl overflow-hidden animate-bounce-short">
+            <div class="bg-gray-900 p-4 text-white flex justify-between items-center border-b border-gray-700">
+                <div class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-user-secret"></i> PWA Sherlock Mode</div>
+                <button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></button>
             </div>
             
-            <div class="p-5 space-y-3">
+            <div class="p-4 bg-gray-100 space-y-3">
                 <!-- Status List -->
-                <div class="space-y-2">
-                    <div class="health-item"><span class="health-label">HTTPS</span><span id="health-https" class="health-status">...</span></div>
-                    <div class="health-item"><span class="health-label">Manifest</span><span id="health-manifest" class="health-status">...</span></div>
-                    <div class="health-item"><span class="health-label">Service Worker</span><span id="health-sw" class="health-status">...</span></div>
+                <div class="grid grid-cols-3 gap-2 text-xs font-bold text-center">
+                    <div class="bg-white p-2 rounded shadow-sm border border-gray-200">HTTPS<br><span id="health-https">...</span></div>
+                    <div class="bg-white p-2 rounded shadow-sm border border-gray-200">Manifest<br><span id="health-manifest">...</span></div>
+                    <div class="bg-white p-2 rounded shadow-sm border border-gray-200">ServiceWorker<br><span id="health-sw">...</span></div>
                 </div>
 
-                <!-- DEBUG CONSOLE -->
-                <div class="text-xs font-bold text-gray-500 uppercase mt-2">Log chi tiết (Dành cho Debug):</div>
-                <div id="debug-logs" class="debug-box">Initializing diagnostics...</div>
+                <!-- DEBUG TERMINAL -->
+                <div class="text-xs font-bold text-gray-600 uppercase mt-2 flex justify-between">
+                    <span>Terminal Log:</span>
+                    <span id="terminal-status" class="text-blue-500 animate-pulse">Running...</span>
+                </div>
+                <div id="debug-logs" class="debug-box">Initializing Sherlock Diagnostics...</div>
 
                 <!-- Actions -->
-                <div class="grid grid-cols-2 gap-2 mt-4">
-                    <button onclick="logicCore.forceRegisterSW()" class="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded text-xs font-bold">🚀 Tìm & Kích hoạt SW</button>
-                    <button onclick="logicCore.runDiagnostics()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded text-xs font-bold">🔍 Quét lại</button>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button onclick="logicCore.forceUnregisterSW()" class="bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded text-xs font-bold border border-red-200">🗑️ Xóa sạch SW</button>
+                    <button onclick="logicCore.runDiagnostics()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded text-xs font-bold border border-blue-200">🔎 Quét lại</button>
                 </div>
             </div>
             
             <!-- Guide Content -->
-            <div id="guideContainer" class="p-5 pt-0 border-t bg-gray-50">
+            <div id="guideContainer" class="p-4 pt-0 border-t bg-white">
                 <div id="guideContent" class="text-center text-sm text-gray-600 mt-3"></div>
             </div>
         </div>
@@ -164,7 +187,7 @@
 
     <script>
         /* =========================================================================
-           🧠 LOGIC CORE V8.5 (SMART SW REGISTRATION WITH FALLBACK)
+           🧠 LOGIC CORE V9.0 (SHERLOCK HOLMES PATH FINDER)
            ========================================================================= */
         const logicCore = {
             deferredPrompt: null,
@@ -177,6 +200,7 @@
             init: function() {
                 this.updateStatusDot('init');
                 this.attachListeners();
+                
                 if (this.state.isStandalone) {
                     this.updateStatusDot('installed');
                 } else {
@@ -184,32 +208,27 @@
                 }
             },
 
-            // UPDATE UI
             updateStatusDot: function(status) {
                 const dot = document.getElementById('pwaStatusDot');
                 const label = document.getElementById('guideLabel');
                 dot.className = "status-dot"; 
                 if (status === 'init' || status === 'error') {
-                    dot.classList.add('dot-red'); 
-                    label.innerText = "Kiểm tra hệ thống";
+                    dot.classList.add('dot-red'); label.innerText = "Kiểm tra hệ thống";
                 } else if (status === 'ready') {
-                    dot.classList.add('dot-blue'); 
-                    label.innerText = "Cài App ngay";
+                    dot.classList.add('dot-blue'); label.innerText = "Cài App ngay";
                 } else if (status === 'installed') {
-                    dot.classList.add('dot-green'); 
-                    label.innerText = "Đã cài đặt";
+                    dot.classList.add('dot-green'); label.innerText = "Đã cài đặt";
                 }
             },
 
-            // LISTENERS
             attachListeners: function() {
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
                     this.showSmartFAB();
                     this.updateStatusDot('ready');
-                    document.getElementById('health-overall').innerText = "Sẵn sàng cài đặt";
-                    document.getElementById('health-overall').className = "health-status font-bold px-2 py-1 rounded text-xs bg-blue-100 text-blue-600";
+                    this.runDiagnostics(); // Re-run to update guide content
+                    console.log('✅ PWA Ready Event Captured!');
                 });
 
                 window.addEventListener('appinstalled', () => {
@@ -219,11 +238,9 @@
                     alert("Cài đặt thành công!");
                 });
 
-                // AUTO-REGISTER SW ON LOAD
+                // Auto-try registration on load
                 if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                        this.tryRegisterSW(); // Dùng hàm thông minh để thử cả 2 đường dẫn
-                    });
+                    window.addEventListener('load', () => this.sherlockRegisterSW());
                 }
                 
                 document.getElementById('btnGuide').onclick = () => {
@@ -232,7 +249,6 @@
                 };
             },
 
-            // UI HELPERS
             showSmartFAB: function() {
                 if (this.state.isStandalone) return;
                 const fab = document.getElementById('btnInstall');
@@ -246,107 +262,144 @@
             },
             hideSmartFAB: function() { document.getElementById('btnInstall').style.display = 'none'; },
 
-            // SMART REGISTER SW (Try Relative -> Fail -> Try Absolute)
-            tryRegisterSW: function(forceUpdate = false) {
-                // Đường dẫn 1: Tương đối (Chuẩn cho Localhost/Root)
-                const path1 = './sw.js' + (forceUpdate ? '?v=' + Date.now() : '');
+            // 🔥 SHERLOCK MODE: Dò tìm file SW thực sự ở đâu
+            sherlockRegisterSW: async function() {
+                if (!('serviceWorker' in navigator)) return;
+
+                const logs = document.getElementById('debug-logs');
+                const log = (msg, clr='') => logs.innerHTML += `<div class="${clr} border-b border-gray-800 py-1">${msg}</div>`;
                 
-                // Đường dẫn 2: Tuyệt đối (Chuẩn cho GitHub Pages Subfolder)
-                // Tự động lấy tên repo từ URL hiện tại
-                const repoName = window.location.pathname.split('/')[1] || ''; 
-                const path2 = repoName ? `/${repoName}/sw.js` + (forceUpdate ? '?v=' + Date.now() : '') : null;
+                // Các đường dẫn nghi vấn
+                const candidates = [
+                    './sw.js',
+                    '/mimihoalua/sw.js',
+                    '/sw.js',
+                    window.location.href.replace('index.html', '') + 'sw.js'
+                ];
+                
+                // Lọc trùng
+                const uniquePaths = [...new Set(candidates)];
+                let foundPath = null;
 
-                const register = (path) => {
-                    console.log(`[PWA] Trying to register SW at: ${path}`);
-                    return navigator.serviceWorker.register(path, { scope: './' });
-                };
-
-                register(path1)
-                    .then(reg => {
-                        console.log('✅ SW Registered (Relative):', reg.scope);
-                        if (forceUpdate) { alert("Đã kích hoạt thành công!"); window.location.reload(); }
-                    })
-                    .catch(err => {
-                        console.warn('⚠️ Relative SW failed, trying Absolute path...');
-                        if (path2) {
-                            register(path2)
-                                .then(reg => {
-                                    console.log('✅ SW Registered (Absolute):', reg.scope);
-                                    if (forceUpdate) { alert("Đã kích hoạt thành công!"); window.location.reload(); }
-                                })
-                                .catch(err2 => console.error('❌ All SW registration attempts failed:', err2));
+                for (const path of uniquePaths) {
+                    try {
+                        const testUrl = path.startsWith('http') ? path : new URL(path, window.location.href).href;
+                        // Thử fetch HEAD để kiểm tra tồn tại (nhẹ hơn GET)
+                        const res = await fetch(testUrl, { method: 'HEAD' });
+                        
+                        if (res.ok && res.headers.get('content-type')?.includes('javascript')) {
+                            log(`✅ Found SW at: ${path}`, 'log-success');
+                            foundPath = path;
+                            break; // Tìm thấy thì dừng ngay
+                        } else {
+                            // Nếu 404 thì log nhẹ
+                            console.warn(`[Sherlock] ${path} returned ${res.status}`);
                         }
-                    });
+                    } catch (e) {
+                        console.warn(`[Sherlock] Fail check ${path}`, e);
+                    }
+                }
+
+                if (foundPath) {
+                    // Đăng ký đúng đường dẫn tìm được
+                    try {
+                        const reg = await navigator.serviceWorker.register(foundPath, { scope: './' });
+                        log(`🚀 Registered SW from: ${foundPath}`, 'log-success');
+                        
+                        // Kiểm tra trạng thái ngay
+                        if(reg.installing) log(`📥 SW Installing...`, 'log-info');
+                        else if(reg.waiting) log(`⏳ SW Waiting...`, 'log-warn');
+                        else if(reg.active) log(`🟢 SW Active!`, 'log-success');
+                        
+                        // Update UI
+                        this.updateStatusDot('ready');
+                        document.getElementById('health-sw').innerHTML = '<span class="text-green-500">✅ Đang chạy</span>';
+                    } catch (err) {
+                        log(`❌ Register Fail: ${err.message}`, 'log-error');
+                    }
+                } else {
+                    log(`🚨 CRITICAL: Không tìm thấy file sw.js ở bất cứ đâu!`, 'log-error');
+                }
             },
 
-            // DIAGNOSTICS & FIX TOOLS
             runDiagnostics: async function() {
                 const logs = document.getElementById('debug-logs');
-                logs.innerHTML = ''; 
-                const log = (msg, color='text-gray-600') => logs.innerHTML += `<div class="${color} border-b border-gray-100 py-1 break-all">${msg}</div>`;
+                logs.innerHTML = ''; // Reset logs
+                const log = (msg, clr='') => logs.innerHTML += `<div class="${clr} border-b border-gray-800 py-1">${msg}</div>`;
 
-                log(`🔍 Bắt đầu chẩn đoán...`, 'text-blue-600 font-bold');
+                document.getElementById('terminal-status').innerText = 'Scanning...';
                 
-                // Check HTTPS
-                const isSecure = this.state.isHttps;
-                document.getElementById('health-https').innerHTML = isSecure ? '<span class="text-green-600">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
+                // 1. Enviroment Info
+                log(`📍 Location: ${window.location.href}`, 'log-info');
+                log(`📱 Platform: ${this.state.isIOS ? 'iOS' : 'Android/PC'}`, 'log-info');
 
-                // Check Manifest
+                // 2. HTTPS Check
+                const isSecure = this.state.isHttps;
+                document.getElementById('health-https').innerHTML = isSecure ? '<span class="text-green-500">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
+
+                // 3. Manifest Check
                 const linkTag = document.querySelector('link[rel="manifest"]');
                 if(linkTag) {
                     try {
                         const res = await fetch(linkTag.href);
                         if(res.ok) {
-                            document.getElementById('health-manifest').innerHTML = '<span class="text-green-600">✅ Hợp lệ</span>';
-                            log(`✅ Manifest OK: 200`, 'text-green-600');
+                            document.getElementById('health-manifest').innerHTML = '<span class="text-green-500">✅ Hợp lệ</span>';
+                            log(`✅ Manifest: 200 OK`, 'log-success');
                         } else {
-                            document.getElementById('health-manifest').innerHTML = '<span class="text-red-500">❌ Lỗi 404</span>';
-                            log(`❌ Manifest 404: ${linkTag.href}`, 'text-red-600');
+                            document.getElementById('health-manifest').innerHTML = '<span class="text-red-500">❌ Lỗi ' + res.status + '</span>';
+                            log(`❌ Manifest 404 at: ${linkTag.href}`, 'log-error');
                         }
-                    } catch(e) { log(`❌ Manifest error: ${e.message}`, 'text-red-600'); }
+                    } catch(e) { log(`❌ Manifest Net Error`, 'log-error'); }
                 }
 
-                // Check SW
+                // 4. Service Worker Status
                 const swStatus = document.getElementById('health-sw');
                 if ('serviceWorker' in navigator) {
                     const reg = await navigator.serviceWorker.getRegistration();
                     if (reg) {
-                        swStatus.innerHTML = '<span class="text-green-600">✅ Đang chạy</span>';
-                        log(`🟢 SW Active at: ${reg.scope}`);
+                         swStatus.innerHTML = '<span class="text-green-500">✅ Đang chạy</span>';
+                         log(`🟢 SW Registered. Scope: ${reg.scope}`, 'log-success');
                     } else {
-                        swStatus.innerHTML = '<span class="text-yellow-500">⚠️ Chưa chạy</span>';
-                        log(`🔴 SW chưa tìm thấy. Đang thử kích hoạt lại...`);
-                        this.tryRegisterSW(); // Tự động sửa luôn nếu thấy lỗi
+                         swStatus.innerHTML = '<span class="text-yellow-500">⚠️ Chưa chạy</span>';
+                         log(`🔴 SW Registry Empty.`, 'log-error');
+                         // Tự động gọi thám tử
+                         log(`🕵️ Gọi Sherlock Holmes dò tìm file...`, 'log-cmd');
+                         this.sherlockRegisterSW();
                     }
                 }
 
-                // Guide Content
-                const guideContent = document.getElementById('guideContent');
+                document.getElementById('terminal-status').innerText = 'Done';
+                
+                // Guide Logic
+                const guide = document.getElementById('guideContent');
                 if (this.state.deferredPrompt) {
-                     guideContent.innerHTML = `
-                        <p class="text-green-600 font-bold mb-2">🎉 Đã sẵn sàng!</p>
-                        <button onclick="logicCore.triggerInstall()" class="w-full bg-[#ee4d2d] text-white py-3 rounded-lg font-bold shadow-lg text-sm animate-pulse">
-                            <i class="fa-solid fa-download"></i> CÀI ĐẶT APP NGAY
+                     guide.innerHTML = `
+                        <div class="bg-green-50 p-3 rounded text-green-700 font-bold mb-2">🎉 Đủ điều kiện cài đặt!</div>
+                        <button onclick="logicCore.triggerInstall()" class="w-full bg-[#ee4d2d] text-white py-3 rounded-lg font-bold shadow-lg animate-pulse">
+                            CÀI ĐẶT NGAY
                         </button>
                     `;
                 } else if (this.state.isIOS) {
-                    guideContent.innerHTML = `<p>iOS: Nhấn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
+                    guide.innerHTML = `<p>iOS: Chọn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
                     document.getElementById('iosArrow').classList.remove('hidden');
                 } else {
-                    guideContent.innerHTML = `<p>Đang chờ trình duyệt chấp thuận...</p>`;
+                    guide.innerHTML = `<p class="text-xs text-gray-500">Đang đợi trình duyệt kiểm duyệt PWA...</p>`;
                 }
             },
-            
+
             triggerInstall: async function() {
                 if (!this.deferredPrompt) return;
                 this.deferredPrompt.prompt();
                 const { outcome } = await this.deferredPrompt.userChoice;
-                if (outcome === 'accepted') { this.deferredPrompt = null; this.hideSmartFAB(); }
+                if (outcome === 'accepted') this.hideSmartFAB();
             },
 
-            // Nút "Sửa lỗi" gọi hàm này
-            forceRegisterSW: function() {
-                this.tryRegisterSW(true); // True = Force update & reload
+            forceUnregisterSW: function() {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    for(let reg of regs) reg.unregister();
+                    alert("Đã xóa sạch SW. Trang sẽ tải lại để cài mới.");
+                    window.location.reload();
+                });
             }
         };
 
