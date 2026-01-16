@@ -355,13 +355,10 @@
         const btnGuide = document.getElementById('btnGuide'); 
         document.getElementById('btnGuide').onclick = () => {
             const guideModal = document.getElementById('installGuideModal');
-            const guideContent = document.getElementById('installGuideContent'); // Đã sửa từ installGuideText sang Content để wrap đúng
+            const guideContent = document.getElementById('installGuideText');
             const iosArrow = document.getElementById('iosArrow');
             
-            // Reset modal content wrapper (để chèn HTML mới)
-            const guideTextDiv = document.getElementById('installGuideText');
-
-            // Reset modal visibility
+            // Reset modal content
             guideModal.classList.remove('hidden');
             iosArrow.classList.add('hidden');
 
@@ -370,7 +367,7 @@
             if (isIOS) {
                 // iOS Guide
                 iosArrow.classList.remove('hidden');
-                guideTextDiv.innerHTML = `
+                guideContent.innerHTML = `
                     <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
                     <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
                     <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
@@ -378,12 +375,12 @@
                     </div>
                 `;
             } else {
-                // Android & PC Guide (Fallback - CHỈ HIỆN KHI KHÔNG CÀI ĐƯỢC TỰ ĐỘNG)
-                guideTextDiv.innerHTML = `
+                // Universal Manual Guide (Android Manual / PC)
+                guideContent.innerHTML = `
                     <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt</div>
                     <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
                         <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span><b>Trên Android:</b> Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm -> Chọn "Cài đặt ứng dụng".</span></p>
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span><b>Trên Máy tính:</b> Tìm biểu tượng Cài đặt trên thanh địa chỉ hoặc nhấn <b>Ctrl + D</b> để Bookmark.</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span><b>Trên Máy tính:</b> Bấm icon Cài đặt trên thanh địa chỉ hoặc nhấn <b>Ctrl + D</b>.</span></p>
                     </div>
                 `;
             }
