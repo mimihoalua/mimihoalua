@@ -58,8 +58,8 @@
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    <!-- Header Button: CHỈ LÀ HƯỚNG DẪN -->
-                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable"><i class="fa-solid fa-mobile-screen-button"></i> Install Home Screen</button>
+                    <!-- Header Button: CHỈ HƯỚNG DẪN (Luôn hiện) -->
+                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable"><i class="fa-solid fa-circle-info"></i> Install Home Screen</button>
                 </div>
                 <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
             </div>
@@ -120,7 +120,7 @@
         </div>
     </footer>
 
-    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (Mặc định ẩn, chỉ hiện khi sẵn sàng cài) ================= -->
+    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB - Mặc định ẩn) ================= -->
     <button
       id="btnInstall"
       class="install-fab hidden fixed bottom-20 right-4 z-[9999]
@@ -132,7 +132,7 @@
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= OVERLAY HƯỚNG DẪN (Dùng chung cho iOS & PC) ================= -->
+    <!-- ================= OVERLAY HƯỚNG DẪN ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
@@ -309,7 +309,7 @@
         });
 
         /* =========================================================
-           SMART INSTALL ENGINE (CHUẨN PRODUCTION)
+           SMART INSTALL ENGINE (CHUẨN PRODUCTION – TÁCH BIỆT LOGIC)
            ========================================================= */
         
         let deferredPrompt = null; // Biến toàn cục để giữ sự kiện cài đặt
@@ -320,7 +320,7 @@
             e.preventDefault();
             // Lưu sự kiện để dùng sau
             deferredPrompt = e;
-            // HIỆN NÚT "INSTALL APP" THẬT
+            // CHỈ HIỆN NÚT "INSTALL APP" THẬT KHI ĐỦ ĐIỀU KIỆN
             const installBtn = document.getElementById('btnInstall');
             if (installBtn) {
                 installBtn.classList.remove('hidden');
@@ -335,7 +335,7 @@
             btnInstall.onclick = async () => {
                 if (!deferredPrompt) {
                     // Trường hợp hy hữu nút hiện nhưng mất event -> fallback
-                    alert('Trình duyệt chưa sẵn sàng cài app. Vui lòng tải lại trang.');
+                    alert('Trình duyệt chưa sẵn sàng cài app. Vui lòng mở bằng Chrome và tải lại trang.');
                     return;
                 }
                 // Kích hoạt prompt cài đặt
@@ -349,14 +349,16 @@
         }
 
         // 3️⃣ XỬ LÝ NÚT "INSTALL HOME SCREEN" (Nút hướng dẫn, trên Header)
-        const btnGuide = document.getElementById('btnGuide'); // Nút cũ là headerInstallBtn, đổi ID để rõ nghĩa hơn nếu cần, nhưng ở đây dùng logic getElement
-        // Lưu ý: Trong HTML tôi đã đổi ID nút trên header thành btnGuide cho đồng bộ logic
+        const btnGuide = document.getElementById('btnGuide'); 
         document.getElementById('btnGuide').onclick = () => {
             const guideModal = document.getElementById('installGuideModal');
-            const guideContent = document.getElementById('installGuideText');
+            const guideContent = document.getElementById('installGuideContent'); // Đã sửa từ installGuideText sang Content để wrap đúng
             const iosArrow = document.getElementById('iosArrow');
             
-            // Reset modal
+            // Reset modal content wrapper (để chèn HTML mới)
+            const guideTextDiv = document.getElementById('installGuideText');
+
+            // Reset modal visibility
             guideModal.classList.remove('hidden');
             iosArrow.classList.add('hidden');
 
@@ -365,7 +367,7 @@
             if (isIOS) {
                 // iOS Guide
                 iosArrow.classList.remove('hidden');
-                guideContent.innerHTML = `
+                guideTextDiv.innerHTML = `
                     <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
                     <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
                     <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
@@ -373,8 +375,8 @@
                     </div>
                 `;
             } else {
-                // Android & PC Guide (Fallback)
-                guideContent.innerHTML = `
+                // Android & PC Guide (Fallback - CHỈ HIỆN KHI KHÔNG CÀI ĐƯỢC TỰ ĐỘNG)
+                guideTextDiv.innerHTML = `
                     <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt</div>
                     <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
                         <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span><b>Trên Android:</b> Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm -> Chọn "Cài đặt ứng dụng".</span></p>
@@ -387,18 +389,17 @@
         // 4️⃣ LẮNG NGHE SỰ KIỆN ĐÃ CÀI ĐẶT THÀNH CÔNG (CHUẨN)
         window.addEventListener('appinstalled', () => {
             console.log('🎉 App installed successfully');
-            // Đánh dấu đã cài đặt
+            // Đánh dấu đã cài đặt (chỉ để tham khảo, không dùng để ẩn hiện nút install prompt vì browser tự lo)
             localStorage.setItem('mimi_installed', 'yes');
-            // Ẩn nút cài đặt thật đi
-            if (btnInstall) btnInstall.remove();
+            // Ẩn nút cài đặt thật đi (vì đã cài rồi)
+            if (btnInstall) btnInstall.classList.add('hidden'); 
+            if (btnInstall) btnInstall.classList.remove('flex');
             // Reset prompt
             deferredPrompt = null;
         });
 
-        // 5️⃣ CHECK KHI LOAD TRANG: Nếu đã cài rồi thì ẩn nút thật luôn
-        if (localStorage.getItem('mimi_installed') === 'yes' && btnInstall) {
-            btnInstall.remove();
-        }
+        // 5️⃣ CHECK KHI LOAD TRANG: (Tùy chọn: Ẩn nút Install nếu browser báo đã cài - nhưng để chắc chắn cứ dựa vào event)
+        // Lưu ý: Nút Install mặc định đã ẩn (class hidden), chỉ hiện khi có event. Nên logic này an toàn.
 
         /* =========================================================
            SERVICE WORKER – AUTO UPDATE APP (WITH TOAST)
