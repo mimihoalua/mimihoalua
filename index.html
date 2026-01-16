@@ -140,7 +140,7 @@
 
                 <!-- Actions -->
                 <div class="grid grid-cols-2 gap-2 mt-4">
-                    <button onclick="logicCore.forceRegisterSW()" class="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded text-xs font-bold">🛠️ Sửa Lỗi 404 (Kích hoạt SW)</button>
+                    <button onclick="logicCore.forceRegisterSW()" class="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded text-xs font-bold">🚀 Tìm & Kích hoạt SW</button>
                     <button onclick="logicCore.runDiagnostics()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded text-xs font-bold">🔍 Quét lại</button>
                 </div>
             </div>
@@ -164,7 +164,7 @@
 
     <script>
         /* =========================================================================
-           🧠 LOGIC CORE V8.1 (EXPERT DIAGNOSTICS & FIX TOOL)
+           🧠 LOGIC CORE V8.5 (SMART SW REGISTRATION WITH FALLBACK)
            ========================================================================= */
         const logicCore = {
             deferredPrompt: null,
@@ -177,25 +177,21 @@
             init: function() {
                 this.updateStatusDot('init');
                 this.attachListeners();
-                
-                // Nếu đã là app, chuyển trạng thái luôn
                 if (this.state.isStandalone) {
                     this.updateStatusDot('installed');
                 } else {
-                    // Chạy chẩn đoán nhanh khi vừa vào
                     this.runDiagnostics();
                 }
             },
 
-            // 1. UPDATE UI DOT
+            // UPDATE UI
             updateStatusDot: function(status) {
                 const dot = document.getElementById('pwaStatusDot');
                 const label = document.getElementById('guideLabel');
                 dot.className = "status-dot"; 
-
                 if (status === 'init' || status === 'error') {
                     dot.classList.add('dot-red'); 
-                    label.innerText = status === 'error' ? "Kiểm tra lỗi" : "Đang tải...";
+                    label.innerText = "Kiểm tra hệ thống";
                 } else if (status === 'ready') {
                     dot.classList.add('dot-blue'); 
                     label.innerText = "Cài App ngay";
@@ -205,14 +201,15 @@
                 }
             },
 
-            // 2. LISTENERS
+            // LISTENERS
             attachListeners: function() {
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
                     this.showSmartFAB();
                     this.updateStatusDot('ready');
-                    console.log('✅ PWA Ready to Install!');
+                    document.getElementById('health-overall').innerText = "Sẵn sàng cài đặt";
+                    document.getElementById('health-overall').className = "health-status font-bold px-2 py-1 rounded text-xs bg-blue-100 text-blue-600";
                 });
 
                 window.addEventListener('appinstalled', () => {
@@ -222,16 +219,10 @@
                     alert("Cài đặt thành công!");
                 });
 
-                // Đăng ký SW
+                // AUTO-REGISTER SW ON LOAD
                 if ('serviceWorker' in navigator) {
                     window.addEventListener('load', () => {
-                        // Thử đăng ký và bắt lỗi chi tiết
-                        navigator.serviceWorker.register('./sw.js')
-                            .then(reg => console.log('SW Registered:', reg.scope))
-                            .catch(err => {
-                                console.error('SW Fail:', err);
-                                document.getElementById('health-sw').innerHTML = `<span class="text-red-500">Lỗi: ${err.message}</span>`;
-                            });
+                        this.tryRegisterSW(); // Dùng hàm thông minh để thử cả 2 đường dẫn
                     });
                 }
                 
@@ -241,7 +232,7 @@
                 };
             },
 
-            // 3. UI HELPERS
+            // UI HELPERS
             showSmartFAB: function() {
                 if (this.state.isStandalone) return;
                 const fab = document.getElementById('btnInstall');
@@ -255,75 +246,94 @@
             },
             hideSmartFAB: function() { document.getElementById('btnInstall').style.display = 'none'; },
 
-            // 4. ADVANCED DIAGNOSIS
+            // SMART REGISTER SW (Try Relative -> Fail -> Try Absolute)
+            tryRegisterSW: function(forceUpdate = false) {
+                // Đường dẫn 1: Tương đối (Chuẩn cho Localhost/Root)
+                const path1 = './sw.js' + (forceUpdate ? '?v=' + Date.now() : '');
+                
+                // Đường dẫn 2: Tuyệt đối (Chuẩn cho GitHub Pages Subfolder)
+                // Tự động lấy tên repo từ URL hiện tại
+                const repoName = window.location.pathname.split('/')[1] || ''; 
+                const path2 = repoName ? `/${repoName}/sw.js` + (forceUpdate ? '?v=' + Date.now() : '') : null;
+
+                const register = (path) => {
+                    console.log(`[PWA] Trying to register SW at: ${path}`);
+                    return navigator.serviceWorker.register(path, { scope: './' });
+                };
+
+                register(path1)
+                    .then(reg => {
+                        console.log('✅ SW Registered (Relative):', reg.scope);
+                        if (forceUpdate) { alert("Đã kích hoạt thành công!"); window.location.reload(); }
+                    })
+                    .catch(err => {
+                        console.warn('⚠️ Relative SW failed, trying Absolute path...');
+                        if (path2) {
+                            register(path2)
+                                .then(reg => {
+                                    console.log('✅ SW Registered (Absolute):', reg.scope);
+                                    if (forceUpdate) { alert("Đã kích hoạt thành công!"); window.location.reload(); }
+                                })
+                                .catch(err2 => console.error('❌ All SW registration attempts failed:', err2));
+                        }
+                    });
+            },
+
+            // DIAGNOSTICS & FIX TOOLS
             runDiagnostics: async function() {
                 const logs = document.getElementById('debug-logs');
                 logs.innerHTML = ''; 
-                const log = (msg, color='text-gray-600') => {
-                    logs.innerHTML += `<div class="${color} border-b border-gray-100 py-1 break-all">${msg}</div>`;
-                };
+                const log = (msg, color='text-gray-600') => logs.innerHTML += `<div class="${color} border-b border-gray-100 py-1 break-all">${msg}</div>`;
 
                 log(`🔍 Bắt đầu chẩn đoán...`, 'text-blue-600 font-bold');
                 
-                // 1. Check Manifest
+                // Check HTTPS
+                const isSecure = this.state.isHttps;
+                document.getElementById('health-https').innerHTML = isSecure ? '<span class="text-green-600">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
+
+                // Check Manifest
                 const linkTag = document.querySelector('link[rel="manifest"]');
                 if(linkTag) {
                     try {
                         const res = await fetch(linkTag.href);
                         if(res.ok) {
                             document.getElementById('health-manifest').innerHTML = '<span class="text-green-600">✅ Hợp lệ</span>';
-                            log(`✅ Manifest loaded: 200 OK`, 'text-green-600');
+                            log(`✅ Manifest OK: 200`, 'text-green-600');
                         } else {
-                            document.getElementById('health-manifest').innerHTML = '<span class="text-red-500">❌ Lỗi ' + res.status + '</span>';
-                            log(`❌ Manifest failed: HTTP ${res.status}`, 'text-red-600');
+                            document.getElementById('health-manifest').innerHTML = '<span class="text-red-500">❌ Lỗi 404</span>';
+                            log(`❌ Manifest 404: ${linkTag.href}`, 'text-red-600');
                         }
-                    } catch(e) {
-                        log(`❌ Manifest fetch error: ${e.message}`, 'text-red-600');
-                    }
+                    } catch(e) { log(`❌ Manifest error: ${e.message}`, 'text-red-600'); }
                 }
 
-                // 2. Check Service Worker
+                // Check SW
                 const swStatus = document.getElementById('health-sw');
                 if ('serviceWorker' in navigator) {
                     const reg = await navigator.serviceWorker.getRegistration();
                     if (reg) {
-                        if (reg.active) {
-                            swStatus.innerHTML = '<span class="text-green-600">✅ Đang chạy</span>';
-                            log(`🟢 SW Active. Scope: ${reg.scope}`);
-                        } else if (reg.installing) {
-                            swStatus.innerHTML = '<span class="text-yellow-500">⏳ Đang cài đặt</span>';
-                            log(`🟡 SW Installing...`);
-                        } else if (reg.waiting) {
-                            swStatus.innerHTML = '<span class="text-yellow-500">⏳ Đang chờ</span>';
-                            log(`🟠 SW Waiting...`);
-                        }
+                        swStatus.innerHTML = '<span class="text-green-600">✅ Đang chạy</span>';
+                        log(`🟢 SW Active at: ${reg.scope}`);
                     } else {
-                        swStatus.innerHTML = '<span class="text-red-500">❌ Chưa đăng ký</span>';
-                        log(`🔴 No SW found. Thử bấm nút "Kích hoạt SW" bên dưới.`);
+                        swStatus.innerHTML = '<span class="text-yellow-500">⚠️ Chưa chạy</span>';
+                        log(`🔴 SW chưa tìm thấy. Đang thử kích hoạt lại...`);
+                        this.tryRegisterSW(); // Tự động sửa luôn nếu thấy lỗi
                     }
-                } else {
-                    swStatus.innerHTML = '<span class="text-red-500">❌ Không hỗ trợ</span>';
                 }
 
-                // UPDATE STATUS UI
-                document.getElementById('health-https').innerHTML = this.state.isHttps ? '<span class="text-green-600">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
-                
-                // Hiển thị hướng dẫn và Nút cài đặt
+                // Guide Content
                 const guideContent = document.getElementById('guideContent');
-                if (this.state.isStandalone) {
-                    guideContent.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p>`;
-                } else if (this.state.isIOS) {
-                    guideContent.innerHTML = `<p>Trên iOS: Nhấn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
-                    document.getElementById('iosArrow').classList.remove('hidden');
-                } else if (this.state.deferredPrompt) {
+                if (this.state.deferredPrompt) {
                      guideContent.innerHTML = `
-                        <p class="text-green-600 font-bold mb-2">🎉 Đã sẵn sàng cài đặt!</p>
+                        <p class="text-green-600 font-bold mb-2">🎉 Đã sẵn sàng!</p>
                         <button onclick="logicCore.triggerInstall()" class="w-full bg-[#ee4d2d] text-white py-3 rounded-lg font-bold shadow-lg text-sm animate-pulse">
                             <i class="fa-solid fa-download"></i> CÀI ĐẶT APP NGAY
                         </button>
                     `;
+                } else if (this.state.isIOS) {
+                    guideContent.innerHTML = `<p>iOS: Nhấn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
+                    document.getElementById('iosArrow').classList.remove('hidden');
                 } else {
-                    guideContent.innerHTML = `<p>Nếu đủ điều kiện, nút cài đặt sẽ hiện lên.</p>`;
+                    guideContent.innerHTML = `<p>Đang chờ trình duyệt chấp thuận...</p>`;
                 }
             },
             
@@ -331,44 +341,22 @@
                 if (!this.deferredPrompt) return;
                 this.deferredPrompt.prompt();
                 const { outcome } = await this.deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    this.deferredPrompt = null;
-                    this.hideSmartFAB();
-                }
+                if (outcome === 'accepted') { this.deferredPrompt = null; this.hideSmartFAB(); }
             },
 
-            // 5. CÔNG CỤ SỬA LỖI (FORCE REGISTER)
+            // Nút "Sửa lỗi" gọi hàm này
             forceRegisterSW: function() {
-                if ('serviceWorker' in navigator) {
-                    const logs = document.getElementById('debug-logs');
-                    const timestamp = Date.now();
-                    const swUrl = `./sw.js?v=${timestamp}`;
-                    
-                    logs.innerHTML += `<div class="text-blue-600 font-bold border-b border-gray-100 py-1">🚀 Đang thử đăng ký lại với Cache Buster (${timestamp})...</div>`;
-                    
-                    navigator.serviceWorker.register(swUrl)
-                        .then(reg => {
-                            logs.innerHTML += `<div class="text-green-600 font-bold border-b border-gray-100 py-1">✅ Đăng ký thành công! Scope: ${reg.scope}</div>`;
-                            this.runDiagnostics(); 
-                            alert("Đã sửa lỗi Cache 404! Đang tải lại ứng dụng...");
-                            window.location.reload();
-                        })
-                        .catch(err => {
-                            logs.innerHTML += `<div class="text-red-600 font-bold border-b border-gray-100 py-1">❌ Vẫn thất bại: ${err.message}</div>`;
-                            logs.innerHTML += `<div class="text-gray-500 text-[10px]">Thử kiểm tra lại file sw.js trên GitHub có nằm đúng thư mục không.</div>`;
-                            alert("Lỗi: " + err.message);
-                        });
-                }
+                this.tryRegisterSW(true); // True = Force update & reload
             }
         };
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             logicCore.init();
-            initializeAppLogic(); // LOGIC BÁN HÀNG CŨ
+            initializeAppLogic(); 
         });
 
-        /* ================= CODE BÁN HÀNG CŨ (GIỮ NGUYÊN) ================= */
+        /* ================= EXISTING SALES LOGIC (GIỮ NGUYÊN) ================= */
         const BANK_ID = "TCB"; 
         const BANK_ACC_NUM = "19037189711011"; 
         const BANK_ACC_OWNER = "NGUYEN THI THAM";
@@ -493,3 +481,5 @@
         function filterCommunes(query) { const pid = document.getElementById("selProvince").value; if (!pid) return; const prov = vietnamLocations.find(p => p.id === pid); if (!prov || !prov.communes) return; const dropdown = document.getElementById("communeDropdown"); const normalizedQuery = query.toLowerCase().trim(); const filtered = prov.communes.filter(c => c.name.toLowerCase().includes(normalizedQuery) || c.zone_hint.toLowerCase().includes(normalizedQuery)); const displayList = filtered.slice(0, 20); dropdown.innerHTML = ""; if (displayList.length === 0) { dropdown.innerHTML = `<div class="p-3 text-sm text-gray-500 text-center">Không tìm thấy kết quả</div>`; } else { displayList.forEach(c => { const div = document.createElement("div"); div.className = "commune-option p-2 cursor-pointer text-sm border-b last:border-0 transition-colors flex justify-between items-center"; let nameDisplay = c.name; let hintDisplay = c.zone_hint; if(normalizedQuery && nameDisplay.toLowerCase().includes(normalizedQuery)) { nameDisplay = nameDisplay.replace(new RegExp(normalizedQuery, "gi"), (match) => `<span class="bg-yellow-100 font-bold">${match}</span>`); } if(normalizedQuery && hintDisplay.toLowerCase().includes(normalizedQuery)) { hintDisplay = hintDisplay.replace(new RegExp(normalizedQuery, "gi"), (match) => `<span class="bg-yellow-100 font-bold">${match}</span>`); } div.innerHTML = `<span class="font-medium text-gray-700">${nameDisplay}</span><span class="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${hintDisplay}</span>`; div.onclick = () => selectCommune(c); dropdown.appendChild(div); }); } dropdown.classList.remove("hidden"); }
         function selectCommune(c) { const searchInput = document.getElementById("searchCommune"); const hiddenInput = document.getElementById("selCommune"); const dropdown = document.getElementById("communeDropdown"); const clearBtn = document.getElementById("clearCommuneBtn"); searchInput.value = `${c.name} - ${c.zone_hint}`; hiddenInput.value = c.id; dropdown.classList.add("hidden"); clearBtn.classList.remove("hidden"); searchInput.classList.remove('error-input', 'error-shake'); checkFormProgress(); }
     </script>
+</body>
+</html>
