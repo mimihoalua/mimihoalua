@@ -1,12 +1,16 @@
-// MimiFlower Service Worker – Production V7 (Absolute Paths)
-const CACHE_NAME = 'mimiflower-cache-v7';
-
-// Sử dụng đường dẫn tuyệt đối để tránh nhầm lẫn thư mục
+// MimiFlower Service Worker – Production V8 (Fail-Safe)
+const CACHE_NAME = 'mimiflower-cache-v8';
 const BASE_PATH = '/mimihoalua';
-const STATIC_ASSETS = [
+
+// Danh sách file quan trọng nhất (Nếu thiếu các file này, App sẽ lỗi)
+const CORE_ASSETS = [
   `${BASE_PATH}/`,
   `${BASE_PATH}/index.html`,
-  `${BASE_PATH}/manifest.json`,
+  `${BASE_PATH}/manifest.json`
+];
+
+// Danh sách icon (Nếu thiếu 1-2 file cũng không sao, ta sẽ xử lý mềm)
+const ICON_ASSETS = [
   `${BASE_PATH}/icons/icon-72.png`,
   `${BASE_PATH}/icons/icon-96.png`,
   `${BASE_PATH}/icons/icon-128.png`,
@@ -20,7 +24,22 @@ const STATIC_ASSETS = [
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      console.log('[SW] Caching Core Assets...');
+      await cache.addAll(CORE_ASSETS);
+
+      console.log('[SW] Caching Icons (Fail-Safe)...');
+      // Thử cache từng icon, nếu lỗi thì bỏ qua, không làm chết SW
+      for (const icon of ICON_ASSETS) {
+        try {
+          const res = await fetch(icon);
+          if (res.ok) await cache.put(icon, res);
+        } catch (e) {
+          console.warn(`[SW] Failed to cache icon: ${icon}`, e);
+        }
+      }
+    })()
   );
 });
 
@@ -39,21 +58,9 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Không cache Firebase / API
-  if (
-    url.origin.includes('firebase') ||
-    url.origin.includes('googleapis') ||
-    url.pathname.includes('firestore')
-  ) return;
+  if (url.origin.includes('firebase') || url.origin.includes('googleapis') || url.pathname.includes('firestore')) return;
 
-  // Cache First cho tài nguyên tĩnh
-  if (
-    req.destination === 'document' ||
-    req.destination === 'script' ||
-    req.destination === 'style' ||
-    req.destination === 'image' ||
-    req.mode === 'navigate'
-  ) {
+  if (req.mode === 'navigate' || req.destination === 'document' || req.destination === 'script' || req.destination === 'style' || req.destination === 'image') {
     event.respondWith(
       caches.match(req).then(cached => {
         const fetchPromise = fetch(req).then(res => {
@@ -62,7 +69,7 @@ self.addEventListener('fetch', event => {
              caches.open(CACHE_NAME).then(c => c.put(req, resClone));
           }
           return res;
-        }).catch(() => {});
+        }).catch(err => console.log('Network fail'));
         return cached || fetchPromise;
       })
     );
