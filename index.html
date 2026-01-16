@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
     
-    <!-- PWA CONFIGURATION -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- PWA CONFIGURATION: Dùng ./ để đảm bảo chạy đúng thư mục con -->
+    <link id="manifest-link" rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#ee4d2d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,6 +42,7 @@
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
+        /* PWA UI Styles */
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
@@ -127,7 +128,11 @@
             <div class="bg-[#ee4d2d] p-4 text-white flex justify-between items-center"><div class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-user-doctor"></i> Bác Sĩ PWA</div><button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fa-solid fa-times text-xl"></i></button></div>
             <div class="p-5 space-y-2">
                 <div class="health-item"><span class="health-label"><i class="fa-solid fa-lock text-gray-400 w-5"></i> Bảo mật (HTTPS)</span><span id="health-https" class="health-status text-gray-400">Checking...</span></div>
-                <div class="health-item"><span class="health-label"><i class="fa-solid fa-file-code text-gray-400 w-5"></i> Manifest File</span><span id="health-manifest" class="health-status text-gray-400">Checking...</span></div>
+                <div class="health-item flex flex-col items-start gap-1">
+                    <div class="flex justify-between w-full"><span class="health-label"><i class="fa-solid fa-file-code text-gray-400 w-5"></i> Manifest File</span><span id="health-manifest" class="health-status text-gray-400">Checking...</span></div>
+                    <!-- Debug URL sẽ hiện ở đây -->
+                    <div id="manifest-debug-url" class="text-[10px] text-gray-400 font-mono break-all hidden bg-gray-100 p-1 rounded mt-1 w-full"></div>
+                </div>
                 <div class="health-item"><span class="health-label"><i class="fa-solid fa-gears text-gray-400 w-5"></i> Service Worker</span><span id="health-sw" class="health-status text-gray-400">Checking...</span></div>
                 <div class="health-item border-t-2 border-dashed mt-2 pt-2"><span class="health-label">Trạng thái hiện tại</span><span id="health-overall" class="health-status font-bold px-2 py-1 rounded text-xs bg-gray-100">Unknown</span></div>
             </div>
@@ -148,7 +153,7 @@
 
     <script>
         /* =========================================================================
-           🧠 LOGIC CORE V4.0 (Enhanced Debugging & Retry Mechanism)
+           🧠 LOGIC CORE V7.0 (RELATIVE PATHS SAFE MODE)
            ========================================================================= */
         const logicCore = {
             deferredPrompt: null,
@@ -171,11 +176,12 @@
                 }
             },
 
-            // 1. HEALTH CHECK SYSTEM (Updated with detailed error reporting)
+            // 1. HEALTH CHECK SYSTEM (Dùng ./ để đảm bảo tính đúng đắn)
             performHealthCheck: function(mode = 'check') {
                 const els = {
                     https: document.getElementById('health-https'),
                     manifest: document.getElementById('health-manifest'),
+                    debugUrl: document.getElementById('manifest-debug-url'),
                     sw: document.getElementById('health-sw'),
                     overall: document.getElementById('health-overall')
                 };
@@ -187,20 +193,24 @@
                     els.https.innerHTML = '<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Không bảo mật</span>';
                 }
 
-                // Check Manifest (Improved fetch & error handling)
-                fetch('./manifest.json?v=' + Date.now())
+                // Check Manifest (Dùng ./manifest.json)
+                const manifestUrl = "./manifest.json?v=" + Date.now();
+                if(els.debugUrl) {
+                    els.debugUrl.innerText = `Fetch: ${manifestUrl}`;
+                    els.debugUrl.classList.remove('hidden');
+                }
+
+                fetch(manifestUrl)
                     .then(r => {
                         if (r.ok) return r.json();
-                        throw new Error(`HTTP ${r.status}`); // Báo mã lỗi cụ thể (ví dụ 404)
+                        throw new Error(`HTTP ${r.status}`); 
                     }) 
                     .then(data => {
                         if(data.start_url && data.icons) els.manifest.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> Hợp lệ</span>';
                         else els.manifest.innerHTML = '<span class="text-yellow-500">Thiếu thông tin</span>';
                     })
                     .catch(err => {
-                        // Hiển thị lỗi chi tiết để debug
-                        els.manifest.innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-times-circle"></i> Lỗi: ${err.message}</span>`;
-                        console.error("Manifest Check Failed:", err);
+                        els.manifest.innerHTML = `<span class="text-red-500 font-bold text-[10px]"><i class="fa-solid fa-times-circle"></i> Lỗi: ${err.message}</span>`;
                     });
 
                 // Check Service Worker
@@ -239,8 +249,8 @@
 
                 if (this.state.hasServiceWorker) {
                     window.addEventListener('load', () => {
-                        // Register with relative scope explicitly
-                        navigator.serviceWorker.register('./sw.js', { scope: './' })
+                        // QUAN TRỌNG: Dùng ./sw.js
+                        navigator.serviceWorker.register('./sw.js')
                             .then(reg => {
                                 console.log('SW Registered:', reg.scope);
                                 this.performHealthCheck('check');
@@ -303,7 +313,7 @@
                 this.performHealthCheck('check');
 
                 modal.classList.remove('hidden');
-                arrow.classList.add('hidden');
+                arrow.classList.add('hidden'); 
 
                 if (this.state.isStandalone) {
                     content.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p><p>Trải nghiệm mua sắm tốt nhất.</p>`;
@@ -329,10 +339,10 @@
         // --- INIT APP ---
         document.addEventListener('DOMContentLoaded', () => {
             logicCore.init();
-            initializeAppLogic(); 
+            initializeAppLogic(); // LOGIC BÁN HÀNG CŨ VẪN CHẠY BÌNH THƯỜNG
         });
 
-        /* ================= EXISTING SALES LOGIC ================= */
+        /* ================= EXISTING SALES LOGIC (GIỮ NGUYÊN 100% NHƯ YÊU CẦU) ================= */
         const BANK_ID = "TCB"; 
         const BANK_ACC_NUM = "19037189711011"; 
         const BANK_ACC_OWNER = "NGUYEN THI THAM";
