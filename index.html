@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
     
-    <!-- PWA CONFIGURATION -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- PWA CONFIGURATION (Tuyệt đối hóa đường dẫn) -->
+    <link rel="manifest" href="/mimihoalua/manifest.json">
     <meta name="theme-color" content="#ee4d2d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -40,39 +40,38 @@
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
-        /* Nút Install App (FAB) - Mặc định ẩn bằng CSS, sẽ được JS bật lên */
+        /* Hiệu ứng nổi bật cho nút Install App (FAB) */
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4), 0 2px 4px -1px rgba(238, 77, 45, 0.2);
-            display: none; 
+            display: none; /* QUAN TRỌNG: Chỉ hiện khi JS kích hoạt */
         }
         .install-fab:active { transform: scale(0.95); }
         .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(238, 77, 45, 0.5), 0 4px 6px -2px rgba(238, 77, 45, 0.3); }
 
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
         
-        /* BẢNG CHẨN ĐOÁN LỖI (Quan trọng để biết tại sao 404) */
+        /* BẢNG DEBUG (Hiển thị tạm thời để check lỗi) */
         #pwa-debug-panel {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); color: #00ff00; 
+            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; 
             font-family: monospace; font-size: 10px; padding: 5px; z-index: 200000;
-            border-top: 1px solid #444; max-height: 100px; overflow-y: auto; pointer-events: none;
+            border-top: 1px solid #444; max-height: 120px; overflow-y: auto; pointer-events: none;
         }
-        .log-error { color: #ff3333; font-weight: bold; }
-        .log-success { color: #00ff00; }
-        .log-warn { color: #ffcc00; }
+        .log-err { color: #ff5555; font-weight: bold; }
+        .log-ok { color: #55ff55; }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- BẢNG CHẨN ĐOÁN -->
-    <div id="pwa-debug-panel"><div>⏳ System Init...</div></div>
+    <!-- DEBUG PANEL -->
+    <div id="pwa-debug-panel"><div>🚀 V11 System Init...</div></div>
 
     <header class="bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] shadow-md sticky top-0 z-40 text-white">
         <div class="container mx-auto px-2 md:px-4">
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    <!-- Nút Hướng Dẫn -->
+                    <!-- 1️⃣ NÚT HƯỚNG DẪN (LUÔN HIỆN) -->
                     <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable">
                         <i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt
                     </button>
@@ -136,20 +135,20 @@
         </div>
     </footer>
 
-    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB) ================= -->
+    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB - Mặc định ẩn) ================= -->
     <button
       id="btnInstall"
-      class="install-fab fixed bottom-20 right-4 z-[9999]
+      class="install-fab hidden fixed bottom-24 right-4 z-[9999]
              bg-[#ee4d2d] text-white
              h-12 px-4 rounded-full
              font-bold border-2 border-white
              items-center gap-2 animate-bounce-short cursor-pointer"
-      style="display: none;"> <!-- Vẫn ẩn lúc đầu, JS sẽ bật -->
+      style="display: none;"> <!-- Ẩn tuyệt đối lúc đầu -->
       <span class="text-xl">📲</span>
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= OVERLAY HƯỚNG DẪN ================= -->
+    <!-- ================= OVERLAY HƯỚNG DẪN (Chỉ dùng cho btnGuide) ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
@@ -327,99 +326,78 @@
         });
 
         /* =========================================================
-           SMART INSTALL ENGINE V10 (FAIL-SAFE & DIAGNOSTIC)
+           SMART INSTALL ENGINE (DEBUGGER V2)
            ========================================================= */
         let deferredPrompt = null; 
 
-        // Hàm log hiển thị lên màn hình
+        // Log Function
         function logPWA(msg) {
             console.log(msg);
             const panel = document.getElementById('pwa-debug-panel');
             if(panel) {
                 const div = document.createElement('div');
-                div.style.borderTop = '1px solid #333';
-                if(msg.includes('Error') || msg.includes('Fail')) div.className = 'log-error';
-                else if(msg.includes('Success') || msg.includes('Registered')) div.className = 'log-success';
                 div.innerText = msg;
+                if(msg.includes('Fail') || msg.includes('404')) div.className = 'log-err';
+                else if(msg.includes('Success') || msg.includes('Registered')) div.className = 'log-ok';
                 panel.appendChild(div);
             }
         }
 
-        // 1. Logic "Nút FAB Bất Tử" (Hiển thị sau 2s nếu chưa cài)
-        setTimeout(() => {
-            const isInstalled = localStorage.getItem('mimi_installed') === 'yes';
-            // Kiểm tra xem có đang chạy trong chế độ App không (standalone)
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            
-            if (!isInstalled && !isStandalone) {
-                const installBtn = document.getElementById('btnInstall');
-                if (installBtn) {
-                    installBtn.style.display = 'flex';
-                    installBtn.classList.remove('hidden');
-                    logPWA('ℹ️ Fail-Safe: Showing Install Button manually');
-                }
-            }
-        }, 2000);
-
-        // 2. Bắt sự kiện Native Install (Nếu trình duyệt hỗ trợ)
+        // 1. LISTEN FOR INSTALL EVENT
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            logPWA('✅ Native Install Prompt Captured!');
-            // Nút đã được hiện bởi logic timeout ở trên, hoặc hiện ngay tại đây
+            logPWA('✅ Ready to Install!');
+            
+            // SHOW FAB BUTTON
             const installBtn = document.getElementById('btnInstall');
             if (installBtn) {
-                 installBtn.style.display = 'flex';
-                 installBtn.classList.remove('hidden');
+                installBtn.style.display = 'flex';
+                installBtn.classList.remove('hidden');
             }
         });
 
-        // 3. Xử lý click Nút FAB (Thông minh: Native hoặc Manual)
+        // 2. FAB BUTTON HANDLER
         const btnInstall = document.getElementById('btnInstall');
         if (btnInstall) {
             btnInstall.onclick = async () => {
-                // Ưu tiên 1: Cài đặt Native (Android/Chrome PC)
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    logPWA(`Install choice: ${outcome}`);
-                    if(outcome === 'accepted') {
-                         deferredPrompt = null;
-                         localStorage.setItem('mimi_installed', 'yes');
-                         btnInstall.style.display = 'none';
-                    }
+                if (!deferredPrompt) {
+                    alert('Trình duyệt chưa sẵn sàng cài App. Vui lòng thử lại sau.');
                     return;
                 }
-
-                // Ưu tiên 2: Mở Hướng dẫn thủ công (Nếu không hỗ trợ Native)
-                logPWA('⚠️ No native prompt. Showing manual guide.');
-                // Kích hoạt nút hướng dẫn ở header (giả lập click)
-                document.getElementById('btnGuide').click();
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                logPWA(`User choice: ${outcome}`);
+                if(outcome === 'accepted') {
+                     deferredPrompt = null;
+                }
             };
         }
 
-        // 4. Xử lý nút Hướng dẫn (Header)
+        // 3. HEADER BUTTON (GUIDE)
         const btnGuide = document.getElementById('btnGuide'); 
         if (btnGuide) {
             btnGuide.onclick = () => {
-                document.getElementById('installGuideModal').classList.remove('hidden');
-                
-                const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-                const guideText = document.getElementById('installGuideText');
+                const guideModal = document.getElementById('installGuideModal');
+                const guideContent = document.getElementById('installGuideText');
                 const iosArrow = document.getElementById('iosArrow');
+                
+                guideModal.classList.remove('hidden');
+                iosArrow.classList.add('hidden');
+
+                const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
                 
                 if (isIOS) {
                     iosArrow.classList.remove('hidden');
-                    guideText.innerHTML = `
+                    guideContent.innerHTML = `
                         <div class="text-xl font-bold mb-2">Cài đặt trên iOS</div>
-                        <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> phía dưới.</div>
+                        <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
                         <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded bg-orange-50">
                             Chọn "Thêm vào MH chính"
                         </div>
                     `;
                 } else {
-                    iosArrow.classList.add('hidden');
-                    guideText.innerHTML = `
+                    guideContent.innerHTML = `
                         <div class="text-xl font-bold mb-3 text-[#ee4d2d]">Hướng dẫn cài đặt</div>
                         <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
                             <p>1. Mở menu <b>3 chấm</b> trên trình duyệt.</p>
@@ -431,22 +409,21 @@
             };
         }
 
-        // 5. Sự kiện App Installed thành công
+        // 4. APP INSTALLED EVENT
         window.addEventListener('appinstalled', () => {
-            logPWA('🎉 App Installed Successfully!');
+            logPWA('🎉 App Installed!');
             deferredPrompt = null;
-            localStorage.setItem('mimi_installed', 'yes');
             if (btnInstall) btnInstall.style.display = 'none';
         });
 
         /* =========================================================
-           SERVICE WORKER REGISTRATION (VỚI ĐƯỜNG DẪN TUYỆT ĐỐI)
+           SERVICE WORKER REGISTRATION (ABSOLUTE PATH)
            ========================================================= */
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', () => {
-             // Dùng đường dẫn tương đối ./sw.js để an toàn nhất
-             navigator.serviceWorker.register('./sw.js')
-             .then(reg => logPWA('SW Registered. Scope: ' + reg.scope))
+             // Sử dụng đường dẫn tuyệt đối /mimihoalua/sw.js để tránh nhầm lẫn thư mục
+             navigator.serviceWorker.register('/mimihoalua/sw.js', {scope: '/mimihoalua/'})
+             .then(reg => logPWA('SW Registered Scope: ' + reg.scope))
              .catch(err => logPWA('SW Fail: ' + err.message));
           });
           
