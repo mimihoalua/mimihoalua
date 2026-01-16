@@ -58,8 +58,11 @@
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    <!-- Header Button: CHỈ HƯỚNG DẪN (Luôn hiện) -->
-                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable"><i class="fa-solid fa-circle-info"></i> Install Home Screen</button>
+                    
+                    <!-- 1️⃣ NÚT HƯỚNG DẪN (LUÔN HIỆN) -->
+                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable">
+                        <i class="fa-solid fa-circle-info"></i> Install Home Screen
+                    </button>
                 </div>
                 <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
             </div>
@@ -121,6 +124,7 @@
     </footer>
 
     <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB - Mặc định ẩn) ================= -->
+    <!-- Nút này chỉ hiện khi 'beforeinstallprompt' kích hoạt -->
     <button
       id="btnInstall"
       class="install-fab hidden fixed bottom-20 right-4 z-[9999]
@@ -132,7 +136,7 @@
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= OVERLAY HƯỚNG DẪN ================= -->
+    <!-- ================= OVERLAY HƯỚNG DẪN (Chỉ dùng cho btnGuide) ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
@@ -320,7 +324,7 @@
             e.preventDefault();
             // Lưu sự kiện để dùng sau
             deferredPrompt = e;
-            // CHỈ HIỆN NÚT "INSTALL APP" THẬT KHI ĐỦ ĐIỀU KIỆN
+            // HIỆN NÚT "INSTALL APP" THẬT
             const installBtn = document.getElementById('btnInstall');
             if (installBtn) {
                 installBtn.classList.remove('hidden');
@@ -352,35 +356,43 @@
         const btnGuide = document.getElementById('btnGuide'); 
         document.getElementById('btnGuide').onclick = () => {
             const guideModal = document.getElementById('installGuideModal');
-            const guideContent = document.getElementById('installGuideContent'); // Đã sửa từ installGuideText sang Content để wrap đúng
+            const guideContent = document.getElementById('installGuideText');
             const iosArrow = document.getElementById('iosArrow');
             
-            // Reset modal content wrapper (để chèn HTML mới)
-            const guideTextDiv = document.getElementById('installGuideText');
-
-            // Reset modal visibility
+            // Reset modal content
             guideModal.classList.remove('hidden');
             iosArrow.classList.add('hidden');
 
             const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+            const isAndroid = /android/.test(navigator.userAgent.toLowerCase());
             
             if (isIOS) {
                 // iOS Guide
                 iosArrow.classList.remove('hidden');
-                guideTextDiv.innerHTML = `
+                guideContent.innerHTML = `
                     <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
                     <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
                     <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
                         Sau đó chọn <br> <i class="fa-regular fa-square-plus"></i> Thêm vào MH chính
                     </div>
                 `;
-            } else {
-                // Android & PC Guide (Fallback - CHỈ HIỆN KHI KHÔNG CÀI ĐƯỢC TỰ ĐỘNG)
-                guideTextDiv.innerHTML = `
-                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt</div>
+            } else if (isAndroid) {
+                // Android Guide (Fallback)
+                guideContent.innerHTML = `
+                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-brands fa-android"></i> Cài đặt trên Android</div>
                     <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span><b>Trên Android:</b> Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm -> Chọn "Cài đặt ứng dụng".</span></p>
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span><b>Trên Máy tính:</b> Tìm biểu tượng Cài đặt trên thanh địa chỉ hoặc nhấn <b>Ctrl + D</b> để Bookmark.</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm <i class="fa-solid fa-ellipsis-vertical"></i>.</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào màn hình chính"</b>.</span></p>
+                        <div class="text-xs text-red-500 italic mt-2">* Lưu ý: Chỉ hỗ trợ tốt nhất trên Chrome.</div>
+                    </div>
+                `;
+            } else {
+                // PC Guide
+                guideContent.innerHTML = `
+                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-desktop"></i> Cài đặt trên Máy tính</div>
+                    <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Tìm biểu tượng <b>Cài đặt</b> (hình máy tính <i class="fa-solid fa-download"></i> hoặc dấu cộng <i class="fa-solid fa-plus"></i>) ở cuối thanh địa chỉ trình duyệt.</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Hoặc nhấn tổ hợp phím <b>Ctrl + D</b> để lưu trang web này vào thanh dấu trang (Bookmark).</span></p>
                     </div>
                 `;
             }
@@ -389,17 +401,22 @@
         // 4️⃣ LẮNG NGHE SỰ KIỆN ĐÃ CÀI ĐẶT THÀNH CÔNG (CHUẨN)
         window.addEventListener('appinstalled', () => {
             console.log('🎉 App installed successfully');
-            // Đánh dấu đã cài đặt (chỉ để tham khảo, không dùng để ẩn hiện nút install prompt vì browser tự lo)
+            // Đánh dấu đã cài đặt
             localStorage.setItem('mimi_installed', 'yes');
-            // Ẩn nút cài đặt thật đi (vì đã cài rồi)
-            if (btnInstall) btnInstall.classList.add('hidden'); 
-            if (btnInstall) btnInstall.classList.remove('flex');
+            // Ẩn nút cài đặt thật đi
+            if (btnInstall) {
+                btnInstall.classList.add('hidden');
+                btnInstall.classList.remove('flex');
+            }
             // Reset prompt
             deferredPrompt = null;
         });
 
-        // 5️⃣ CHECK KHI LOAD TRANG: (Tùy chọn: Ẩn nút Install nếu browser báo đã cài - nhưng để chắc chắn cứ dựa vào event)
-        // Lưu ý: Nút Install mặc định đã ẩn (class hidden), chỉ hiện khi có event. Nên logic này an toàn.
+        // 5️⃣ CHECK KHI LOAD TRANG: Nếu đã cài rồi thì ẩn nút thật luôn
+        if (localStorage.getItem('mimi_installed') === 'yes' && btnInstall) {
+            btnInstall.classList.add('hidden');
+            btnInstall.classList.remove('flex');
+        }
 
         /* =========================================================
            SERVICE WORKER – AUTO UPDATE APP (WITH TOAST)
