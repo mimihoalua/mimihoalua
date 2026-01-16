@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
+    
+    <!-- PWA CONFIGURATION: Trỏ trực tiếp vào file thực tế -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#ee4d2d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MimiFlower">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        @keyframes bounce-short { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .animate-bounce-short { animation: bounce-short 0.3s ease-in-out; }
+        @keyframes pop-in { 0% { transform: scale(0) translateY(20px); opacity: 0; } 80% { transform: scale(1.1) translateY(0); opacity: 1; } 100% { transform: scale(1); } }
+        .animate-pop-in { animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .scroll-smooth { scroll-behavior: smooth; }
+        .shopee-border-bottom { background-image: repeating-linear-gradient(45deg,#6fa6d6,#6fa6d6 33px,transparent 0,transparent 41px,#f18d9b 0,#f18d9b 74px,transparent 0,transparent 82px); background-position-x: -30px; background-size: 116px 3px; height: 3px; width: 100%; }
+        .tab-active { color: #ee4d2d; border-bottom: 2px solid #ee4d2d; font-weight: bold; background-color: #fff1f2; }
+        .tab-inactive { color: #6b7280; border-bottom: 2px solid transparent; }
+        .spinner { border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 2px solid white; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
+        .spinner-dark { border: 2px solid rgba(0,0,0,0.1); border-top: 2px solid #ee4d2d; width: 30px; height: 30px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
+        .z-extreme { z-index: 99999 !important; }
+        
+        /* Nút Install App (FAB) - Smart Logic Controlled */
+        .install-fab {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
+            display: none; /* Logic Core sẽ quyết định khi nào hiện */
+        }
+        .install-fab:active { transform: scale(0.95); }
+        .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(238, 77, 45, 0.5); }
+        
+        /* Status Dot Animation */
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; position: relative; }
+        .status-dot::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.7; }
+        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+        .dot-red { background-color: #ef4444; } .dot-red::after { background-color: #ef4444; }
+        .dot-blue { background-color: #3b82f6; } .dot-blue::after { background-color: #3b82f6; }
+        .dot-green { background-color: #22c55e; } .dot-green::after { background-color: #22c55e; }
+
+        /* Health Check Items */
+        .health-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+        .health-item:last-child { border-bottom: none; }
+        .health-label { font-size: 13px; font-weight: 600; color: #374151; }
+        .health-status { font-size: 12px; font-weight: bold; }
+
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <header class="bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] shadow-md sticky top-0 z-40 text-white">
+        <div class="container mx-auto px-2 md:px-4">
+            <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
+                <div class="flex gap-4">
+                    <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
+                    
+                    <!-- NÚT HƯỚNG DẪN + STATUS DOT -->
+                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable transition-colors hover:bg-white/20">
+                        <span id="pwaStatusDot" class="status-dot dot-red"></span>
+                        <span id="guideLabel">Kiểm tra hệ thống</span>
+                    </button>
+                </div>
+                <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
+            </div>
+            <div class="flex items-center gap-4 py-2 pb-3">
+                <a href="#" class="flex items-center gap-2 font-bold text-xl md:text-2xl tracking-tighter whitespace-nowrap"><i class="fa-solid fa-leaf"></i> MimiFlower</a>
+                <div class="flex-1 max-w-2xl relative mx-2">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm..." class="w-full pl-4 pr-10 py-2 rounded-sm text-gray-800 focus:outline-none shadow-sm text-sm" oninput="searchProducts(this.value)">
+                    <button class="absolute right-1 top-1 bottom-1 bg-[#fb5533] px-4 rounded-sm text-white hover:opacity-90 clickable"><i class="fa-solid fa-search"></i></button>
+                </div>
+                <div class="relative px-2 cursor-pointer group flex flex-col items-center justify-center clickable" onclick="openOrderHistory()">
+                    <i class="fa-solid fa-file-invoice-dollar text-xl md:text-2xl"></i>
+                    <span class="text-[10px] hidden md:block">Đơn mua</span>
+                </div>
+                <div class="relative px-2 cursor-pointer group clickable" onclick="openCheckout()">
+                    <i class="fa-solid fa-cart-shopping text-2xl md:text-3xl"></i>
+                    <span id="cartCount" class="absolute -top-1 -right-1 bg-white text-[#ee4d2d] text-xs font-bold px-1.5 py-0.5 rounded-full border border-[#ee4d2d] shadow-sm transition-transform duration-200">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TAB NAVIGATION -->
+    <div class="bg-white sticky top-[75px] md:top-[125px] z-30 shadow-sm border-b border-gray-100">
+        <div class="container mx-auto grid grid-cols-3 text-center text-sm md:text-base font-medium text-gray-600">
+            <button onclick="switchHomeTab('all')" id="tab-all" class="py-3 tab-active transition-all flex flex-col md:flex-row items-center justify-center gap-1 clickable">
+                <i class="fa-solid fa-fire text-[#ee4d2d]"></i> <span>Gợi ý hôm nay</span>
+            </button>
+            <button onclick="switchHomeTab('categories')" id="tab-categories" class="py-3 tab-inactive transition-all flex flex-col md:flex-row items-center justify-center gap-1 hover:text-[#ee4d2d] clickable">
+                <i class="fa-solid fa-list-ul"></i> <span>Danh mục</span>
+            </button>
+            <button onclick="switchHomeTab('new')" id="tab-new" class="py-3 tab-inactive transition-all flex flex-col md:flex-row items-center justify-center gap-1 hover:text-[#ee4d2d] clickable">
+                <i class="fa-solid fa-bolt text-yellow-500"></i> <span>Mới & Hot</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN DISPLAY AREA -->
+    <main class="container mx-auto px-2 md:px-4 py-4 flex-grow min-h-[500px]">
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
+            <div class="bg-white rounded p-2 shadow-sm animate-pulse h-64">
+                <div class="bg-gray-200 h-40 w-full mb-2"></div>
+                <div class="bg-gray-200 h-4 w-3/4 mb-1"></div>
+                <div class="bg-gray-200 h-4 w-1/2"></div>
+            </div>
+        </div>
+        <div id="categoryContainer" class="hidden">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 px-2 border-l-4 border-[#ee4d2d] ml-1">Danh mục sản phẩm</h3>
+            <div id="categoryGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+        </div>
+    </main>
+
+    <footer class="bg-[#2d2d2d] text-white pt-8 pb-4 mt-auto border-t-4 border-[#ee4d2d]">
+        <div class="container mx-auto px-4 text-center md:text-left">
+            <p class="text-sm font-bold text-[#ee4d2d] mb-2">MIMI FLOWER SHOP</p>
+            <p class="text-xs text-gray-400">Chuyên cung cấp sỉ lẻ hoa lụa, cây giả, đồ decor cao cấp.</p>
+            <div class="mt-4 text-xs text-gray-500 flex justify-between items-center">
+                <span>© 2025 MimiFlower. All rights reserved.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= SMART FAB INSTALL (Logic Core Điều Khiển) ================= -->
+    <button
+      id="btnInstall"
+      class="install-fab fixed bottom-20 right-4 z-[9999]
+             bg-[#ee4d2d] text-white
+             py-3 px-6 rounded-full
+             font-bold border-2 border-white
+             items-center gap-3 cursor-pointer shadow-2xl animate-pop-in">
+      <span class="text-2xl animate-bounce">📲</span>
+      <span class="text-sm font-bold uppercase tracking-wide">Cài đặt ngay</span>
+    </button>
+
+    <!-- ================= HEALTH CHECK / GUIDE MODAL ================= -->
+    <div id="pwaHealthModal" class="hidden fixed inset-0 z-[100000] bg-black/60 text-gray-800 flex flex-col justify-center items-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="w-full max-w-sm bg-white rounded-2xl p-0 shadow-2xl overflow-hidden animate-bounce-short">
+            <!-- Header -->
+            <div class="bg-[#ee4d2d] p-4 text-white flex justify-between items-center">
+                <div class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-user-doctor"></i> Bác Sĩ PWA</div>
+                <button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            
+            <!-- Health Check List -->
+            <div class="p-5 space-y-2">
+                <div class="health-item">
+                    <span class="health-label"><i class="fa-solid fa-lock text-gray-400 w-5"></i> Bảo mật (HTTPS)</span>
+                    <span id="health-https" class="health-status text-gray-400">Checking...</span>
+                </div>
+                <div class="health-item">
+                    <span class="health-label"><i class="fa-solid fa-file-code text-gray-400 w-5"></i> Manifest File</span>
+                    <span id="health-manifest" class="health-status text-gray-400">Checking...</span>
+                </div>
+                <div class="health-item">
+                    <span class="health-label"><i class="fa-solid fa-gears text-gray-400 w-5"></i> Service Worker</span>
+                    <span id="health-sw" class="health-status text-gray-400">Checking...</span>
+                </div>
+                <div class="health-item border-t-2 border-dashed mt-2 pt-2">
+                    <span class="health-label">Trạng thái hiện tại</span>
+                    <span id="health-overall" class="health-status font-bold px-2 py-1 rounded text-xs bg-gray-100">Unknown</span>
+                </div>
+            </div>
+
+            <!-- Contextual Action/Guide -->
+            <div id="guideContainer" class="p-5 pt-0">
+                <!-- Nội dung hướng dẫn sẽ được inject bởi JS tùy theo Platform -->
+                <div id="guideContent" class="text-center text-sm text-gray-600"></div>
+            </div>
+
+             <div class="p-4 bg-gray-50 text-center border-t">
+                <button class="text-[#ee4d2d] font-bold text-sm hover:underline" onclick="document.getElementById('pwaHealthModal').classList.add('hidden')">Đóng bảng kiểm tra</button>
+            </div>
+        </div>
+        
+        <!-- Mũi tên chỉ dẫn cho iOS (Nằm ngoài modal) -->
+        <div id="iosArrow" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 animate-bounce text-5xl text-white drop-shadow-lg z-[100001]">⬇️</div>
+    </div>
+
+    <!-- CHI TIẾT SẢN PHẨM & CHECKOUT (GIỮ NGUYÊN) -->
+    <div id="detailModal" class="fixed inset-0 bg-black/90 hidden z-[50] flex items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0 overflow-y-auto"><button onclick="closeDetail()" class="fixed top-4 right-4 z-extreme w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 shadow-2xl border-2 border-white cursor-pointer active:scale-90"><i class="fa-solid fa-times text-xl"></i></button><div class="bg-white w-full h-full md:w-[1000px] md:h-auto md:max-h-[90vh] md:rounded-lg shadow-2xl flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300 overflow-y-auto md:overflow-hidden" id="modalContent"><div class="w-full md:w-[58%] flex flex-col shrink-0 bg-white relative border-r border-gray-100 pb-0 md:pb-0"><div class="relative w-full aspect-square md:h-[450px] bg-white flex items-center justify-center group border-b border-gray-100 bg-gray-50"><img id="modalMainImg" src="" class="w-full h-full object-contain p-2 transition-opacity duration-200"><button onclick="navigateGallery(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-10 clickable"><i class="fa-solid fa-chevron-left"></i></button><button onclick="navigateGallery(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-10 clickable"><i class="fa-solid fa-chevron-right"></i></button><div class="absolute top-0 left-0 bg-[#ee4d2d] text-white text-xs font-bold px-3 py-1 rounded-br shadow-sm z-10">Bán chạy</div></div><div class="relative w-full bg-gray-50 px-2 py-2 shadow-inner border-b border-gray-200"><div id="thumbList" class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth snap-x items-center h-[60px] px-2"></div></div><div class="px-5 py-4 space-y-4 bg-white"><div class="flex items-center justify-between"><div class="flex items-center gap-2 text-sm"><span class="text-gray-500">Đang chọn:</span><span id="selectedVariantNameDisplay" class="font-bold text-gray-800 text-base border-b-2 border-[#ee4d2d]">...</span></div><div class="text-xs text-gray-400 font-mono" id="stockDisplay">Còn hàng</div></div><div class="flex items-center justify-between bg-[#ee4d2d]/5 p-3 rounded border border-[#ee4d2d]/10"><div id="modalPrice" class="text-3xl font-bold text-[#ee4d2d]">-- ₫</div><div class="flex items-center border border-gray-300 rounded shadow-sm bg-white"><button onclick="updateQty(-1)" class="w-9 h-9 hover:bg-gray-100 text-gray-600 font-bold active:bg-gray-200 clickable">-</button><input id="qtyInput" type="number" value="1" class="w-10 h-9 text-center text-base border-x border-gray-300 focus:outline-none font-bold text-[#ee4d2d]" readonly><button onclick="updateQty(1)" class="w-9 h-9 hover:bg-gray-100 text-gray-600 font-bold active:bg-gray-200 clickable">+</button></div></div><div class="flex gap-3 pt-1"><button id="btnAddToCart" onclick="addToCart()" class="flex-1 bg-[#ee4d2d]/10 border border-[#ee4d2d] text-[#ee4d2d] hover:bg-[#ee4d2d]/20 font-bold py-3.5 rounded shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform uppercase text-sm md:text-base clickable"><i class="fa-solid fa-cart-plus"></i> Thêm Giỏ</button><button id="btnBuyNow" onclick="buyNow()" class="flex-1 bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] text-white font-bold py-3.5 rounded shadow-lg shadow-orange-500/30 hover:shadow-xl active:scale-95 transition-transform uppercase text-sm md:text-base clickable">Mua Ngay</button></div></div></div><div class="w-full md:w-[42%] flex flex-col bg-gray-50 border-t md:border-t-0 md:border-l border-gray-100"><div class="p-5 space-y-5 overflow-y-auto custom-scrollbar flex-1"><div><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Sản phẩm</span><h2 id="modalTitle" class="text-xl md:text-2xl font-bold text-gray-800 leading-snug">...</h2></div><div class="bg-white p-4 rounded border border-gray-200 shadow-sm"><h4 class="text-sm font-bold text-gray-700 mb-2 border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-list-ul text-[#ee4d2d]"></i> Phân loại hàng:</h4><div id="variantListText" class="flex flex-wrap gap-2"></div></div><div class="bg-white p-4 rounded border border-gray-200 shadow-sm space-y-2 text-sm text-gray-600"><div class="flex gap-2"><i class="fa-solid fa-truck-fast text-green-500"></i> Giao hàng toàn quốc</div><div class="flex gap-2"><i class="fa-solid fa-box-open text-blue-500"></i> Kiểm tra hàng trước khi nhận</div></div></div></div></div></div>
+    <div id="checkoutModal" class="fixed inset-0 bg-gray-100 hidden z-[60] overflow-y-auto transition-transform duration-300 translate-y-full"><div class="bg-white border-b sticky top-0 z-50 shadow-sm"><div class="container mx-auto px-4 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><div class="text-[#ee4d2d] text-2xl font-bold flex items-center gap-2"><i class="fa-solid fa-bag-shopping"></i> MimiFlower</div><div class="h-6 w-px bg-gray-300 mx-2"></div><div class="text-xl text-gray-700">Thanh Toán</div></div><button onclick="closeCheckout()" class="text-gray-500 hover:text-[#ee4d2d] font-medium clickable">Trở lại</button></div></div><div class="container mx-auto px-4 py-6 pb-20"><div class="bg-white p-4 rounded shadow-sm mb-4"><h3 class="font-bold text-gray-800 mb-3"><i class="fa-solid fa-truck text-[#ee4d2d]"></i> Hình thức nhận hàng</h3><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer border p-3 rounded has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 flex-1 clickable"><input type="radio" name="deliveryMethod" value="home" checked onchange="toggleDeliveryMethod()" class="accent-[#ee4d2d]"><span class="font-medium">Giao hàng tận nơi</span></label><label class="flex items-center gap-2 cursor-pointer border p-3 rounded has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 flex-1 clickable"><input type="radio" name="deliveryMethod" value="store" onchange="toggleDeliveryMethod()" class="accent-[#ee4d2d]"><span class="font-medium">Nhận tại cửa hàng</span></label></div></div><div class="flex flex-col lg:flex-row gap-6"><div class="w-full lg:w-2/3 space-y-4"><div id="formProgressContainer" class="bg-white px-6 pt-4 pb-2 rounded-t shadow-sm border-b relative"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tiến độ điền đơn</span><span id="progressText" class="text-xs font-bold text-[#ee4d2d]">0/5 Hoàn thành</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div id="progressBar" class="bg-[#ee4d2d] h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div></div></div><div id="addressFormSection" class="bg-white p-6 rounded-b shadow-sm relative overflow-hidden mt-0"><div class="shopee-border-bottom absolute top-0 left-0"></div><h3 class="text-[#ee4d2d] text-lg font-bold mb-4 mt-2">Địa chỉ nhận hàng</h3><form id="checkoutForm" class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm text-gray-600 mb-1">Họ và tên <span class="text-red-500">*</span></label><input type="text" id="cusName" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors" placeholder="Nguyễn Văn A" oninput="checkFormProgress()"></div><div><label class="block text-sm text-gray-600 mb-1">Số điện thoại <span class="text-red-500">*</span></label><input type="tel" id="cusPhone" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors" placeholder="09xxx..." oninput="checkFormProgress()"></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm text-gray-600 mb-1">Tỉnh / Thành phố <span class="text-red-500">*</span></label><select id="selProvince" onchange="handleProvinceChange(); checkFormProgress()" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none bg-white transition-colors"><option value="">-- Chọn Tỉnh --</option></select></div><div class="relative group"><label class="block text-sm text-gray-600 mb-1">Phường / Xã <span class="text-red-500">*</span></label><div class="relative"><div class="relative"><input type="text" id="searchCommune" placeholder="-- Chọn Tỉnh trước --" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed bg-white pr-8" disabled autocomplete="off"><button type="button" onclick="clearCommuneSearch()" id="clearCommuneBtn" class="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden p-1 clickable"><i class="fa-solid fa-times-circle"></i></button></div><input type="hidden" id="selCommune"> <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-gray-400 text-xs pointer-events-none"></i><div id="communeDropdown" class="absolute z-50 w-full bg-white border border-gray-200 shadow-xl rounded-b max-h-60 overflow-y-auto hidden mt-1 custom-scrollbar"></div></div><p class="text-xs text-[#ee4d2d] mt-2 font-medium bg-orange-50 p-1.5 rounded border border-orange-100 flex items-start gap-1.5"><i class="fa-regular fa-lightbulb mt-0.5 text-orange-500"></i><span>Mẹo: Gõ tên <b>Phường/Xã</b> hoặc <b>Quận/Huyện (tên cũ)</b> để tìm nhanh chính xác!</span></p></div></div><div><label class="block text-sm text-gray-600 mb-1">Địa chỉ cụ thể <span class="text-red-500">*</span></label><input type="text" id="cusAddress" placeholder="Số nhà, tên đường..." class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors" oninput="checkFormProgress()"></div><div><label class="block text-sm text-gray-600 mb-1">Ghi chú</label><textarea id="cusNote" rows="2" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none"></textarea></div></form></div><div id="storePickupMsg" class="bg-blue-50 p-6 rounded shadow-sm hidden border border-blue-200"><div class="flex items-start gap-3"><i class="fa-solid fa-store text-blue-600 text-xl mt-1"></i><div><h4 class="font-bold text-blue-800">Thông tin nhận hàng tại Shop</h4><p class="text-sm text-gray-600 mt-1">Địa chỉ: Số 3 Ngõ Văn Chỉ 1, Thôn Phù Mã, Xã Sóc Sơn, TP. Hà Nội</p><div class="mt-3"><label class="block text-sm font-medium mb-1">Tên & SĐT người nhận:</label><input type="text" id="storeCusInfo" placeholder="Nhập tên và SĐT của bạn..." class="w-full border p-2 rounded bg-white"></div></div></div></div><div class="bg-white p-6 rounded shadow-sm"><h3 class="text-gray-800 font-bold mb-4">Phương thức thanh toán</h3><div class="space-y-3"><label class="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-gray-50 has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 transition-all clickable"><input type="radio" name="payment" value="cod" checked onchange="togglePaymentMethod()" class="accent-[#ee4d2d] w-4 h-4"><i class="fa-solid fa-money-bill-wave text-green-600 text-xl"></i><div><div class="font-medium text-sm">Thanh toán khi nhận hàng (COD)</div></div></label><label class="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-gray-50 has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 transition-all clickable"><input type="radio" name="payment" value="banking" onchange="togglePaymentMethod()" class="accent-[#ee4d2d] w-4 h-4"><i class="fa-solid fa-building-columns text-blue-600 text-xl"></i><div><div class="font-medium text-sm">Chuyển khoản ngân hàng</div></div></label><div id="bankingInfo" class="hidden mt-2 p-4 border border-blue-200 rounded-lg bg-blue-50/50 relative overflow-hidden transition-all duration-300"><div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div><div class="text-center mb-4"><div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Quét mã để thanh toán</div><div class="bg-white p-2 inline-block rounded border shadow-sm"><img id="qrCodeImg" src="" class="w-40 h-40 object-contain" alt="QR Code"></div><p class="text-[10px] text-gray-400 mt-1 italic">Mở App ngân hàng để quét</p></div><div class="space-y-3 text-sm"><div class="flex justify-between items-center border-b border-blue-100 pb-2"><span class="text-gray-600">Ngân hàng:</span><span class="font-bold text-blue-800" id="bankNameDisplay">...</span></div><div class="flex justify-between items-center border-b border-blue-100 pb-2"><span class="text-gray-600">Số tài khoản:</span><div class="flex items-center gap-2"><span class="font-bold text-gray-800" id="bankAccNumDisplay">...</span><button onclick="copyText(document.getElementById('bankAccNumDisplay').innerText)" class="text-blue-500 hover:text-blue-700 clickable"><i class="fa-regular fa-copy"></i></button></div></div><div class="flex justify-between items-center border-b border-blue-100 pb-2"><span class="text-gray-600">Chủ tài khoản:</span><span class="font-bold text-gray-800 uppercase" id="bankOwnerDisplay">...</span></div><div class="flex justify-between items-center"><span class="text-gray-600">Nội dung:</span><div class="flex items-center gap-2"><span class="font-bold text-[#ee4d2d]" id="bankContent">...</span><button onclick="copyContent()" class="text-blue-500 hover:text-blue-700 clickable"><i class="fa-regular fa-copy"></i></button></div></div></div><div class="mt-4 bg-yellow-50 text-yellow-800 text-xs p-2 rounded border border-yellow-100 flex items-start gap-2"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>Lưu ý: Vui lòng ghi đúng nội dung chuyển khoản để đơn hàng được xác nhận tự động.</span></div></div></div></div></div><div class="w-full lg:w-1/3"><div class="bg-white p-6 rounded shadow-sm sticky top-[80px]"><div class="flex justify-between items-center border-b pb-2 mb-4"><h3 class="text-gray-800 font-bold">Đơn hàng</h3><span class="text-xs text-gray-500" id="cartTotalItems">0 sản phẩm</span></div><div id="checkoutCartItems" class="space-y-4 mb-4 max-h-[300px] overflow-y-auto custom-scrollbar"></div><div class="space-y-2 py-4 text-sm text-gray-600 border-t border-dashed"><div class="flex justify-between"><span>Tạm tính:</span><span id="subTotalDisplay">0₫</span></div><div class="flex justify-between"><span>Phí vận chuyển:</span><span id="shippingDisplay">0₫</span></div></div><div class="flex justify-between items-center border-t pt-4 mb-6"><span class="text-gray-700 font-bold">Tổng thanh toán:</span><span id="finalTotalDisplay" class="text-2xl font-bold text-[#ee4d2d]">0₫</span></div><button onclick="submitOrder()" id="btnOrder" class="w-full bg-[#ee4d2d] hover:bg-[#d73211] text-white py-3 rounded shadow font-bold uppercase transition flex justify-center items-center gap-2 clickable">Đặt Hàng</button></div></div></div></div></div>
+    
+    <div id="toast" class="fixed top-20 right-4 bg-white border-l-4 border-green-500 text-gray-800 px-4 py-3 rounded shadow-2xl transform translate-x-full transition-transform duration-300 z-[90] flex items-center gap-3 min-w-[280px]"><div id="toastIcon" class="text-green-500 text-xl"><i class="fa-solid fa-circle-check"></i></div><div><div id="toastTitle" class="font-bold text-sm">Thành công!</div><div id="toastMsg" class="text-xs text-gray-500">Đã thêm vào giỏ hàng.</div></div></div>
+    <div id="statusModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-95 transition-all" id="statusModalContent"><div id="statusIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"></div><h3 id="statusTitle" class="text-xl font-bold text-gray-800 mb-2"></h3><p id="statusMsg" class="text-gray-600 text-sm mb-6"></p><div id="statusActions"><button onclick="closeStatusModal()" class="w-full py-2 rounded font-bold text-white transition clickable" id="statusBtn">Đóng</button></div></div></div>
+    <div id="validationModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="validationContent"><div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></div><h3 class="text-red-600 font-bold text-lg">Thông tin chưa đủ</h3></div><div class="p-5"><p class="text-gray-600 text-sm mb-3">Vui lòng bổ sung các thông tin sau để chúng tôi giao hàng:</p><ul id="errorList" class="space-y-2 text-sm text-gray-700"></ul></div><div class="p-3 bg-gray-50 text-right"><button onclick="closeValidationModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 clickable">Đã hiểu</button></div><div class="h-1 bg-red-100 w-full"><div class="h-full bg-red-500 w-full animate-[width_3s_linear_reverse]"></div></div></div></div>
+    <div id="orderHistoryModal" class="fixed inset-0 bg-gray-100 hidden z-[70] overflow-y-auto transition-transform duration-300 translate-x-full"><div class="bg-white border-b sticky top-0 z-50 shadow-sm"><div class="container mx-auto px-4 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-[#ee4d2d] text-xl"></i><div class="text-xl text-gray-700 font-bold">Đơn Hàng Của Tôi</div></div><button onclick="closeOrderHistory()" class="text-gray-500 hover:text-[#ee4d2d] font-medium clickable">Đóng</button></div></div><div class="container mx-auto px-4 py-6 pb-20"><div id="orderHistoryList" class="space-y-4"></div></div></div>
+
+    <script>
+        /* =========================================================================
+           🧠 LOGIC CORE V3.0 (Smart Doctor + Real Files Integration)
+           ========================================================================= */
+        const logicCore = {
+            deferredPrompt: null,
+            state: {
+                isHttps: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
+                isIOS: /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()),
+                isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone,
+                hasServiceWorker: 'serviceWorker' in navigator,
+                readyToInstall: false
+            },
+            
+            init: function() {
+                // Tự động kiểm tra sức khỏe hệ thống khi khởi động
+                this.performHealthCheck();
+                this.attachListeners();
+                
+                // Cập nhật trạng thái ban đầu của Dot
+                this.updateStatusDot('init');
+
+                // Nếu là Standalone (App Mode) -> Ẩn mọi thứ liên quan cài đặt
+                if (this.state.isStandalone) {
+                    this.updateStatusDot('installed');
+                    console.log('✅ App is running in standalone mode');
+                }
+            },
+
+            // 1. HEALTH CHECK SYSTEM (Bảng chẩn đoán)
+            performHealthCheck: function() {
+                const els = {
+                    https: document.getElementById('health-https'),
+                    manifest: document.getElementById('health-manifest'),
+                    sw: document.getElementById('health-sw'),
+                    overall: document.getElementById('health-overall')
+                };
+
+                // Check HTTPS
+                if (this.state.isHttps) {
+                    els.https.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> An toàn</span>';
+                } else {
+                    els.https.innerHTML = '<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Không bảo mật</span>';
+                }
+
+                // Check Manifest (Fetch file thật để verify JSON hợp lệ)
+                fetch('./manifest.json')
+                    .then(r => r.json()) // Cố gắng parse JSON
+                    .then(data => {
+                        if(data.start_url && data.icons) els.manifest.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> Hợp lệ</span>';
+                        else els.manifest.innerHTML = '<span class="text-yellow-500">Thiếu thông tin</span>';
+                    })
+                    .catch(() => els.manifest.innerHTML = '<span class="text-red-500"><i class="fa-solid fa-times-circle"></i> Lỗi File</span>');
+
+                // Check Service Worker
+                if (this.state.hasServiceWorker) {
+                     navigator.serviceWorker.getRegistration().then(reg => {
+                         if(reg && reg.active) els.sw.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-check-circle"></i> Đang chạy</span>';
+                         else els.sw.innerHTML = '<span class="text-yellow-500">Đang chờ kích hoạt</span>';
+                     });
+                } else {
+                    els.sw.innerHTML = '<span class="text-red-500">Trình duyệt cũ</span>';
+                }
+            },
+
+            // 2. EVENT LISTENERS
+            attachListeners: function() {
+                // A. BEFORE INSTALL PROMPT (Linh hồn của PWA Android)
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    this.state.readyToInstall = true;
+                    this.showSmartFAB();
+                    this.updateStatusDot('ready');
+                    
+                    // Cập nhật bảng chẩn đoán
+                    document.getElementById('health-overall').innerText = "Sẵn sàng cài đặt";
+                    document.getElementById('health-overall').className = "health-status font-bold px-2 py-1 rounded text-xs bg-blue-100 text-blue-600";
+                });
+
+                // B. APP INSTALLED
+                window.addEventListener('appinstalled', () => {
+                    this.deferredPrompt = null;
+                    this.hideSmartFAB();
+                    this.updateStatusDot('installed');
+                    alert("Cảm ơn bạn đã cài đặt MimiFlower!");
+                });
+
+                // C. REGISTER SERVICE WORKER (REAL FILE from ./sw.js)
+                if (this.state.hasServiceWorker) {
+                    window.addEventListener('load', () => {
+                        // Thêm scope rõ ràng để tránh xung đột
+                        navigator.serviceWorker.register('./sw.js', { scope: './' })
+                            .then(reg => {
+                                console.log('SW Registered:', reg.scope);
+                                // Kiểm tra update mỗi khi mở lại
+                                reg.update();
+                            })
+                            .catch(err => console.error('SW Fail:', err));
+                    });
+                }
+                
+                // D. GẮN SỰ KIỆN CHO NÚT GUIDE TRÊN HEADER
+                document.getElementById('btnGuide').onclick = () => this.openHealthModal();
+            },
+
+            // 3. UI LOGIC (Status Dot, FAB, Modal)
+            updateStatusDot: function(status) {
+                const dot = document.getElementById('pwaStatusDot');
+                const label = document.getElementById('guideLabel');
+                dot.className = "status-dot"; // Reset
+
+                if (status === 'init') {
+                    dot.classList.add('dot-red'); // Chưa sẵn sàng / Đang check
+                    label.innerText = "Kiểm tra hệ thống";
+                } else if (status === 'ready') {
+                    dot.classList.add('dot-blue'); // Sẵn sàng cài
+                    label.innerText = "Cài App ngay";
+                } else if (status === 'installed') {
+                    dot.classList.add('dot-green'); // Đã cài
+                    label.innerText = "Đã cài đặt";
+                }
+            },
+
+            showSmartFAB: function() {
+                if (this.state.isStandalone) return; // Không hiện nếu đã là App
+                const fab = document.getElementById('btnInstall');
+                fab.style.display = 'flex';
+                fab.onclick = () => this.triggerInstall();
+            },
+
+            hideSmartFAB: function() {
+                document.getElementById('btnInstall').style.display = 'none';
+            },
+
+            triggerInstall: async function() {
+                if (!this.deferredPrompt) return;
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    this.deferredPrompt = null;
+                    this.hideSmartFAB();
+                }
+            },
+
+            openHealthModal: function() {
+                const modal = document.getElementById('pwaHealthModal');
+                const content = document.getElementById('guideContent');
+                const arrow = document.getElementById('iosArrow');
+                
+                modal.classList.remove('hidden');
+                arrow.classList.add('hidden'); // Mặc định ẩn
+
+                // LOGIC NHẬN DIỆN NỀN TẢNG ĐỂ HIỆN HƯỚNG DẪN
+                if (this.state.isStandalone) {
+                    content.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p><p>Trải nghiệm mua sắm tốt nhất.</p>`;
+                } else if (this.state.isIOS) {
+                    // IOS LOGIC: Apple không cho auto install, phải chỉ tay
+                    arrow.classList.remove('hidden');
+                    content.innerHTML = `
+                        <div class="font-bold text-lg mb-2">Cài đặt trên iPhone/iPad</div>
+                        <p class="mb-2">Apple yêu cầu thực hiện thủ công:</p>
+                        <div class="bg-gray-100 p-3 rounded-lg text-left text-sm space-y-2">
+                            <p>1. Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở thanh dưới cùng Safari.</p>
+                            <p>2. Chọn dòng <b><i class="fa-regular fa-square-plus"></i> Thêm vào MH chính</b>.</p>
+                            <p>3. Bấm <b>Thêm</b> ở góc trên.</p>
+                        </div>
+                    `;
+                } else if (this.state.readyToInstall) {
+                    // ANDROID LOGIC (Nếu FAB chưa được bấm)
+                    content.innerHTML = `<p>Hệ thống đã sẵn sàng.</p><button onclick="logicCore.triggerInstall()" class="mt-2 bg-[#ee4d2d] text-white px-4 py-2 rounded font-bold">Bấm để Cài Đặt</button>`;
+                } else {
+                    // FALLBACK (PC hoặc trình duyệt lạ)
+                    content.innerHTML = `<p>Trên máy tính: Bấm <i class="fa-solid fa-display"></i> hoặc <b>Ctrl+D</b> để lưu trang.</p>`;
+                }
+            }
+        };
+
+        // --- INIT APP ---
+        document.addEventListener('DOMContentLoaded', () => {
+            logicCore.init();
+            initializeAppLogic(); // Logic bán hàng cũ
+        });
+
+        /* ================= EXISTING SALES LOGIC ================= */
+        const BANK_ID = "TCB"; 
+        const BANK_ACC_NUM = "19037189711011"; 
+        const BANK_ACC_OWNER = "NGUYEN THI THAM";
+        const BANK_NAME_DISPLAY = "TECHCOMBANK";
+        const SHOP_ZALO = "0348211187";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
+            authDomain: "esomar-vnn.firebaseapp.com",
+            projectId: "esomar-vnn",
+            storageBucket: "esomar-vnn.firebasestorage.app",
+            messagingSenderId: "1023271897973",
+            appId: "1:1023271897973:web:c7207b0e8321fc271fe13c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const vietnamLocations = [
+             { "id": "01", "name": "TP. Hà Nội", "communes": [{ "id": "10123", "name": "Phường Biên Giang", "type": "Phường", "zone_hint": "Quận Hà Đông" }, { "id": "00001", "name": "Phường Phúc Xá", "type": "Phường", "zone_hint": "Quận Ba Đình" }] } 
+        ];
+
+        const PRODUCT_CATEGORIES = [
+            { name: "Trang trí nhà cửa", icon: "fa-house-chimney" },
+            { name: "Ngoài trời & Sân vườn", icon: "fa-cloud-sun" },
+            { name: "Đồ trang trí tiệc", icon: "fa-cake-candles" },
+            { name: "Sắp xếp nhà cửa", icon: "fa-boxes-packing" },
+            { name: "Phụ kiện cho thú cưng", icon: "fa-paw" },
+            { name: "Thiết bị & phụ kiện xây dựng", icon: "fa-hammer" },
+            { name: "Chăm sóc nhà cửa & giặt ủi", icon: "fa-shirt" },
+            { name: "Đồ chơi giải trí", icon: "fa-gamepad" },
+            { name: "Đồ dùng phòng tắm & Chăm sóc cơ thể", icon: "fa-bath" }
+        ];
+
+        let currentProduct = null;
+        let selectedVariantIndex = 0;
+        let cartItems = [];
+        let currentTab = 'all';
+        let activeProductListener = null;
+
+        function initializeAppLogic() {
+            auth.signInAnonymously().catch((error) => console.error("Auth failed:", error));
+            db.enablePersistence().catch(() => {});
+            const cachedProducts = localStorage.getItem('mimi_product_cache');
+            if (cachedProducts) {
+                const products = JSON.parse(cachedProducts);
+                renderProductGrid(products, document.getElementById("productGrid"));
+            }
+            switchHomeTab('all');
+            loadProvinces();
+            loadCart();
+            setupCommuneSearch(); 
+            setupBankInfo(); 
+            if (localStorage.getItem('mimi_app_updated') === 'yes') {
+                localStorage.removeItem('mimi_app_updated');
+                showToast('App đã cập nhật', 'Phiên bản mới nhất đã sẵn sàng!', 'success');
+            }
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById("communeDropdown");
+                const searchInput = document.getElementById("searchCommune");
+                if (!dropdown.contains(e.target) && e.target !== searchInput) dropdown.classList.add("hidden");
+            });
+        }
+        
+        function setupBankInfo() { document.getElementById("bankNameDisplay").innerText = BANK_NAME_DISPLAY; document.getElementById("bankAccNumDisplay").innerText = BANK_ACC_NUM; document.getElementById("bankOwnerDisplay").innerText = BANK_ACC_OWNER; }
+        function openDetail(product) {
+            currentProduct = product; selectedVariantIndex = 0; document.getElementById("qtyInput").value = 1; document.getElementById("modalTitle").innerText = product.name;
+            const variantListText = document.getElementById("variantListText"); variantListText.innerHTML = "";
+            const thumbList = document.getElementById("thumbList"); thumbList.innerHTML = "";
+            const buyBtns = document.querySelectorAll('#detailModal button[id="btnAddToCart"], #detailModal button[id="btnBuyNow"]');
+            buyBtns.forEach(b => { b.disabled = false; b.classList.remove('bg-gray-300', 'cursor-not-allowed', 'border-gray-300', 'text-gray-500'); if(b.id === 'btnBuyNow') { b.innerText = 'Mua Ngay'; b.className = "flex-1 bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] text-white font-bold py-3.5 rounded shadow-lg shadow-orange-500/30 hover:shadow-xl active:scale-95 transition-transform uppercase text-sm md:text-base clickable"; } else { b.className = "flex-1 bg-[#ee4d2d]/10 border border-[#ee4d2d] text-[#ee4d2d] hover:bg-[#ee4d2d]/20 font-bold py-3.5 rounded shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform uppercase text-sm md:text-base clickable"; } });
+            if (product.images && product.images.length > 0) { product.images.forEach((imgUrl) => { const thumb = document.createElement("div"); thumb.className = `min-w-[48px] w-[48px] h-[48px] border-2 rounded cursor-pointer overflow-hidden snap-start transition-all shrink-0 border-gray-200 opacity-60 hover:opacity-100 clickable`; thumb.onclick = () => { if(navigator.vibrate) navigator.vibrate(40); document.getElementById("modalMainImg").src = imgUrl; document.querySelectorAll('#thumbList > div').forEach(d => d.classList.remove('border-[#ee4d2d]', 'opacity-100')); thumb.classList.add('border-[#ee4d2d]', 'opacity-100'); }; thumb.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`; thumbList.appendChild(thumb); }); }
+            let firstInStockIndex = -1;
+            if (product.variants?.length > 0) { product.variants.forEach((v, index) => { const stock = (v.stock !== undefined && v.stock !== null) ? parseInt(v.stock) : 999; const isOutOfStock = stock <= 0; if (firstInStockIndex === -1 && !isOutOfStock) firstInStockIndex = index; const btn = document.createElement("button"); btn.id = `btn-text-var-${index}`; if (isOutOfStock) { btn.className = "px-3 py-1.5 border border-gray-100 bg-gray-100 text-gray-400 rounded text-sm line-through cursor-not-allowed"; btn.innerText = `${v.name} (Hết)`; btn.disabled = true; } else { btn.className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded text-sm hover:border-gray-300 transition-all clickable"; btn.innerText = v.name; btn.onclick = () => { if(navigator.vibrate) navigator.vibrate(40); selectVariant(index); }; } variantListText.appendChild(btn); }); if (firstInStockIndex === -1) { buyBtns.forEach(b => { b.disabled = true; b.classList.add('bg-gray-300', 'cursor-not-allowed'); b.classList.remove('bg-[#ee4d2d]', 'bg-gradient-to-r'); if(b.id === 'btnBuyNow') b.innerText = 'HẾT HÀNG'; }); } else { selectVariant(firstInStockIndex); } } else { document.getElementById("modalMainImg").src = product.images?.[0] || "https://via.placeholder.com/300"; let price = product.basePrice; if(price === 0 && product.variants && product.variants.length > 0) price = product.variants[0].price; document.getElementById("modalPrice").innerText = new Intl.NumberFormat('vi-VN').format(price) + ' ₫'; document.getElementById("selectedVariantNameDisplay").innerText = "Mặc định"; document.getElementById("stockDisplay").innerText = "Còn hàng"; }
+            const modal = document.getElementById("detailModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => { modal.classList.remove("opacity-0"); document.getElementById("modalContent").classList.add("scale-100"); });
+        }
+        function selectVariant(index) { selectedVariantIndex = index; const v = currentProduct.variants[index]; const stock = (v.stock !== undefined && v.stock !== null) ? parseInt(v.stock) : 999; document.getElementById("modalMainImg").src = v.originalImage || currentProduct.images[0]; document.getElementById("modalPrice").innerText = new Intl.NumberFormat('vi-VN').format(v.price) + ' ₫'; document.getElementById("selectedVariantNameDisplay").innerText = v.name; document.getElementById("stockDisplay").innerText = `Kho: ${stock}`; const allTextBtns = document.getElementById("variantListText").children; for (let i = 0; i < allTextBtns.length; i++) { if (allTextBtns[i].disabled) continue; if (i === index) allTextBtns[i].className = "px-3 py-1.5 border border-[#ee4d2d] bg-[#ee4d2d]/10 text-[#ee4d2d] rounded text-sm font-bold shadow-sm transition-all"; else allTextBtns[i].className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded text-sm hover:border-gray-300 transition-all"; } }
+        function addToCart() { if (!currentProduct) return; let variantName = "Mặc định"; let price = currentProduct.basePrice; let image = currentProduct.images[0]; if (currentProduct.variants && currentProduct.variants.length > 0) { const v = currentProduct.variants[selectedVariantIndex]; variantName = v.name; price = v.price; if(v.originalImage) image = v.originalImage; } const qty = parseInt(document.getElementById("qtyInput").value); const existingItem = cartItems.find(item => item.id === currentProduct.id && item.variant === variantName); if(existingItem) { existingItem.qty += qty; } else { cartItems.push({ id: currentProduct.id, name: currentProduct.name, price: price, qty: qty, variant: variantName, image: image }); } saveCart(); updateCartBadge(cartItems.length); showToast("Thêm thành công!", `${currentProduct.name} (${variantName})`, "success"); closeDetail(); }
+        function loadCart() { const saved = localStorage.getItem('mimi_cart'); if(saved) { cartItems = JSON.parse(saved); updateCartBadge(cartItems.length); } }
+        function saveCart() { localStorage.setItem('mimi_cart', JSON.stringify(cartItems)); }
+        function updateCartBadge(count) { const badge = document.getElementById("cartCount"); badge.innerText = count; badge.classList.add("scale-125"); setTimeout(() => badge.classList.remove("scale-125"), 200); }
+        function showToast(title, msg, type) { const toast = document.getElementById("toast"); document.getElementById("toastTitle").innerText = title; document.getElementById("toastMsg").innerText = msg; toast.classList.remove("translate-x-full"); setTimeout(() => { toast.classList.add("translate-x-full"); }, 3000); }
+        function submitOrder() { const btn = document.getElementById("btnOrder"); const originalContent = btn.innerHTML; if (!auth.currentUser) { auth.signInAnonymously().then(() => { submitOrder(); }).catch(() => { showZaloFallback("Lỗi kết nối."); resetButton(btn, originalContent); }); return; } const method = document.querySelector('input[name="deliveryMethod"]:checked').value; const payment = document.querySelector('input[name="payment"]:checked').value; let errors = []; let errorFields = []; let orderData = { uid: auth.currentUser ? auth.currentUser.uid : null, createdAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'new', method: method, paymentMethod: payment, total: parseInt(document.getElementById("finalTotalDisplay").innerText.replace(/\./g,'').replace('₫','')) || 0, items: cartItems.map(item => ({ id: item.id||'', name: item.name||'', price: item.price||0, qty: item.qty||1, variant: item.variant||'Mặc định', image: item.image||'' })), shippingFee: method === 'home' ? 30000 : 0 }; if(method === 'home') { const name = document.getElementById("cusName"); const phone = document.getElementById("cusPhone"); const prov = document.getElementById("selProvince"); const comm = document.getElementById("selCommune"); const addr = document.getElementById("cusAddress"); if(!name.value.trim()) { errors.push("Tên"); errorFields.push(name); } if(!phone.value.trim()) { errors.push("SĐT"); errorFields.push(phone); } if(!prov.value) { errors.push("Tỉnh"); errorFields.push(prov); } if(errors.length === 0) { const provText = prov.options[prov.selectedIndex]?.text || ""; const commText = document.getElementById("searchCommune").value || ""; orderData.customer = { name: name.value, phone: phone.value, fullAddress: `${addr.value}, ${commText}, ${provText}`, note: document.getElementById("cusNote").value||"" }; } } else { const info = document.getElementById("storeCusInfo"); if(!info.value.trim()) { errors.push("Thông tin"); errorFields.push(info); } else { orderData.customer = { name: info.value, type: "Nhận tại cửa hàng" }; } } if(errors.length > 0) { errorFields.forEach(el => { el.classList.add('error-input', 'error-shake'); setTimeout(() => el.classList.remove('error-shake'), 500); }); showValidationModal(errors); return; } btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> ĐANG GỬI...`; btn.classList.add('bg-gray-400'); db.collection("orders").add(orderData).then((docRef) => { let myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); myOrders.push(docRef.id); localStorage.setItem('mimi_my_orders', JSON.stringify(myOrders)); showStatusModal('success', "Thành Công!", `Mã đơn: ${docRef.id.slice(-6).toUpperCase()}`); cartItems = []; saveCart(); updateCartBadge(0); closeCheckout(); resetButton(btn, originalContent); }).catch((error) => { showZaloFallback("Lỗi hệ thống."); resetButton(btn, originalContent); }); }
+        function resetButton(btn, content) { btn.disabled = false; btn.innerHTML = content; btn.classList.remove('bg-gray-400', 'cursor-not-allowed'); btn.classList.add('bg-[#ee4d2d]', 'hover:bg-[#d73211]'); }
+        function switchHomeTab(tabName) { ['all', 'categories', 'new'].forEach(t => { const btn = document.getElementById(`tab-${t}`); if(t === tabName) { btn.classList.add('tab-active'); btn.classList.remove('tab-inactive'); } else { btn.classList.remove('tab-active'); btn.classList.add('tab-inactive'); } }); currentTab = tabName; const grid = document.getElementById("productGrid"); const catContainer = document.getElementById("categoryContainer"); if(activeProductListener) activeProductListener(); if (tabName === 'categories') { grid.classList.add('hidden'); catContainer.classList.remove('hidden'); loadCategories(); } else { catContainer.classList.add('hidden'); grid.classList.remove('hidden'); let query = db.collection("products"); activeProductListener = query.orderBy("createdAt", "desc").limit(100).onSnapshot(snapshot => { let products = []; snapshot.forEach(doc => { let p = doc.data(); p.id = doc.id; let totalStock = 0; if (p.variants && p.variants.length > 0) { p.variants.forEach(v => totalStock += (parseInt(v.stock) || 0)); } else { totalStock = (p.stock !== undefined) ? parseInt(p.stock) : 999; } p.totalStock = totalStock; if (tabName === 'new') { if (totalStock >= 50) products.push(p); } else { products.push(p); } }); products.sort((a, b) => { const aStock = a.totalStock > 0 ? 1 : 0; const bStock = b.totalStock > 0 ? 1 : 0; if (aStock !== bStock) return bStock - aStock; return b.createdAt - a.createdAt; }); if (tabName === 'all' && products.length > 0) { localStorage.setItem('mimi_product_cache', JSON.stringify(products)); } renderProductGrid(products, grid); }, error => { console.error("Load error:", error); }); } }
+        function renderProductGrid(products, grid) { grid.innerHTML = ""; if (products.length === 0) { grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400"><p>Chưa có sản phẩm nào phù hợp.</p></div>`; } else { products.forEach(p => renderSingleProductData(p, grid)); } }
+        function loadCategories() { const container = document.getElementById("categoryGrid"); container.innerHTML = ''; const btnMulti = document.createElement("div"); btnMulti.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#ee4d2d] hover:bg-orange-50 transition aspect-square text-center"; btnMulti.onclick = () => filterSpecial('multi'); btnMulti.innerHTML = `<div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl"><i class="fa-solid fa-layer-group"></i></div><span class="text-xs font-bold text-gray-700">Sản phẩm nhiều mẫu</span>`; container.appendChild(btnMulti); const btnSingle = document.createElement("div"); btnSingle.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#ee4d2d] hover:bg-orange-50 transition aspect-square text-center"; btnSingle.onclick = () => filterSpecial('single'); btnSingle.innerHTML = `<div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"><i class="fa-solid fa-cube"></i></div><span class="text-xs font-bold text-gray-700">Sản phẩm thuần</span>`; container.appendChild(btnSingle); PRODUCT_CATEGORIES.forEach(cat => { const btn = document.createElement("div"); btn.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#ee4d2d] hover:bg-orange-50 transition aspect-square text-center"; btn.onclick = () => filterByCategory(cat.name); btn.innerHTML = `<div class="w-10 h-10 rounded-full bg-orange-100 text-[#ee4d2d] flex items-center justify-center text-xl"><i class="fa-solid ${cat.icon}"></i></div><span class="text-xs font-bold text-gray-700">${cat.name}</span>`; container.appendChild(btn); }); }
+        function filterSpecial(type) { const grid = document.getElementById("productGrid"); const catContainer = document.getElementById("categoryContainer"); catContainer.classList.add('hidden'); grid.classList.remove('hidden'); let title = type === 'multi' ? 'Sản phẩm nhiều mẫu' : 'Sản phẩm thuần'; grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400"><div class="spinner spinner-dark mb-2"></div><p>Đang lọc ${title}...</p></div>`; ['all', 'new'].forEach(t => document.getElementById(`tab-${t}`).classList.replace('tab-active', 'tab-inactive')); document.getElementById('tab-categories').classList.replace('tab-inactive', 'tab-active'); if(activeProductListener) activeProductListener(); activeProductListener = db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => { let products = []; snapshot.forEach(doc => { const p = doc.data(); p.id = doc.id; let isMatch = false; if (type === 'multi') { if (p.variants && p.variants.length > 1) isMatch = true; } else if (type === 'single') { if (!p.variants || p.variants.length <= 1) isMatch = true; } if (isMatch) products.push(p); }); renderProductGrid(products, grid); }); }
+        function filterByCategory(categoryName) { const grid = document.getElementById("productGrid"); const catContainer = document.getElementById("categoryContainer"); catContainer.classList.add('hidden'); grid.classList.remove('hidden'); grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400"><div class="spinner spinner-dark mb-2"></div><p>Đang lọc...</p></div>'; ['all', 'new'].forEach(t => document.getElementById(`tab-${t}`).classList.replace('tab-active', 'tab-inactive')); document.getElementById('tab-categories').classList.replace('tab-inactive', 'tab-active'); if(activeProductListener) activeProductListener(); activeProductListener = db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => { let products = []; snapshot.forEach(doc => { const p = doc.data(); p.id = doc.id; if (p.category === categoryName) products.push(p); }); renderProductGrid(products, grid); }); }
+        function searchProducts(keyword) { const grid = document.getElementById("productGrid"); const catContainer = document.getElementById("categoryContainer"); catContainer.classList.add('hidden'); grid.classList.remove('hidden'); const term = keyword.toLowerCase(); if(activeProductListener) activeProductListener(); activeProductListener = db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => { let products = []; snapshot.forEach(doc => { const p = doc.data(); p.id = doc.id; if(p.name.toLowerCase().includes(term)) products.push(p); }); renderProductGrid(products, grid); }); }
+        function renderSingleProductData(p, container) { let thumb = (p.images && p.images.length > 0) ? p.images[0] : "https://via.placeholder.com/300"; let displayPrice = p.basePrice; if (displayPrice === 0 && p.variants && p.variants.length > 0) { displayPrice = p.variants[0].price; } let priceDisplay = new Intl.NumberFormat('vi-VN').format(displayPrice); if (p.variants?.length > 1) { const prices = p.variants.map(v => v.price); priceDisplay = `${new Intl.NumberFormat('vi-VN').format(Math.min(...prices))} - ${new Intl.NumberFormat('vi-VN').format(Math.max(...prices))}`; } let totalStock = 0; if (p.variants && p.variants.length > 0) { p.variants.forEach(v => { const s = (v.stock !== undefined && v.stock !== null) ? parseInt(v.stock) : 999; totalStock += s; }); } else { totalStock = (p.stock !== undefined) ? parseInt(p.stock) : 999; } const isOut = (totalStock <= 0); const overlay = isOut ? '<div class="absolute inset-0 bg-white/60 flex items-center justify-center z-10"><span class="bg-gray-800 text-white text-xs px-2 py-1 rounded font-bold">HẾT HÀNG</span></div>' : ''; const opacityClass = isOut ? 'opacity-70 grayscale' : ''; const card = document.createElement('div'); card.className = `bg-white rounded-sm shadow-sm hover:shadow-md transition duration-200 cursor-pointer border border-transparent hover:border-[#ee4d2d] flex flex-col h-full relative group ${opacityClass}`; card.onclick = () => openDetail(p); card.innerHTML = `<div class="aspect-square w-full relative overflow-hidden bg-gray-100"><img src="${thumb}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">${overlay}${p.variants?.length > 1 ? '<div class="absolute bottom-0 right-0 bg-black/60 text-white text-[10px] px-1">Nhiều mẫu</div>' : ''}<div class="absolute top-0 left-0 bg-[#ee4d2d] text-white text-[10px] font-bold px-2 py-0.5 rounded-br">Yêu thích</div></div><div class="p-2 flex flex-col flex-1"><div class="line-clamp-2 text-xs md:text-sm text-gray-800 mb-2 leading-tight min-h-[32px]">${p.name}</div><div class="mt-auto flex items-center justify-between"><span class="text-[#ee4d2d] font-bold text-sm md:text-base">₫${priceDisplay}</span><span class="text-[10px] text-gray-400">Đã bán ${Math.floor(Math.random() * 100) + 1}k</span></div></div>`; container.appendChild(card); }
+        function navigateGallery(direction) { if(navigator.vibrate) navigator.vibrate(40); if (!currentProduct.variants) return; let newIndex = selectedVariantIndex + direction; if (newIndex < 0) newIndex = currentProduct.variants.length - 1; if (newIndex >= currentProduct.variants.length) newIndex = 0; selectVariant(newIndex); }
+        function scrollThumbList(direction) { if(navigator.vibrate) navigator.vibrate(40); document.getElementById("thumbList").scrollBy({ left: direction * 150, behavior: 'smooth' }); }
+        function closeDetail() { document.getElementById("detailModal").classList.add("opacity-0"); document.getElementById("modalContent").classList.remove("scale-100"); setTimeout(() => document.getElementById("detailModal").classList.add("hidden"), 300); }
+        function updateQty(change) { const input = document.getElementById("qtyInput"); let val = parseInt(input.value) + change; if (val < 1) val = 1; input.value = val; if(navigator.vibrate) navigator.vibrate(40); }
+        function buyNow() { addToCart(); setTimeout(openCheckout, 300); }
+        function copyText(text) { navigator.clipboard.writeText(text).then(() => showToast("Đã sao chép!", text, "success")); }
+        function copyContent() { const text = document.getElementById("bankContent").innerText; copyText(text); }
+        function toggleDeliveryMethod() { const method = document.querySelector('input[name="deliveryMethod"]:checked').value; const addrForm = document.getElementById("addressFormSection"); const storeMsg = document.getElementById("storePickupMsg"); const progressContainer = document.getElementById("formProgressContainer"); if(method === 'home') { addrForm.classList.remove("hidden"); storeMsg.classList.add("hidden"); progressContainer.classList.remove("hidden"); updateShipping(30000); } else { addrForm.classList.add("hidden"); storeMsg.classList.remove("hidden"); progressContainer.classList.add("hidden"); updateShipping(0); } }
+        function togglePaymentMethod() { const paymentMethod = document.querySelector('input[name="payment"]:checked').value; const bankingInfo = document.getElementById("bankingInfo"); if (paymentMethod === 'banking') { bankingInfo.classList.remove("hidden"); updateQRCode(); } else { bankingInfo.classList.add("hidden"); } }
+        function updateQRCode() { const totalText = document.getElementById("finalTotalDisplay").innerText.replace(/\./g,'').replace('₫',''); const amount = parseInt(totalText) || 0; const phone = document.getElementById("cusName").value ? document.getElementById("cusPhone").value : "KHACH"; const content = `MIMI ${phone}`.trim(); document.getElementById("bankContent").innerText = content; const template = "compact2"; const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${BANK_ACC_NUM}-${template}.png?amount=${amount}&addInfo=${encodeURIComponent(content)}`; document.getElementById("qrCodeImg").src = qrUrl; }
+        document.getElementById("cusPhone").addEventListener("input", function() { if(document.querySelector('input[name="payment"]:checked').value === 'banking') { if(this.qrTimeout) clearTimeout(this.qrTimeout); this.qrTimeout = setTimeout(updateQRCode, 500); } });
+        function updateShipping(fee) { const subText = document.getElementById("subTotalDisplay").innerText.replace(/\./g,'').replace('₫',''); const sub = parseInt(subText) || 0; updateTotal(sub, fee); }
+        function updateTotal(sub, ship) { document.getElementById("subTotalDisplay").innerText = new Intl.NumberFormat('vi-VN').format(sub) + '₫'; document.getElementById("shippingDisplay").innerText = new Intl.NumberFormat('vi-VN').format(ship) + '₫'; document.getElementById("finalTotalDisplay").innerText = new Intl.NumberFormat('vi-VN').format(sub + ship) + '₫'; if(document.querySelector('input[name="payment"]:checked')?.value === 'banking') { updateQRCode(); } }
+        function showValidationModal(errors) { const list = document.getElementById("errorList"); list.innerHTML = ""; errors.forEach((err, index) => { const li = document.createElement("li"); li.className = "flex items-center gap-2 slide-in-item"; li.style.animationDelay = `${index * 0.1}s`; li.innerHTML = `<i class="fa-solid fa-xmark text-red-500"></i> ${err}`; list.appendChild(li); }); const modal = document.getElementById("validationModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => { modal.classList.remove("opacity-0"); document.getElementById("validationContent").classList.remove("scale-95"); document.getElementById("validationContent").classList.add("scale-100"); }); }
+        function closeValidationModal() { const modal = document.getElementById("validationModal"); modal.classList.add("opacity-0"); document.getElementById("validationContent").classList.remove("scale-100"); document.getElementById("validationContent").classList.add("scale-95"); setTimeout(() => modal.classList.add("hidden"), 200); }
+        function showZaloFallback(reason) { /* (Logic cũ) */ }
+        function showStatusModal(type, title, msg) { const modal = document.getElementById("statusModal"); const icon = document.getElementById("statusIcon"); const btn = document.getElementById("statusBtn"); document.getElementById("statusTitle").innerText = title; document.getElementById("statusMsg").innerText = msg; if(type === 'success') { icon.innerHTML = '<i class="fa-solid fa-check"></i>'; icon.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl bg-green-100 text-green-500"; btn.className = "w-full py-2 rounded font-bold text-white transition clickable bg-green-500 hover:bg-green-600"; } else { icon.innerHTML = '<i class="fa-solid fa-xmark"></i>'; icon.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl bg-red-100 text-red-500"; btn.className = "w-full py-2 rounded font-bold text-white transition clickable bg-red-500 hover:bg-red-600"; } modal.classList.remove("hidden"); requestAnimationFrame(() => modal.classList.remove("opacity-0")); }
+        function closeStatusModal() { const modal = document.getElementById("statusModal"); modal.classList.add("opacity-0"); setTimeout(() => modal.classList.add("hidden"), 200); }
+        function openCheckout() { if(cartItems.length === 0) { showStatusModal('error', 'Giỏ Hàng Trống', 'Hãy chọn mua thêm sản phẩm nhé!'); return; } const modal = document.getElementById("checkoutModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => modal.classList.remove("translate-y-full")); renderCheckoutItems(); checkFormProgress(); document.querySelector('input[name="payment"][value="cod"]').checked = true; togglePaymentMethod(); }
+        function closeCheckout() { const modal = document.getElementById("checkoutModal"); modal.classList.add("translate-y-full"); setTimeout(() => modal.classList.add("hidden"), 300); }
+        function checkFormProgress() { const fields = ['cusName', 'cusPhone', 'selProvince', 'selCommune', 'cusAddress']; let filled = 0; fields.forEach(id => { const el = document.getElementById(id); if(el && el.value.trim() !== '') { filled++; if(id !== 'selCommune') el.classList.remove('error-input', 'error-shake'); else document.getElementById('searchCommune').classList.remove('error-input', 'error-shake'); } }); const pct = (filled / fields.length) * 100; document.getElementById('progressBar').style.width = pct + '%'; document.getElementById('progressBar').className = `h-2 rounded-full transition-all duration-500 ease-out ${pct === 100 ? 'bg-green-500' : 'bg-[#ee4d2d]'}`; document.getElementById('progressText').innerText = `${filled}/${fields.length} Hoàn thành`; document.getElementById('progressText').className = `text-xs font-bold ${pct === 100 ? 'text-green-600' : 'text-[#ee4d2d]'}`; }
+        function renderCheckoutItems() { const container = document.getElementById("checkoutCartItems"); container.innerHTML = ""; let subTotal = 0; cartItems.forEach((item, index) => { const div = document.createElement("div"); div.className = "flex gap-3 bg-gray-50 p-2 rounded border border-gray-100"; div.innerHTML = `<img src="${item.image}" class="w-16 h-16 object-cover rounded border border-gray-200"><div class="flex-1"><div class="text-sm font-bold text-gray-800 line-clamp-1">${item.name}</div><div class="text-xs text-gray-500 bg-white inline-block px-1 border rounded mt-1">Phân loại: ${item.variant}</div><div class="flex justify-between items-end mt-1"><span class="text-[#ee4d2d] font-bold text-sm">${new Intl.NumberFormat('vi-VN').format(item.price)}₫</span><span class="text-xs font-bold text-gray-600">x${item.qty}</span></div></div><button onclick="askDeleteItem(${index})" class="text-gray-400 hover:text-red-500 px-2"><i class="fa-solid fa-trash"></i></button>`; container.appendChild(div); subTotal += (item.price * item.qty); }); document.getElementById("cartTotalItems").innerText = `${cartItems.length} sản phẩm`; updateTotal(subTotal, 30000); }
+        function askDeleteItem(index) { if(confirm("Bạn có chắc muốn xóa sản phẩm này?")) { cartItems.splice(index, 1); saveCart(); renderCheckoutItems(); updateCartBadge(cartItems.length); if(cartItems.length === 0) closeCheckout(); } }
+        function openOrderHistory() { const modal = document.getElementById("orderHistoryModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => modal.classList.remove("translate-x-full")); loadOrderHistory(); }
+        function closeOrderHistory() { const modal = document.getElementById("orderHistoryModal"); modal.classList.add("translate-x-full"); setTimeout(() => modal.classList.add("hidden"), 300); }
+        function loadOrderHistory() { const list = document.getElementById("orderHistoryList"); list.innerHTML = '<div class="text-center py-4"><span class="spinner spinner-dark"></span></div>'; const myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); if(myOrders.length === 0) { list.innerHTML = '<div class="text-center text-gray-500 py-10">Bạn chưa có đơn hàng nào.</div>'; return; } db.collection("orders").where(firebase.firestore.FieldPath.documentId(), 'in', myOrders.slice(-10)).get().then(snap => { list.innerHTML = ""; snap.forEach(doc => { const d = doc.data(); const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : 'Vừa xong'; const item = document.createElement("div"); item.className = "bg-white p-4 rounded shadow-sm border border-gray-100"; item.innerHTML = `<div class="flex justify-between items-center border-b pb-2 mb-2"><span class="font-bold text-gray-800">#${doc.id.slice(-6).toUpperCase()}</span><span class="text-xs text-gray-500">${date}</span></div><div class="space-y-1 mb-2">${d.items.map(i => `<div class="text-sm text-gray-600 flex justify-between"><span>${i.qty}x ${i.name}</span></div>`).join('')}</div><div class="flex justify-between items-center border-t pt-2"><span class="font-bold text-[#ee4d2d]">${new Intl.NumberFormat('vi-VN').format(d.total)}₫</span><span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold uppercase">${d.status === 'new' ? 'Chờ xác nhận' : d.status}</span></div>`; list.appendChild(item); }); }); }
+        function loadProvinces() { const sel = document.getElementById("selProvince"); if (typeof vietnamLocations !== 'undefined') { vietnamLocations.forEach(p => { const opt = document.createElement("option"); opt.value = p.id; opt.text = p.name; sel.add(opt); }); } }
+        function handleProvinceChange() { const pid = document.getElementById("selProvince").value; const searchInput = document.getElementById("searchCommune"); const hiddenInput = document.getElementById("selCommune"); const clearBtn = document.getElementById("clearCommuneBtn"); searchInput.value = ""; hiddenInput.value = ""; clearBtn.classList.add("hidden"); document.getElementById("communeDropdown").classList.add("hidden"); if(!pid) { searchInput.disabled = true; searchInput.placeholder = "-- Chọn Tỉnh trước --"; } else { searchInput.disabled = false; searchInput.placeholder = "Gõ tên Phường/Xã (VD: Phúc Xá)..."; } checkFormProgress(); }
+        function clearCommuneSearch() { const searchInput = document.getElementById("searchCommune"); const hiddenInput = document.getElementById("selCommune"); const clearBtn = document.getElementById("clearCommuneBtn"); searchInput.value = ""; hiddenInput.value = ""; searchInput.focus(); clearBtn.classList.add("hidden"); checkFormProgress(); filterCommunes(""); }
+        function setupCommuneSearch() { const searchInput = document.getElementById("searchCommune"); const clearBtn = document.getElementById("clearCommuneBtn"); searchInput.addEventListener("focus", function() { if(!this.disabled) filterCommunes(this.value); }); searchInput.addEventListener("input", function() { if(this.value.length > 0) clearBtn.classList.remove("hidden"); else clearBtn.classList.add("hidden"); filterCommunes(this.value); }); }
+        function filterCommunes(query) { const pid = document.getElementById("selProvince").value; if (!pid) return; const prov = vietnamLocations.find(p => p.id === pid); if (!prov || !prov.communes) return; const dropdown = document.getElementById("communeDropdown"); const normalizedQuery = query.toLowerCase().trim(); const filtered = prov.communes.filter(c => c.name.toLowerCase().includes(normalizedQuery) || c.zone_hint.toLowerCase().includes(normalizedQuery)); const displayList = filtered.slice(0, 20); dropdown.innerHTML = ""; if (displayList.length === 0) { dropdown.innerHTML = `<div class="p-3 text-sm text-gray-500 text-center">Không tìm thấy kết quả</div>`; } else { displayList.forEach(c => { const div = document.createElement("div"); div.className = "commune-option p-2 cursor-pointer text-sm border-b last:border-0 transition-colors flex justify-between items-center"; let nameDisplay = c.name; let hintDisplay = c.zone_hint; if(normalizedQuery && nameDisplay.toLowerCase().includes(normalizedQuery)) { nameDisplay = nameDisplay.replace(new RegExp(normalizedQuery, "gi"), (match) => `<span class="bg-yellow-100 font-bold">${match}</span>`); } if(normalizedQuery && hintDisplay.toLowerCase().includes(normalizedQuery)) { hintDisplay = hintDisplay.replace(new RegExp(normalizedQuery, "gi"), (match) => `<span class="bg-yellow-100 font-bold">${match}</span>`); } div.innerHTML = `<span class="font-medium text-gray-700">${nameDisplay}</span><span class="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${hintDisplay}</span>`; div.onclick = () => selectCommune(c); dropdown.appendChild(div); }); } dropdown.classList.remove("hidden"); }
+        function selectCommune(c) { const searchInput = document.getElementById("searchCommune"); const hiddenInput = document.getElementById("selCommune"); const dropdown = document.getElementById("communeDropdown"); const clearBtn = document.getElementById("clearCommuneBtn"); searchInput.value = `${c.name} - ${c.zone_hint}`; hiddenInput.value = c.id; dropdown.classList.add("hidden"); clearBtn.classList.remove("hidden"); searchInput.classList.remove('error-input', 'error-shake'); checkFormProgress(); }
+    </script>
+</body>
+</html>
