@@ -40,7 +40,7 @@
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
-        /* Hiệu ứng nổi bật cho nút Install */
+        /* Hiệu ứng nổi bật cho nút Install App (FAB) */
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4), 0 2px 4px -1px rgba(238, 77, 45, 0.2);
@@ -58,8 +58,8 @@
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    <!-- Header Button: Install Home Screen -->
-                    <button onclick="triggerSmartInstall()" id="headerInstallBtn" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable"><i class="fa-solid fa-mobile-screen-button"></i> Install Home Screen</button>
+                    <!-- Header Button: CHỈ LÀ HƯỚNG DẪN -->
+                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable"><i class="fa-solid fa-mobile-screen-button"></i> Install Home Screen</button>
                 </div>
                 <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
             </div>
@@ -120,11 +120,10 @@
         </div>
     </footer>
 
-    <!-- ================= SMART INSTALL BUTTON (FIXED POSITION) ================= -->
+    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (Mặc định ẩn, chỉ hiện khi sẵn sàng cài) ================= -->
     <button
-      id="smartInstallBtn"
-      onclick="triggerSmartInstall()"
-      class="install-fab fixed bottom-20 right-4 z-[9999]
+      id="btnInstall"
+      class="install-fab hidden fixed bottom-20 right-4 z-[9999]
              bg-[#ee4d2d] text-white
              h-12 px-4 rounded-full
              font-bold border-2 border-white
@@ -133,13 +132,12 @@
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= UNIVERSAL INSTALL GUIDE MODAL (PC / ANDROID / IOS) ================= -->
+    <!-- ================= OVERLAY HƯỚNG DẪN (Dùng chung cho iOS & PC) ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
                 flex flex-col justify-end items-center p-6 backdrop-blur-sm transition-opacity">
         
-        <!-- Nội dung sẽ được JS thay đổi tùy thiết bị -->
         <div id="installGuideContent" class="w-full max-w-sm bg-white text-black rounded-xl p-6 text-center shadow-2xl animate-bounce-short">
             <div id="installGuideText"></div>
             <button
@@ -150,8 +148,6 @@
                 Đã hiểu
             </button>
         </div>
-        
-        <!-- Mũi tên chỉ xuống (chỉ hiện cho iOS) -->
         <div id="iosArrow" class="hidden animate-bounce text-5xl mb-4 text-white">⬇️</div>
     </div>
 
@@ -313,96 +309,95 @@
         });
 
         /* =========================================================
-           SMART INSTALL ENGINE (FIXED LOGIC FOR PC & ALL DEVICES)
+           SMART INSTALL ENGINE (CHUẨN PRODUCTION)
            ========================================================= */
-        let deferredPrompt = null;
         
-        // --- DETECTION FUNCTIONS (Always accurate at runtime) ---
-        const getUA = () => navigator.userAgent.toLowerCase();
-        const isIOS = () => /iphone|ipad|ipod/.test(getUA());
-        const isAndroid = () => /android/.test(getUA());
-        
-        // 1. CAPTURE INSTALL PROMPT (Android & Desktop Chrome)
+        let deferredPrompt = null; // Biến toàn cục để giữ sự kiện cài đặt
+
+        // 1️⃣ Lắng nghe sự kiện cài đặt
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Ngăn Chrome tự động hiện prompt (nếu có)
             e.preventDefault();
+            // Lưu sự kiện để dùng sau
             deferredPrompt = e;
-            console.log('Install prompt captured');
+            // HIỆN NÚT "INSTALL APP" THẬT
+            const installBtn = document.getElementById('btnInstall');
+            if (installBtn) {
+                installBtn.classList.remove('hidden');
+                installBtn.classList.add('flex'); // Đảm bảo hiện dạng flex
+            }
+            console.log('✅ App can be installed! Button shown.');
         });
 
-        // 2. MAIN TRIGGER FUNCTION
-        async function triggerSmartInstall() {
-            // CASE A: Native Prompt Available (Android / Chrome PC)
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    deferredPrompt = null;
-                    localStorage.setItem('mimi_installed', 'yes');
-                    hideInstallButtons();
+        // 2️⃣ XỬ LÝ NÚT "INSTALL APP" (Nút thật, góc dưới)
+        const btnInstall = document.getElementById('btnInstall');
+        if (btnInstall) {
+            btnInstall.onclick = async () => {
+                if (!deferredPrompt) {
+                    // Trường hợp hy hữu nút hiện nhưng mất event -> fallback
+                    alert('Trình duyệt chưa sẵn sàng cài app. Vui lòng tải lại trang.');
+                    return;
                 }
-                return;
-            }
+                // Kích hoạt prompt cài đặt
+                deferredPrompt.prompt();
+                // Chờ người dùng chọn
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                // Reset biến
+                deferredPrompt = null;
+            };
+        }
 
-            // CASE B: Manual Guide Logic
+        // 3️⃣ XỬ LÝ NÚT "INSTALL HOME SCREEN" (Nút hướng dẫn, trên Header)
+        const btnGuide = document.getElementById('btnGuide'); // Nút cũ là headerInstallBtn, đổi ID để rõ nghĩa hơn nếu cần, nhưng ở đây dùng logic getElement
+        // Lưu ý: Trong HTML tôi đã đổi ID nút trên header thành btnGuide cho đồng bộ logic
+        document.getElementById('btnGuide').onclick = () => {
             const guideModal = document.getElementById('installGuideModal');
-            const guideContent = document.getElementById('installGuideContent');
-            const guideText = document.getElementById('installGuideText');
+            const guideContent = document.getElementById('installGuideText');
             const iosArrow = document.getElementById('iosArrow');
             
-            // Reset state
+            // Reset modal
             guideModal.classList.remove('hidden');
-            iosArrow.classList.add('hidden'); 
+            iosArrow.classList.add('hidden');
 
-            if (isIOS()) {
+            const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+            
+            if (isIOS) {
                 // iOS Guide
                 iosArrow.classList.remove('hidden');
-                guideText.innerHTML = `
+                guideContent.innerHTML = `
                     <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
                     <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
                     <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
                         Sau đó chọn <br> <i class="fa-regular fa-square-plus"></i> Thêm vào MH chính
                     </div>
                 `;
-            } else if (isAndroid()) {
-                // Android Manual Guide (Samsung Internet, Firefox, or Chrome denied)
-                guideText.innerHTML = `
-                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-brands fa-android"></i> Cài đặt trên Android</div>
-                    <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Bấm vào dấu <b>3 chấm</b> <i class="fa-solid fa-ellipsis-vertical text-gray-400"></i> ở góc phải trình duyệt.</span></p>
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào màn hình chính"</b>.</span></p>
-                    </div>
-                `;
             } else {
-                // PC / Laptop
-                guideText.innerHTML = `
-                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-desktop"></i> Cài đặt trên Máy tính</div>
+                // Android & PC Guide (Fallback)
+                guideContent.innerHTML = `
+                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt</div>
                     <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span>Tìm biểu tượng <b>Cài đặt</b> (hình máy tính <i class="fa-solid fa-download"></i> hoặc dấu cộng <i class="fa-solid fa-plus"></i>) ở cuối thanh địa chỉ trình duyệt.</span></p>
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span>Hoặc nhấn tổ hợp phím <b>Ctrl + D</b> để lưu trang web này vào thanh dấu trang (Bookmark).</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span><b>Trên Android:</b> Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm -> Chọn "Cài đặt ứng dụng".</span></p>
+                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span><b>Trên Máy tính:</b> Tìm biểu tượng Cài đặt trên thanh địa chỉ hoặc nhấn <b>Ctrl + D</b> để Bookmark.</span></p>
                     </div>
                 `;
             }
-        }
+        };
 
-        // --- UI HELPERS ---
-        function hideInstallButtons() {
-            const btn1 = document.getElementById('smartInstallBtn');
-            const btn2 = document.getElementById('headerInstallBtn');
-            if(btn1) btn1.style.display = 'none';
-            if(btn2) btn2.style.display = 'none';
-        }
-
-        // 3. LISTEN FOR SUCCESSFUL INSTALL
+        // 4️⃣ LẮNG NGHE SỰ KIỆN ĐÃ CÀI ĐẶT THÀNH CÔNG (CHUẨN)
         window.addEventListener('appinstalled', () => {
-            console.log('App installed successfully');
-            deferredPrompt = null;
+            console.log('🎉 App installed successfully');
+            // Đánh dấu đã cài đặt
             localStorage.setItem('mimi_installed', 'yes');
-            hideInstallButtons();
+            // Ẩn nút cài đặt thật đi
+            if (btnInstall) btnInstall.remove();
+            // Reset prompt
+            deferredPrompt = null;
         });
 
-        // 4. CHECK ON LOAD
-        if (localStorage.getItem('mimi_installed') === 'yes') {
-            hideInstallButtons();
+        // 5️⃣ CHECK KHI LOAD TRANG: Nếu đã cài rồi thì ẩn nút thật luôn
+        if (localStorage.getItem('mimi_installed') === 'yes' && btnInstall) {
+            btnInstall.remove();
         }
 
         /* =========================================================
