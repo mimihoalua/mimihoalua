@@ -1,7 +1,7 @@
 {
   "name": "MimiFlower Shop",
   "short_name": "MimiFlower",
-  "description": "Cửa hàng hoa lụa & decor – đặt hàng nhanh gọn như App",
+  "description": "Cửa hàng hoa lụa & decor – đặt hàng nhanh như App",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
