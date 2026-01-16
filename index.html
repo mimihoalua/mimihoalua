@@ -44,6 +44,7 @@
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4), 0 2px 4px -1px rgba(238, 77, 45, 0.2);
+            display: none; /* Mặc định ẩn bằng CSS thuần */
         }
         .install-fab:active { transform: scale(0.95); }
         .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(238, 77, 45, 0.5), 0 4px 6px -2px rgba(238, 77, 45, 0.3); }
@@ -58,8 +59,7 @@
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    
-                    <!-- 1️⃣ NÚT HƯỚNG DẪN (LUÔN HIỆN) -->
+                    <!-- Nút Hướng Dẫn -->
                     <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable">
                         <i class="fa-solid fa-circle-info"></i> Install Home Screen
                     </button>
@@ -72,7 +72,6 @@
                     <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm..." class="w-full pl-4 pr-10 py-2 rounded-sm text-gray-800 focus:outline-none shadow-sm text-sm" oninput="searchProducts(this.value)">
                     <button class="absolute right-1 top-1 bottom-1 bg-[#fb5533] px-4 rounded-sm text-white hover:opacity-90 clickable"><i class="fa-solid fa-search"></i></button>
                 </div>
-                <!-- NÚT ĐƠN MUA -->
                 <div class="relative px-2 cursor-pointer group flex flex-col items-center justify-center clickable" onclick="openOrderHistory()">
                     <i class="fa-solid fa-file-invoice-dollar text-xl md:text-2xl"></i>
                     <span class="text-[10px] hidden md:block">Đơn mua</span>
@@ -126,16 +125,16 @@
     <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB - Mặc định ẩn) ================= -->
     <button
       id="btnInstall"
-      class="install-fab hidden fixed bottom-20 right-4 z-[9999]
+      class="install-fab fixed bottom-20 right-4 z-[9999]
              bg-[#ee4d2d] text-white
              h-12 px-4 rounded-full
              font-bold border-2 border-white
-             flex items-center gap-2 animate-bounce-short cursor-pointer">
+             items-center gap-2 animate-bounce-short cursor-pointer">
       <span class="text-xl">📲</span>
       <span class="text-sm">Install App</span>
     </button>
 
-    <!-- ================= OVERLAY HƯỚNG DẪN (Chỉ dùng cho btnGuide) ================= -->
+    <!-- ================= OVERLAY HƯỚNG DẪN ================= -->
     <div id="installGuideModal"
          class="hidden fixed inset-0 z-[100000]
                 bg-black/80 text-white
@@ -143,22 +142,16 @@
         
         <div id="installGuideContent" class="w-full max-w-sm bg-white text-black rounded-xl p-6 text-center shadow-2xl animate-bounce-short">
             <div id="installGuideText"></div>
-            <button
-                class="mt-6 w-full bg-[#ee4d2d]
-                       py-3 rounded-full
-                       font-bold text-white shadow-lg active:scale-95 transition-transform"
-                onclick="document.getElementById('installGuideModal').classList.add('hidden')">
-                Đã hiểu
-            </button>
+            <button class="mt-6 w-full bg-[#ee4d2d] py-3 rounded-full font-bold text-white shadow-lg active:scale-95 transition-transform" onclick="document.getElementById('installGuideModal').classList.add('hidden')">Đã hiểu</button>
         </div>
         <div id="iosArrow" class="hidden animate-bounce text-5xl mb-4 text-white">⬇️</div>
     </div>
 
-    <!-- MODAL CHI TIẾT SẢN PHẨM -->
+    <!-- MODAL CHI TIẾT SẢN PHẨM & CÁC MODAL KHÁC (GIỮ NGUYÊN) -->
     <div id="detailModal" class="fixed inset-0 bg-black/90 hidden z-[50] flex items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0 overflow-y-auto">
         <button onclick="closeDetail()" class="fixed top-4 right-4 z-extreme w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 shadow-2xl border-2 border-white cursor-pointer active:scale-90"><i class="fa-solid fa-times text-xl"></i></button>
         <div class="bg-white w-full h-full md:w-[1000px] md:h-auto md:max-h-[90vh] md:rounded-lg shadow-2xl flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300 overflow-y-auto md:overflow-hidden" id="modalContent">
-            <!-- LEFT COLUMN -->
+            <!-- Content chi tiết sản phẩm (Giữ nguyên) -->
             <div class="w-full md:w-[58%] flex flex-col shrink-0 bg-white relative border-r border-gray-100 pb-0 md:pb-0">
                 <div class="relative w-full aspect-square md:h-[450px] bg-white flex items-center justify-center group border-b border-gray-100 bg-gray-50">
                     <img id="modalMainImg" src="" class="w-full h-full object-contain p-2 transition-opacity duration-200">
@@ -186,8 +179,7 @@
             </div>
         </div>
     </div>
-
-    <!-- CHECKOUT MODAL -->
+    
     <div id="checkoutModal" class="fixed inset-0 bg-gray-100 hidden z-[60] overflow-y-auto transition-transform duration-300 translate-y-full">
        <div class="bg-white border-b sticky top-0 z-50 shadow-sm"><div class="container mx-auto px-4 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><div class="text-[#ee4d2d] text-2xl font-bold flex items-center gap-2"><i class="fa-solid fa-bag-shopping"></i> MimiFlower</div><div class="h-6 w-px bg-gray-300 mx-2"></div><div class="text-xl text-gray-700">Thanh Toán</div></div><button onclick="closeCheckout()" class="text-gray-500 hover:text-[#ee4d2d] font-medium clickable">Trở lại</button></div></div>
         <div class="container mx-auto px-4 py-6 pb-20">
@@ -219,8 +211,7 @@
             </div>
         </div>
     </div>
-
-    <!-- TOAST & MODALS -->
+    
     <div id="toast" class="fixed top-20 right-4 bg-white border-l-4 border-green-500 text-gray-800 px-4 py-3 rounded shadow-2xl transform translate-x-full transition-transform duration-300 z-[90] flex items-center gap-3 min-w-[280px]"><div id="toastIcon" class="text-green-500 text-xl"><i class="fa-solid fa-circle-check"></i></div><div><div id="toastTitle" class="font-bold text-sm">Thành công!</div><div id="toastMsg" class="text-xs text-gray-500">Đã thêm vào giỏ hàng.</div></div></div>
     
     <div id="statusModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0">
@@ -312,113 +303,119 @@
         });
 
         /* =========================================================
-           SMART INSTALL ENGINE (CHUẨN PRODUCTION – TÁCH BIỆT LOGIC)
+           SMART INSTALL ENGINE (CHUẨN PRODUCTION)
            ========================================================= */
-        
-        let deferredPrompt = null; // Biến toàn cục để giữ sự kiện cài đặt
+        let deferredPrompt = null; 
 
-        // 1️⃣ Lắng nghe sự kiện cài đặt
+        // 1️⃣ LẮNG NGHE SỰ KIỆN CÀI ĐẶT
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Ngăn Chrome tự động hiện prompt (nếu có)
             e.preventDefault();
-            // Lưu sự kiện để dùng sau
             deferredPrompt = e;
-            // CHỈ HIỆN NÚT "INSTALL APP" THẬT KHI ĐỦ ĐIỀU KIỆN
+            console.log('✅ PWA Criteria Met: Install Button Shown');
+            
+            // CHỈ HIỆN NÚT FAB "INSTALL APP"
             const installBtn = document.getElementById('btnInstall');
             if (installBtn) {
+                // Thay vì classList, dùng style trực tiếp để đảm bảo hiển thị
+                installBtn.style.display = 'flex';
                 installBtn.classList.remove('hidden');
-                installBtn.classList.add('flex'); // Đảm bảo hiện dạng flex
             }
-            console.log('✅ App can be installed! Button shown.');
         });
 
-        // 2️⃣ XỬ LÝ NÚT "INSTALL APP" (Nút thật, góc dưới)
+        // 2️⃣ XỬ LÝ NÚT FAB "INSTALL APP"
         const btnInstall = document.getElementById('btnInstall');
         if (btnInstall) {
             btnInstall.onclick = async () => {
                 if (!deferredPrompt) {
-                    // Trường hợp hy hữu nút hiện nhưng mất event -> fallback
-                    alert('Trình duyệt chưa sẵn sàng cài app. Vui lòng mở bằng Chrome và tải lại trang.');
+                    alert('Trình duyệt chưa sẵn sàng cài App. Vui lòng thử lại sau.');
                     return;
                 }
-                // Kích hoạt prompt cài đặt
                 deferredPrompt.prompt();
-                // Chờ người dùng chọn
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to install prompt: ${outcome}`);
-                // Reset biến
-                deferredPrompt = null;
+                console.log(`Install choice: ${outcome}`);
+                if(outcome === 'accepted') {
+                     deferredPrompt = null;
+                }
             };
         }
 
-        // 3️⃣ XỬ LÝ NÚT "INSTALL HOME SCREEN" (Nút hướng dẫn, trên Header)
+        // 3️⃣ XỬ LÝ NÚT HEADER "INSTALL HOME SCREEN" (HƯỚNG DẪN)
         const btnGuide = document.getElementById('btnGuide'); 
-        document.getElementById('btnGuide').onclick = () => {
-            const guideModal = document.getElementById('installGuideModal');
-            const guideContent = document.getElementById('installGuideText');
-            const iosArrow = document.getElementById('iosArrow');
-            
-            // Reset modal content
-            guideModal.classList.remove('hidden');
-            iosArrow.classList.add('hidden');
+        if (btnGuide) {
+             btnGuide.onclick = () => {
+                const guideModal = document.getElementById('installGuideModal');
+                const guideContent = document.getElementById('installGuideText'); // Div text bên trong modal content
+                const iosArrow = document.getElementById('iosArrow');
+                
+                guideModal.classList.remove('hidden');
+                iosArrow.classList.add('hidden');
 
-            const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-            
-            if (isIOS) {
-                // iOS Guide
-                iosArrow.classList.remove('hidden');
-                guideContent.innerHTML = `
-                    <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
-                    <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
-                    <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
-                        Sau đó chọn <br> <i class="fa-regular fa-square-plus"></i> Thêm vào MH chính
-                    </div>
-                `;
-            } else {
-                // Universal Manual Guide (Android Manual / PC)
-                guideContent.innerHTML = `
-                    <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt</div>
-                    <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span><b>Trên Android:</b> Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm -> Chọn "Cài đặt ứng dụng".</span></p>
-                        <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span><b>Trên Máy tính:</b> Bấm icon Cài đặt trên thanh địa chỉ hoặc nhấn <b>Ctrl + D</b>.</span></p>
-                    </div>
-                `;
-            }
-        };
+                const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+                
+                if (isIOS) {
+                    // iOS Visual Guide
+                    iosArrow.classList.remove('hidden');
+                    // Sửa lại nội dung text hướng dẫn
+                    const contentDiv = document.getElementById('installGuideContent');
+                     // Đảm bảo không ghi đè nút "Đã hiểu"
+                     // Chỉ cập nhật phần text
+                     if(document.getElementById('guideTextOnly')) {
+                         document.getElementById('guideTextOnly').innerHTML = `...`; 
+                     } else {
+                         // Tạo cấu trúc nếu chưa có
+                         // Để đơn giản, update lại toàn bộ innerHTML của guideContent (trừ nút đóng nếu muốn giữ event, nhưng ở đây ta viết lại cả html modal cho gọn)
+                         guideContent.innerHTML = `
+                            <div class="text-xl font-bold mb-2">Cài đặt trên iPhone/iPad</div>
+                            <div class="text-sm mb-4">Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-500"></i> ở dưới cùng trình duyệt.</div>
+                            <div class="text-base font-bold text-[#ee4d2d] border border-[#ee4d2d] p-2 rounded-lg bg-orange-50">
+                                Sau đó chọn <br> <i class="fa-regular fa-square-plus"></i> Thêm vào MH chính
+                            </div>
+                         `;
+                     }
+                } else {
+                    // Android & PC Manual Guide
+                    guideContent.innerHTML = `
+                        <div class="text-xl font-bold mb-3 text-[#ee4d2d]"><i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt</div>
+                        <div class="text-sm text-gray-700 mb-4 space-y-3 text-left px-2">
+                            <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span> <span><b>Trên Android:</b> Nếu không thấy nút "Install App" ở góc dưới, hãy mở menu 3 chấm <i class="fa-solid fa-ellipsis-vertical"></i> -> Chọn "Cài đặt ứng dụng".</span></p>
+                            <p class="flex items-start gap-2"><span class="bg-gray-200 w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span> <span><b>Trên Máy tính:</b> Tìm biểu tượng Cài đặt trên thanh địa chỉ hoặc nhấn <b>Ctrl + D</b> để Bookmark.</span></p>
+                        </div>
+                    `;
+                }
+            };
+        }
+        
+        // Sửa lại logic render Modal để tránh mất nút đóng
+        const originalModalHTML = document.getElementById('installGuideModal').innerHTML;
+        // (Không cần phức tạp hóa, logic trên đã gán vào div con 'installGuideText' là đủ nếu html đúng)
+        // Check lại HTML: id="installGuideText" nằm TRONG id="installGuideContent" cùng với nút Đóng. OK.
 
-        // 4️⃣ LẮNG NGHE SỰ KIỆN ĐÃ CÀI ĐẶT THÀNH CÔNG (CHUẨN)
+        // 4️⃣ LẮNG NGHE SỰ KIỆN ĐÃ CÀI ĐẶT THÀNH CÔNG (CLEANUP)
         window.addEventListener('appinstalled', () => {
-            console.log('🎉 App installed successfully');
-            // Đánh dấu đã cài đặt (chỉ để tham khảo, không dùng để ẩn hiện nút install prompt vì browser tự lo)
-            localStorage.setItem('mimi_installed', 'yes');
-            // Ẩn nút cài đặt thật đi (vì đã cài rồi)
-            if (btnInstall) {
-                btnInstall.classList.add('hidden'); 
-                btnInstall.classList.remove('flex');
-            }
-            // Reset prompt
+            console.log('🎉 App Installed!');
             deferredPrompt = null;
+            // Ẩn nút FAB ngay lập tức
+            if (btnInstall) {
+                btnInstall.style.display = 'none';
+                btnInstall.classList.add('hidden');
+            }
         });
 
-        // 5️⃣ CHECK KHI LOAD TRANG: (Tùy chọn: Ẩn nút Install nếu browser báo đã cài - nhưng để chắc chắn cứ dựa vào event)
-        // Lưu ý: Nút Install mặc định đã ẩn (class hidden), chỉ hiện khi có event. Nên logic này an toàn.
-
         /* =========================================================
-           SERVICE WORKER – AUTO UPDATE APP (WITH TOAST)
+           SERVICE WORKER REGISTRATION
            ========================================================= */
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', () => {
+             // Dùng đường dẫn tương đối ./sw.js để tương thích GitHub Pages
              navigator.serviceWorker.register('./sw.js')
-             .then(reg => console.log('SW Registered!', reg))
-             .catch(err => console.error('SW Error', err));
+             .then(reg => console.log('SW Registered'))
+             .catch(err => console.error('SW Fail', err));
           });
-
           navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (window.__reloading) return;
-            window.__reloading = true;
-            // Đánh dấu đã update để hiển thị Toast sau khi reload
-            localStorage.setItem('mimi_app_updated', 'yes');
-            window.location.reload();
+             if (window.__reloading) return;
+             window.__reloading = true;
+             localStorage.setItem('mimi_app_updated', 'yes');
+             window.location.reload();
           });
         }
         /* ================= END SMART ENGINE ================= */
