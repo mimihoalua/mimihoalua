@@ -1,13 +1,15 @@
-// MimiFlower Service Worker – Production V11 (Absolute Path Fix)
-const CACHE_NAME = 'mimiflower-cache-v11';
+// MimiFlower Service Worker – Production V12 (Critical Path Check)
+const CACHE_NAME = 'mimiflower-cache-v12';
+
+// Đường dẫn tuyệt đối chuẩn cho GitHub Pages
 const BASE = '/mimihoalua';
 
 const STATIC_ASSETS = [
   `${BASE}/`,
   `${BASE}/index.html`,
-  `${BASE}/manifest.json`,
-  `${BASE}/icons/icon-192.png`,
-  `${BASE}/icons/icon-512.png`
+  `${BASE}/manifest.json`
+  // Tạm thời không cache icon ở đây để tránh lỗi làm chết SW
+  // Browser sẽ tự cache icon theo manifest
 ];
 
 // INSTALL
@@ -15,15 +17,12 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
-        console.log('[SW] Caching assets...');
-        // Dùng try-catch để nếu 1 file lỗi (ví dụ icon), App vẫn cài được
-        for (const asset of STATIC_ASSETS) {
-            try {
-                const res = await fetch(asset);
-                if (res.ok) await cache.put(asset, res);
-            } catch (e) {
-                console.warn('[SW] Cache fail:', asset);
-            }
+        console.log('[SW] Caching Critical Assets...');
+        try {
+            await cache.addAll(STATIC_ASSETS);
+            console.log('[SW] Critical Assets Cached!');
+        } catch (e) {
+            console.error('[SW] Cache Failed! Check paths:', e);
         }
     })
   );
@@ -42,24 +41,20 @@ self.addEventListener('activate', event => {
 // FETCH
 self.addEventListener('fetch', event => {
   const req = event.request;
-  const url = new URL(req.url);
+  
+  if (req.method !== 'GET') return;
 
-  // Bỏ qua request không hợp lệ
-  if (url.origin.includes('firebase') || url.origin.includes('googleapis') || req.method !== 'GET') return;
+  event.respondWith(
+    caches.match(req).then(cached => {
+      const network = fetch(req).then(res => {
+        if (res && res.ok) {
+           const clone = res.clone();
+           caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        }
+        return res;
+      }).catch(e => console.log('Offline fallback'));
 
-  // Cache First Strategy
-  if (req.mode === 'navigate' || req.destination === 'document' || req.destination === 'script' || req.destination === 'style' || req.destination === 'image') {
-    event.respondWith(
-      caches.match(req).then(cached => {
-        const network = fetch(req).then(res => {
-          if (res && res.status === 200 && res.type === 'basic') {
-             const clone = res.clone();
-             caches.open(CACHE_NAME).then(c => c.put(req, clone));
-          }
-          return res;
-        }).catch(() => {}); // Mất mạng thì thôi
-        return cached || network;
-      })
-    );
-  }
+      return cached || network;
+    })
+  );
 });
