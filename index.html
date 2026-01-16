@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
     
-    <!-- PWA CONFIGURATION (V12 - Anti-Cache) -->
-    <!-- Thêm ?v=12 để ép trình duyệt tải file mới nhất -->
-    <link rel="manifest" href="/mimihoalua/manifest.json?v=12">
-    
+    <!-- PWA CONFIGURATION (V13) -->
+    <!-- Dùng đường dẫn tuyệt đối để tránh lỗi 404 -->
+    <link rel="manifest" href="/mimihoalua/manifest.json?v=13">
     <meta name="theme-color" content="#ee4d2d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,38 +41,37 @@
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
-        /* FAB Install Button */
+        /* Nút Install App (FAB) - Mặc định ẩn bằng CSS, sẽ được JS bật lên */
         .install-fab {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 6px -1px rgba(238, 77, 45, 0.4), 0 2px 4px -1px rgba(238, 77, 45, 0.2);
-            display: none !important; /* Mặc định ẩn tuyệt đối, JS sẽ hiện */
+            display: none !important; /* Mặc định ẩn tuyệt đối */
         }
         .install-fab.show {
-            display: flex !important;
+            display: flex !important; /* JS sẽ thêm class này */
         }
         .install-fab:active { transform: scale(0.95); }
         .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(238, 77, 45, 0.5), 0 4px 6px -2px rgba(238, 77, 45, 0.3); }
 
-        /* PWA DOCTOR PANEL - Dùng để chẩn đoán lỗi */
-        #pwa-doctor {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); color: #0f0; 
-            font-family: monospace; font-size: 11px; padding: 10px; z-index: 200000;
-            border-top: 2px solid #ee4d2d; max-height: 200px; overflow-y: auto; pointer-events: none;
-            opacity: 0.8;
-        }
-        .doc-err { color: #ff4444; font-weight: bold; }
-        .doc-warn { color: #ffcc00; }
-        .doc-ok { color: #00ff00; }
-
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+        
+        /* BẢNG CHẨN ĐOÁN LỖI (Quan trọng để biết tại sao 404) */
+        #pwa-debug-panel {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.95); color: #00ff00; 
+            font-family: monospace; font-size: 11px; padding: 5px; z-index: 200000;
+            border-top: 1px solid #444; max-height: 150px; overflow-y: auto; pointer-events: none;
+        }
+        .log-error { color: #ff3333; font-weight: bold; }
+        .log-success { color: #00ff00; }
+        .log-warn { color: #ffcc00; }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- PWA DOCTOR (BẢNG CHẨN ĐOÁN) -->
-    <div id="pwa-doctor">
-        <div>🩺 MimiFlower PWA Doctor v12</div>
-        <div id="doc-log"></div>
+    <!-- BẢNG CHẨN ĐOÁN V13 -->
+    <div id="pwa-debug-panel">
+        <div>🚀 V13 System Init...</div>
+        <div style="color: #888; font-size: 9px;">Target: /mimihoalua/manifest.json</div>
     </div>
 
     <header class="bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] shadow-md sticky top-0 z-40 text-white">
@@ -81,7 +79,7 @@
             <div class="flex justify-between items-center text-xs md:text-sm py-1 border-b border-white/20 mb-2">
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
-                    <!-- 1️⃣ NÚT HƯỚNG DẪN (LUÔN HIỆN) -->
+                    <!-- Nút Hướng Dẫn -->
                     <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable">
                         <i class="fa-solid fa-circle-info"></i> Hướng dẫn cài đặt
                     </button>
@@ -145,7 +143,7 @@
         </div>
     </footer>
 
-    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB) ================= -->
+    <!-- ================= 2️⃣ NÚT “INSTALL APP” THẬT (FAB - Mặc định ẩn) ================= -->
     <button
       id="btnInstall"
       class="install-fab fixed bottom-24 right-4 z-[9999]
@@ -358,7 +356,7 @@
             logPWA('🔎 Starting Diagnostics...');
             
             // Check Manifest
-            fetch('./manifest.json?v=12')
+            fetch('/mimihoalua/manifest.json?v=12')
                 .then(r => {
                     logPWA(`Manifest Check: ${r.status} ${r.statusText}`);
                     if(r.status !== 200) logPWA('❌ MANIFEST ERROR! Check path.');
@@ -366,7 +364,7 @@
                 .catch(e => logPWA(`❌ Manifest Fetch Error: ${e.message}`));
 
             // Check SW Script
-            fetch('./sw.js')
+            fetch('/mimihoalua/sw.js')
                 .then(r => logPWA(`SW Script Check: ${r.status}`))
                 .catch(e => logPWA(`❌ SW Script Error: ${e.message}`));
 
