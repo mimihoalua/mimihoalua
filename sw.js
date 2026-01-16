@@ -1,45 +1,35 @@
-// MimiFlower Service Worker – Production V8 (Fail-Safe)
-const CACHE_NAME = 'mimiflower-cache-v8';
-const BASE_PATH = '/mimihoalua';
+// MimiFlower Service Worker – Production V9 (Relative Paths & Debug)
+const CACHE_NAME = 'mimiflower-cache-v9';
 
-// Danh sách file quan trọng nhất (Nếu thiếu các file này, App sẽ lỗi)
-const CORE_ASSETS = [
-  `${BASE_PATH}/`,
-  `${BASE_PATH}/index.html`,
-  `${BASE_PATH}/manifest.json`
-];
-
-// Danh sách icon (Nếu thiếu 1-2 file cũng không sao, ta sẽ xử lý mềm)
-const ICON_ASSETS = [
-  `${BASE_PATH}/icons/icon-72.png`,
-  `${BASE_PATH}/icons/icon-96.png`,
-  `${BASE_PATH}/icons/icon-128.png`,
-  `${BASE_PATH}/icons/icon-144.png`,
-  `${BASE_PATH}/icons/icon-192.png`,
-  `${BASE_PATH}/icons/icon-384.png`,
-  `${BASE_PATH}/icons/icon-512.png`
+// Dùng đường dẫn tương đối. Nó sẽ tự động hiểu là nằm cùng cấp với sw.js
+const STATIC_ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png', // Chỉ cần cache các icon chính để đảm bảo PWA
+  './icons/icon-512.png' 
 ];
 
 // INSTALL
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      console.log('[SW] Caching Core Assets...');
-      await cache.addAll(CORE_ASSETS);
-
-      console.log('[SW] Caching Icons (Fail-Safe)...');
-      // Thử cache từng icon, nếu lỗi thì bỏ qua, không làm chết SW
-      for (const icon of ICON_ASSETS) {
-        try {
-          const res = await fetch(icon);
-          if (res.ok) await cache.put(icon, res);
-        } catch (e) {
-          console.warn(`[SW] Failed to cache icon: ${icon}`, e);
+    caches.open(CACHE_NAME).then(async cache => {
+        console.log('[SW] Starting Cache...');
+        // Thử cache từng file một để nếu lỗi 1 file cũng không chết cả SW
+        for (const asset of STATIC_ASSETS) {
+            try {
+                const res = await fetch(asset);
+                if (res.ok) {
+                    await cache.put(asset, res);
+                } else {
+                    console.error('[SW] Failed to load:', asset, res.status);
+                }
+            } catch (err) {
+                console.error('[SW] Fetch error for:', asset, err);
+            }
         }
-      }
-    })()
+    })
   );
 });
 
@@ -56,11 +46,22 @@ self.addEventListener('activate', event => {
 // FETCH
 self.addEventListener('fetch', event => {
   const req = event.request;
+  
+  // Bỏ qua request lạ
+  if (!req.url.startsWith('http')) return;
   const url = new URL(req.url);
 
-  if (url.origin.includes('firebase') || url.origin.includes('googleapis') || url.pathname.includes('firestore')) return;
+  // Không cache Firebase / API
+  if (url.origin.includes('firebase') || url.origin.includes('googleapis')) return;
 
-  if (req.mode === 'navigate' || req.destination === 'document' || req.destination === 'script' || req.destination === 'style' || req.destination === 'image') {
+  // Cache First Strategy
+  if (
+    req.destination === 'document' ||
+    req.destination === 'script' ||
+    req.destination === 'style' ||
+    req.destination === 'image' ||
+    req.mode === 'navigate'
+  ) {
     event.respondWith(
       caches.match(req).then(cached => {
         const fetchPromise = fetch(req).then(res => {
@@ -69,7 +70,9 @@ self.addEventListener('fetch', event => {
              caches.open(CACHE_NAME).then(c => c.put(req, resClone));
           }
           return res;
-        }).catch(err => console.log('Network fail'));
+        }).catch(err => {
+            // console.log('Offline mode');
+        });
         return cached || fetchPromise;
       })
     );
