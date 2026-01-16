@@ -1,17 +1,15 @@
-// ================================
-// MimiFlower Service Worker v1.0
-// Cache Smart – Safe – Stable
-// ================================
+// ======================================
+// MimiFlower Service Worker v2.0
+// Auto Update – Safe Reload
+// ======================================
 
-const CACHE_NAME = 'mimiflower-cache-v1';
+const CACHE_NAME = 'mimiflower-cache-v2';
 
-// Những file tĩnh, rất ít thay đổi
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
 
-  // Icons
   './icons/icon-72.png',
   './icons/icon-96.png',
   './icons/icon-128.png',
@@ -21,64 +19,53 @@ const STATIC_ASSETS = [
   './icons/icon-512.png'
 ];
 
-// ---------------- INSTALL ----------------
+// ---------- INSTALL ----------
 self.addEventListener('install', event => {
+  self.skipWaiting(); // ⚠️ cho phép update ngay
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
 });
 
-// ---------------- ACTIVATE ----------------
+// ---------- ACTIVATE ----------
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => key !== CACHE_NAME && caches.delete(key))
+      )
+    )
   );
-  self.clients.claim();
+  self.clients.claim(); // takeover tab đang mở
 });
 
-// ---------------- FETCH ----------------
+// ---------- FETCH ----------
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 1️⃣ KHÔNG CACHE FIREBASE / API
+  // ❌ Không cache Firebase / API
   if (
     url.origin.includes('firebase') ||
-    url.origin.includes('googleapis') ||
-    url.pathname.includes('/__')
-  ) {
-    return;
-  }
+    url.origin.includes('googleapis')
+  ) return;
 
-  // 2️⃣ CACHE FIRST – CHO FILE TĨNH
+  // ✅ Cache First cho static
   if (
     req.destination === 'document' ||
-    req.destination === 'style' ||
     req.destination === 'script' ||
+    req.destination === 'style' ||
     req.destination === 'image'
   ) {
     event.respondWith(
       caches.match(req).then(cached => {
-        if (cached) return cached;
-
-        return fetch(req).then(res => {
-          const copy = res.clone();
+        const fetchPromise = fetch(req).then(networkRes => {
           caches.open(CACHE_NAME).then(cache => {
-            cache.put(req, copy);
+            cache.put(req, networkRes.clone());
           });
-          return res;
-        }).catch(() => cached);
+          return networkRes;
+        });
+        return cached || fetchPromise;
       })
     );
   }
