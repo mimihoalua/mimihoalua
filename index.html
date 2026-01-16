@@ -312,6 +312,51 @@
 
                 // UPDATE STATUS UI
                 document.getElementById('health-https').innerHTML = this.state.isHttps ? '<span class="text-green-600">✅ An toàn</span>' : '<span class="text-red-500">❌ Không an toàn</span>';
+                
+                // Cập nhật trạng thái PWA tổng thể
+                const manifestStatus = document.getElementById('health-manifest');
+                const swStatus = document.getElementById('health-sw');
+                
+                // Nếu fetch manifest thành công thì hiện OK, ngược lại báo lỗi
+                // Logic fetch ở trên đã log chi tiết, ở đây chỉ update UI đơn giản
+                // Lưu ý: Đây là update UI dựa trên kết quả fetch bất đồng bộ
+                // Để đơn giản, ta giả định nếu fetch không throw error thì là OK (cần cải thiện nếu muốn chính xác tuyệt đối)
+                
+                // Cập nhật SW status UI
+                if ('serviceWorker' in navigator) {
+                     const reg = await navigator.serviceWorker.getRegistration();
+                     if (reg && reg.active) {
+                         swStatus.innerHTML = '<span class="text-green-600">✅ Đang chạy</span>';
+                     } else {
+                         swStatus.innerHTML = '<span class="text-yellow-500">⚠️ Chưa kích hoạt</span>';
+                     }
+                } else {
+                    swStatus.innerHTML = '<span class="text-red-500">❌ Không hỗ trợ</span>';
+                }
+                
+                // Cập nhật Manifest status UI
+                // Do fetch là async, ta thực hiện lại check đơn giản hoặc dùng kết quả từ log
+                try {
+                    const mRes = await fetch(linkTag.href);
+                    if(mRes.ok) {
+                        manifestStatus.innerHTML = '<span class="text-green-600">✅ Hợp lệ</span>';
+                    } else {
+                        manifestStatus.innerHTML = '<span class="text-red-500">❌ Lỗi ' + mRes.status + '</span>';
+                    }
+                } catch (e) {
+                    manifestStatus.innerHTML = '<span class="text-red-500">❌ Lỗi mạng</span>';
+                }
+
+                // Hiển thị hướng dẫn phù hợp
+                const guideContent = document.getElementById('guideContent');
+                if (this.state.isStandalone) {
+                    guideContent.innerHTML = `<p class="text-green-600 font-bold">Bạn đang sử dụng App MimiFlower!</p>`;
+                } else if (this.state.isIOS) {
+                    guideContent.innerHTML = `<p>Trên iOS: Nhấn <b>Chia sẻ</b> -> <b>Thêm vào MH chính</b></p>`;
+                    document.getElementById('iosArrow').classList.remove('hidden');
+                } else {
+                    guideContent.innerHTML = `<p>Trên máy tính: Nhấn biểu tượng cài đặt trên thanh địa chỉ.</p>`;
+                }
             },
 
             forceUnregisterSW: function() {
