@@ -1,7 +1,7 @@
-// MimiFlower Service Worker – Production V3
-const CACHE_NAME = 'mimiflower-cache-v3';
+// MimiFlower Service Worker – Production V4 (Fix Path)
+const CACHE_NAME = 'mimiflower-cache-v4';
 
-// Danh sách file tĩnh (Cần khớp 100% với cây thư mục thực tế)
+// Danh sách file tĩnh cần cache (Đường dẫn tương đối với sw.js)
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -23,7 +23,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ACTIVATE
+// ACTIVATE (Xóa cache cũ v1, v2, v3...)
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -56,14 +56,13 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.match(req).then(cached => {
         const fetchPromise = fetch(req).then(res => {
-          // Chỉ cache phản hồi hợp lệ
           if (res && res.status === 200 && res.type === 'basic') {
              const resClone = res.clone();
              caches.open(CACHE_NAME).then(c => c.put(req, resClone));
           }
           return res;
         }).catch(() => {
-           // Fallback nếu mất mạng (đã có cached)
+           // Fallback
         });
         return cached || fetchPromise;
       })
