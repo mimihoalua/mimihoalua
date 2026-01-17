@@ -1,63 +1,61 @@
-// MimiFlower Service Worker – Production V17 (Fixed Path)
-const CACHE_NAME = 'mimiflower-cache-v17-android-fix';
-const BASE = '/mimihoalua'; // Đường dẫn gốc CỐ ĐỊNH
+// MimiFlower Service Worker – Public Folder Structure
+const CACHE_NAME = 'mimi-public-v1';
 
-const STATIC_ASSETS = [
-  `${BASE}/`,
-  `${BASE}/index.html`,
-  `${BASE}/manifest.json`,
-  `${BASE}/icons/icon-192.png`,
-  `${BASE}/icons/icon-512.png`
+// Tất cả đường dẫn đều là tương đối so với file sw.js này
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-// INSTALL
+// 1. INSTALL
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async cache => {
-        console.log('[SW] Caching assets V17...');
-        // Dùng map để fetch từng file, tránh lỗi 1 file làm hỏng tất cả
-        await Promise.all(STATIC_ASSETS.map(url => 
-            fetch(url, { cache: 'reload' }).then(res => {
-                if (res.ok) return cache.put(url, res);
-                console.warn('[SW] Skip 404:', url);
-            }).catch(e => console.warn('[SW] Fail:', url))
-        ));
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('[SW] Caching relative assets...');
+      return Promise.all(
+        ASSETS.map(url => 
+            fetch(url, {cache: 'reload'}).then(res => {
+                if(res.ok) return cache.put(url, res);
+                console.warn('[SW] 404:', url);
+            }).catch(e => console.warn('[SW] Error:', url))
+        )
+      );
     })
   );
 });
 
-// ACTIVATE
+// 2. ACTIVATE
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)
+    )).then(() => self.clients.claim())
   );
 });
 
-// FETCH
+// 3. FETCH
 self.addEventListener('fetch', event => {
-  const req = event.request;
-  
-  // Chỉ xử lý GET request
-  if (req.method !== 'GET') return;
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
 
-  // HTML & Manifest: Network First (Ưu tiên mạng)
-  // Để đảm bảo không bị kẹt cache cũ trên Android
-  if (req.mode === 'navigate' || req.url.includes('manifest.json')) {
+  // HTML & Manifest: Network First (Luôn mới)
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('manifest.json')) {
     event.respondWith(
-      fetch(req).then(res => {
+      fetch(event.request).then(res => {
         const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         return res;
-      }).catch(() => caches.match(req))
+      }).catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Assets khác: Cache First
+  // Assets: Cache First
   event.respondWith(
-    caches.match(req).then(cached => cached || fetch(req))
+    caches.match(event.request).then(res => res || fetch(event.request))
   );
 });
