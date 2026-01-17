@@ -1,15 +1,15 @@
 {
   "name": "MimiFlower Shop",
   "short_name": "MimiFlower",
-  "description": "Thế giới hoa lụa & decor cao cấp",
-  "id": "/mimihoalua/?v=fix_mobile_404",
+  "description": "Cửa hàng hoa lụa & decor – đặt hàng nhanh như App",
+  "id": "/mimihoalua/?v=17",
   "start_url": "/mimihoalua/index.html",
   "scope": "/mimihoalua/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ee4d2d",
   "orientation": "portrait",
-  "categories": ["shopping", "lifestyle"],
+  "lang": "vi",
   "icons": [
     {
       "src": "/mimihoalua/icons/icon-192.png",
@@ -22,20 +22,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/mimihoalua/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/mimihoalua/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "narrow"
     }
   ]
 }
