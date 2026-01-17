@@ -1,7 +1,6 @@
 // MimiFlower Service Worker – V20 (Full Icons & Safe Cache)
 const CACHE_NAME = 'mimi-cache-v20-icons';
 const BASE = '/mimihoalua'; // Đường dẫn gốc GitHub Pages
-
 // Danh sách file cần cache (Đường dẫn tuyệt đối để tránh lỗi 404 trên Mobile)
 const STATIC_ASSETS = [
   `${BASE}/`,
