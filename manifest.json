@@ -2,7 +2,7 @@
   "name": "MimiFlower Shop",
   "short_name": "MimiFlower",
   "description": "Thế giới hoa lụa & decor cao cấp",
-  "id": "/mimihoalua/?v=14",
+  "id": "/mimihoalua/?v=fix_mobile_404",
   "start_url": "/mimihoalua/index.html",
   "scope": "/mimihoalua/",
   "display": "standalone",
