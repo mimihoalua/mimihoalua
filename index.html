@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MimiFlower - Thế Giới Hoa Lụa & Decor</title>
     
-    <!-- PWA CONFIGURATION: Chuẩn Vite (File nằm ở root sẽ gọi file trong public bằng ./) -->
+    <!-- PWA CONFIGURATION -->
     <link id="manifest-link" rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#ee4d2d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MimiFlower">
-    
+
     <!-- Icons -->
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
@@ -25,42 +25,50 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     
     <style>
+        /* CORE STYLES */
         .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        @keyframes bounce-short { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .animate-bounce-short { animation: bounce-short 0.3s ease-in-out; }
-        @keyframes pop-in { 0% { transform: scale(0) translateY(20px); opacity: 0; } 80% { transform: scale(1.1) translateY(0); opacity: 1; } 100% { transform: scale(1); } }
-        .animate-pop-in { animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .scroll-smooth { scroll-behavior: smooth; }
         .shopee-border-bottom { background-image: repeating-linear-gradient(45deg,#6fa6d6,#6fa6d6 33px,transparent 0,transparent 41px,#f18d9b 0,#f18d9b 74px,transparent 0,transparent 82px); background-position-x: -30px; background-size: 116px 3px; height: 3px; width: 100%; }
         .tab-active { color: #ee4d2d; border-bottom: 2px solid #ee4d2d; font-weight: bold; background-color: #fff1f2; }
         .tab-inactive { color: #6b7280; border-bottom: 2px solid transparent; }
-        .spinner { border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 2px solid white; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
-        .spinner-dark { border: 2px solid rgba(0,0,0,0.1); border-top: 2px solid #ee4d2d; width: 30px; height: 30px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .clickable { cursor: pointer; pointer-events: auto !important; touch-action: manipulation; }
         .z-extreme { z-index: 99999 !important; }
         
-        /* PWA UI */
-        .install-fab { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4); display: none; }
+        /* PWA UI STYLES V21 (Modern & Clean) */
+        .install-fab { 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4); 
+            display: none; 
+        }
         .install-fab:active { transform: scale(0.95); }
         .install-fab:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(238, 77, 45, 0.5); }
         
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; position: relative; }
-        .status-dot::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.7; }
-        @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; position: relative; }
+        .status-dot::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.6; }
+        @keyframes ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
         .dot-red { background-color: #ef4444; } .dot-red::after { background-color: #ef4444; }
         .dot-blue { background-color: #3b82f6; } .dot-blue::after { background-color: #3b82f6; }
         .dot-green { background-color: #22c55e; } .dot-green::after { background-color: #22c55e; }
         .dot-yellow { background-color: #eab308; } .dot-yellow::after { background-color: #eab308; }
 
-        /* Guide Steps */
-        .guide-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-size: 15px; line-height: 1.5; }
-        .step-num { background: #ee4d2d; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 14px; }
+        /* Guide UI - Bước hướng dẫn */
+        .step-card { background: #f9fafb; border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
+        .step-icon { width: 36px; height: 36px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #ee4d2d; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0; }
+        .step-text { font-size: 14px; color: #374151; line-height: 1.4; font-weight: 500; }
+        .step-highlight { font-weight: 700; color: #111827; }
+
+        /* Bottom Sheet Animation (Mobile) */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        /* Modal Center Animation (PC) */
+        @keyframes fadeScale { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade-scale { animation: fadeScale 0.2s ease-out forwards; }
 
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
     </style>
@@ -73,9 +81,10 @@
                 <div class="flex gap-4">
                     <a href="https://mimihoalua.github.io/mimihoalua/admin.html" target="_blank" class="hover:text-gray-200 font-medium flex items-center gap-1 clickable"><i class="fa-solid fa-store"></i> Kênh Người Bán</a>
                     
-                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded clickable transition-colors hover:bg-white/20">
+                    <!-- NÚT TRẠNG THÁI PWA -->
+                    <button id="btnGuide" class="hover:text-gray-200 font-medium flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full clickable transition-all active:bg-white/20">
                         <span id="pwaStatusDot" class="status-dot dot-yellow"></span>
-                        <span id="guideLabel">Kiểm tra hệ thống</span>
+                        <span id="guideLabel" class="text-xs font-semibold">Tải App</span>
                     </button>
                 </div>
                 <div class="flex gap-4"><a href="#" class="hover:text-gray-200">Thông báo</a><a href="#" class="hover:text-gray-200">Hỗ trợ</a></div>
@@ -98,6 +107,7 @@
         </div>
     </header>
 
+    <!-- TAB NAVIGATION -->
     <div class="bg-white sticky top-[75px] md:top-[125px] z-30 shadow-sm border-b border-gray-100">
         <div class="container mx-auto grid grid-cols-3 text-center text-sm md:text-base font-medium text-gray-600">
             <button onclick="switchHomeTab('all')" id="tab-all" class="py-3 tab-active transition-all flex flex-col md:flex-row items-center justify-center gap-1 clickable"><i class="fa-solid fa-fire text-[#ee4d2d]"></i> <span>Gợi ý hôm nay</span></button>
@@ -106,6 +116,7 @@
         </div>
     </div>
 
+    <!-- MAIN DISPLAY AREA -->
     <main class="container mx-auto px-2 md:px-4 py-4 flex-grow min-h-[500px]">
         <div id="productGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
             <div class="bg-white rounded p-2 shadow-sm animate-pulse h-64"><div class="bg-gray-200 h-40 w-full mb-2"></div><div class="bg-gray-200 h-4 w-3/4 mb-1"></div><div class="bg-gray-200 h-4 w-1/2"></div></div>
@@ -120,24 +131,58 @@
         <div class="container mx-auto px-4 text-center md:text-left"><p class="text-sm font-bold text-[#ee4d2d] mb-2">MIMI FLOWER SHOP</p><p class="text-xs text-gray-400">Chuyên cung cấp sỉ lẻ hoa lụa, cây giả, đồ decor cao cấp.</p><div class="mt-4 text-xs text-gray-500 flex justify-between items-center"><span>© 2025 MimiFlower. All rights reserved.</span></div></div>
     </footer>
 
-    <button id="btnInstall" class="install-fab fixed bottom-20 right-4 z-[9999] bg-[#ee4d2d] text-white py-3 px-6 rounded-full font-bold border-4 border-white items-center gap-3 cursor-pointer shadow-2xl animate-pop-in text-lg"><span class="text-3xl animate-bounce">📲</span><span class="font-bold uppercase tracking-wide">TẢI APP NGAY</span></button>
+    <!-- NÚT FAB CÀI ĐẶT -->
+    <button id="btnInstall" class="install-fab fixed bottom-24 right-4 z-[9999] bg-[#ee4d2d] text-white p-3 pr-5 pl-5 rounded-full font-bold border-2 border-white items-center gap-3 cursor-pointer shadow-xl animate-pop-in">
+        <span class="text-2xl animate-bounce">📲</span>
+        <div class="flex flex-col items-start leading-none">
+            <span class="text-[10px] font-normal opacity-90">Cài đặt</span>
+            <span class="text-sm font-bold uppercase">Ứng dụng</span>
+        </div>
+    </button>
 
-    <!-- SMART GUIDE MODAL -->
-    <div id="pwaHealthModal" class="hidden fixed inset-0 z-[100000] bg-black/80 text-gray-800 flex flex-col justify-center items-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="w-full max-w-sm bg-white rounded-2xl p-0 shadow-2xl overflow-hidden animate-bounce-short border-2 border-[#ee4d2d]">
-            <div class="bg-[#ee4d2d] p-5 text-white text-center">
-                <div class="font-bold text-xl mb-1 uppercase">Cài đặt Ứng dụng</div>
-                <div class="text-xs opacity-90">Mua sắm nhanh hơn - Tiện lợi hơn</div>
+    <!-- MODAL HƯỚNG DẪN CÀI ĐẶT (SMART UI V21) -->
+    <div id="pwaModal" class="hidden fixed inset-0 z-[100000] bg-black/60 flex items-end md:items-center justify-center backdrop-blur-sm transition-opacity">
+        <!-- Container chính: Bottom Sheet trên Mobile, Center Modal trên PC -->
+        <div id="pwaModalContent" class="w-full md:w-[450px] bg-white rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden animate-slide-up md:animate-fade-scale">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] p-5 text-white flex items-start gap-4">
+                <div class="bg-white p-1 rounded-lg shadow-md shrink-0">
+                    <img src="./icons/icon-192.png" class="w-12 h-12 rounded-md" alt="App Icon">
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-lg leading-tight">Cài đặt MimiFlower</h3>
+                    <p class="text-xs text-white/90 mt-1">Ứng dụng nhẹ, không tốn bộ nhớ</p>
+                </div>
+                <button onclick="logicCore.closeModal()" class="text-white/80 hover:text-white p-1"><i class="fa-solid fa-times text-xl"></i></button>
             </div>
-            <div id="smartGuideContent" class="p-6"></div>
-            <div class="p-4 bg-gray-50 text-center border-t">
-                <button onclick="document.getElementById('pwaHealthModal').classList.add('hidden')" class="text-gray-500 font-bold text-sm hover:text-gray-800">Đóng lại</button>
+
+            <!-- Lợi ích -->
+            <div class="px-5 py-3 bg-orange-50 border-b border-orange-100 flex justify-between text-xs text-orange-800 font-medium">
+                <div class="flex items-center gap-1"><i class="fa-solid fa-bolt"></i> Truy cập nhanh</div>
+                <div class="flex items-center gap-1"><i class="fa-solid fa-wifi"></i> Dùng Offline</div>
+                <div class="flex items-center gap-1"><i class="fa-solid fa-bell"></i> Săn Sale</div>
+            </div>
+            
+            <!-- Nội dung hướng dẫn (Dynamic) -->
+            <div id="pwaGuideBody" class="p-5">
+                <!-- Nội dung sẽ được điền bởi JS tùy theo thiết bị -->
+            </div>
+            
+            <div class="p-4 bg-gray-50 border-t flex justify-between items-center">
+                <div class="text-xs text-gray-400">Phiên bản V21.0</div>
+                <button onclick="logicCore.closeModal()" class="text-gray-500 font-bold text-sm hover:text-[#ee4d2d] transition-colors">Đóng lại</button>
             </div>
         </div>
-        <div id="iosArrow" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 animate-bounce text-6xl text-white drop-shadow-lg z-[100001] shadow-black">⬇️</div>
+
+        <!-- Mũi tên chỉ dẫn (iOS Only) -->
+        <div id="iosArrow" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce text-white z-[100001] drop-shadow-lg">
+            <span class="text-sm font-bold bg-black/50 px-3 py-1 rounded-full mb-1">Bấm vào đây</span>
+            <i class="fa-solid fa-arrow-down text-4xl"></i>
+        </div>
     </div>
 
-    <!-- CODE GỐC (Modal, Script bán hàng) - GIỮ NGUYÊN 100% -->
+    <!-- LOGIC BÁN HÀNG CŨ (GIỮ NGUYÊN) -->
     <div id="detailModal" class="fixed inset-0 bg-black/90 hidden z-[50] flex items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0 overflow-y-auto"><button onclick="closeDetail()" class="fixed top-4 right-4 z-extreme w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 shadow-2xl border-2 border-white cursor-pointer active:scale-90"><i class="fa-solid fa-times text-xl"></i></button><div class="bg-white w-full h-full md:w-[1000px] md:h-auto md:max-h-[90vh] md:rounded-lg shadow-2xl flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300 overflow-y-auto md:overflow-hidden" id="modalContent"><div class="w-full md:w-[58%] flex flex-col shrink-0 bg-white relative border-r border-gray-100 pb-0 md:pb-0"><div class="relative w-full aspect-square md:h-[450px] bg-white flex items-center justify-center group border-b border-gray-100 bg-gray-50"><img id="modalMainImg" src="" class="w-full h-full object-contain p-2 transition-opacity duration-200"><button onclick="navigateGallery(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-10 clickable"><i class="fa-solid fa-chevron-left"></i></button><button onclick="navigateGallery(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-10 clickable"><i class="fa-solid fa-chevron-right"></i></button><div class="absolute top-0 left-0 bg-[#ee4d2d] text-white text-xs font-bold px-3 py-1 rounded-br shadow-sm z-10">Bán chạy</div></div><div class="relative w-full bg-gray-50 px-2 py-2 shadow-inner border-b border-gray-200"><div id="thumbList" class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth snap-x items-center h-[60px] px-2"></div></div><div class="px-5 py-4 space-y-4 bg-white"><div class="flex items-center justify-between"><div class="flex items-center gap-2 text-sm"><span class="text-gray-500">Đang chọn:</span><span id="selectedVariantNameDisplay" class="font-bold text-gray-800 text-base border-b-2 border-[#ee4d2d]">...</span></div><div class="text-xs text-gray-400 font-mono" id="stockDisplay">Còn hàng</div></div><div class="flex items-center justify-between bg-[#ee4d2d]/5 p-3 rounded border border-[#ee4d2d]/10"><div id="modalPrice" class="text-3xl font-bold text-[#ee4d2d]">-- ₫</div><div class="flex items-center border border-gray-300 rounded shadow-sm bg-white"><button onclick="updateQty(-1)" class="w-9 h-9 hover:bg-gray-100 text-gray-600 font-bold active:bg-gray-200 clickable">-</button><input id="qtyInput" type="number" value="1" class="w-10 h-9 text-center text-base border-x border-gray-300 focus:outline-none font-bold text-[#ee4d2d]" readonly><button onclick="updateQty(1)" class="w-9 h-9 hover:bg-gray-100 text-gray-600 font-bold active:bg-gray-200 clickable">+</button></div></div><div class="flex gap-3 pt-1"><button id="btnAddToCart" onclick="addToCart()" class="flex-1 bg-[#ee4d2d]/10 border border-[#ee4d2d] text-[#ee4d2d] hover:bg-[#ee4d2d]/20 font-bold py-3.5 rounded shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform uppercase text-sm md:text-base clickable"><i class="fa-solid fa-cart-plus"></i> Thêm Giỏ</button><button id="btnBuyNow" onclick="buyNow()" class="flex-1 bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] text-white font-bold py-3.5 rounded shadow-lg shadow-orange-500/30 hover:shadow-xl active:scale-95 transition-transform uppercase text-sm md:text-base clickable">Mua Ngay</button></div></div></div><div class="w-full md:w-[42%] flex flex-col bg-gray-50 border-t md:border-t-0 md:border-l border-gray-100"><div class="p-5 space-y-5 overflow-y-auto custom-scrollbar flex-1"><div><span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 block">Sản phẩm</span><h2 id="modalTitle" class="text-xl md:text-2xl font-bold text-gray-800 leading-snug">...</h2></div><div class="bg-white p-4 rounded border border-gray-200 shadow-sm"><h4 class="text-sm font-bold text-gray-700 mb-2 border-b pb-2 flex items-center gap-2"><i class="fa-solid fa-list-ul text-[#ee4d2d]"></i> Phân loại hàng:</h4><div id="variantListText" class="flex flex-wrap gap-2"></div></div><div class="bg-white p-4 rounded border border-gray-200 shadow-sm space-y-2 text-sm text-gray-600"><div class="flex gap-2"><i class="fa-solid fa-truck-fast text-green-500"></i> Giao hàng toàn quốc</div><div class="flex gap-2"><i class="fa-solid fa-box-open text-blue-500"></i> Kiểm tra hàng trước khi nhận</div></div></div></div></div></div>
     <div id="checkoutModal" class="fixed inset-0 bg-gray-100 hidden z-[60] overflow-y-auto transition-transform duration-300 translate-y-full"><div class="bg-white border-b sticky top-0 z-50 shadow-sm"><div class="container mx-auto px-4 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><div class="text-[#ee4d2d] text-2xl font-bold flex items-center gap-2"><i class="fa-solid fa-bag-shopping"></i> MimiFlower</div><div class="h-6 w-px bg-gray-300 mx-2"></div><div class="text-xl text-gray-700">Thanh Toán</div></div><button onclick="closeCheckout()" class="text-gray-500 hover:text-[#ee4d2d] font-medium clickable">Trở lại</button></div></div><div class="container mx-auto px-4 py-6 pb-20"><div class="bg-white p-4 rounded shadow-sm mb-4"><h3 class="font-bold text-gray-800 mb-3"><i class="fa-solid fa-truck text-[#ee4d2d]"></i> Hình thức nhận hàng</h3><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer border p-3 rounded has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 flex-1 clickable"><input type="radio" name="deliveryMethod" value="home" checked onchange="toggleDeliveryMethod()" class="accent-[#ee4d2d]"><span class="font-medium">Giao hàng tận nơi</span></label><label class="flex items-center gap-2 cursor-pointer border p-3 rounded has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 flex-1 clickable"><input type="radio" name="deliveryMethod" value="store" onchange="toggleDeliveryMethod()" class="accent-[#ee4d2d]"><span class="font-medium">Nhận tại cửa hàng</span></label></div></div><div class="flex flex-col lg:flex-row gap-6"><div class="w-full lg:w-2/3 space-y-4"><div id="formProgressContainer" class="bg-white px-6 pt-4 pb-2 rounded-t shadow-sm border-b relative"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tiến độ điền đơn</span><span id="progressText" class="text-xs font-bold text-[#ee4d2d]">0/5 Hoàn thành</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div id="progressBar" class="bg-[#ee4d2d] h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div></div></div><div id="addressFormSection" class="bg-white p-6 rounded-b shadow-sm relative overflow-hidden mt-0"><div class="shopee-border-bottom absolute top-0 left-0"></div><h3 class="text-[#ee4d2d] text-lg font-bold mb-4 mt-2">Địa chỉ nhận hàng</h3><form id="checkoutForm" class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm text-gray-600 mb-1">Họ và tên <span class="text-red-500">*</span></label><input type="text" id="cusName" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors" placeholder="Nguyễn Văn A" oninput="checkFormProgress()"></div><div><label class="block text-sm text-gray-600 mb-1">Số điện thoại <span class="text-red-500">*</span></label><input type="tel" id="cusPhone" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors" placeholder="09xxx..." oninput="checkFormProgress()"></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm text-gray-600 mb-1">Tỉnh / Thành phố <span class="text-red-500">*</span></label><select id="selProvince" onchange="handleProvinceChange(); checkFormProgress()" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none bg-white transition-colors"><option value="">-- Chọn Tỉnh --</option></select></div><div class="relative group"><label class="block text-sm text-gray-600 mb-1">Phường / Xã <span class="text-red-500">*</span></label><div class="relative"><div class="relative"><input type="text" id="searchCommune" placeholder="-- Chọn Tỉnh trước --" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed bg-white pr-8" disabled autocomplete="off"><button type="button" onclick="clearCommuneSearch()" id="clearCommuneBtn" class="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden p-1 clickable"><i class="fa-solid fa-times-circle"></i></button></div><input type="hidden" id="selCommune"> <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-gray-400 text-xs pointer-events-none"></i><div id="communeDropdown" class="absolute z-50 w-full bg-white border border-gray-200 shadow-xl rounded-b max-h-60 overflow-y-auto hidden mt-1 custom-scrollbar"></div></div><p class="text-xs text-[#ee4d2d] mt-2 font-medium bg-orange-50 p-1.5 rounded border border-orange-100 flex items-start gap-1.5"><i class="fa-regular fa-lightbulb mt-0.5 text-orange-500"></i><span>Mẹo: Gõ tên <b>Phường/Xã</b> hoặc <b>Quận/Huyện (tên cũ)</b> để tìm nhanh chính xác!</span></p></div></div><div><label class="block text-sm text-gray-600 mb-1">Địa chỉ cụ thể <span class="text-red-500">*</span></label><input type="text" id="cusAddress" placeholder="Số nhà, tên đường..." class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none transition-colors" oninput="checkFormProgress()"></div><div><label class="block text-sm text-gray-600 mb-1">Ghi chú</label><textarea id="cusNote" rows="2" class="w-full border p-2 rounded focus:border-[#ee4d2d] outline-none"></textarea></div></form></div><div id="storePickupMsg" class="bg-blue-50 p-6 rounded shadow-sm hidden border border-blue-200"><div class="flex items-start gap-3"><i class="fa-solid fa-store text-blue-600 text-xl mt-1"></i><div><h4 class="font-bold text-blue-800">Thông tin nhận hàng tại Shop</h4><p class="text-sm text-gray-600 mt-1">Địa chỉ: Số 3 Ngõ Văn Chỉ 1, Thôn Phù Mã, Xã Sóc Sơn, TP. Hà Nội</p><div class="mt-3"><label class="block text-sm font-medium mb-1">Tên & SĐT người nhận:</label><input type="text" id="storeCusInfo" placeholder="Nhập tên và SĐT của bạn..." class="w-full border p-2 rounded bg-white"></div></div></div></div><div class="bg-white p-6 rounded shadow-sm"><h3 class="text-gray-800 font-bold mb-4">Phương thức thanh toán</h3><div class="space-y-3"><label class="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-gray-50 has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 transition-all clickable"><input type="radio" name="payment" value="cod" checked onchange="togglePaymentMethod()" class="accent-[#ee4d2d] w-4 h-4"><i class="fa-solid fa-money-bill-wave text-green-600 text-xl"></i><div><div class="font-medium text-sm">Thanh toán khi nhận hàng (COD)</div></div></label><label class="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-gray-50 has-[:checked]:border-[#ee4d2d] has-[:checked]:bg-[#ee4d2d]/5 transition-all clickable"><input type="radio" name="payment" value="banking" onchange="togglePaymentMethod()" class="accent-[#ee4d2d] w-4 h-4"><i class="fa-solid fa-building-columns text-blue-600 text-xl"></i><div><div class="font-medium text-sm">Chuyển khoản ngân hàng</div></div></label><div id="bankingInfo" class="hidden mt-2 p-4 border border-blue-200 rounded-lg bg-blue-50/50 relative overflow-hidden transition-all duration-300"><div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div><div class="text-center mb-4"><div class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Quét mã để thanh toán</div><div class="bg-white p-2 inline-block rounded border shadow-sm"><img id="qrCodeImg" src="" class="w-40 h-40 object-contain" alt="QR Code"></div><p class="text-[10px] text-gray-400 mt-1 italic">Mở App ngân hàng để quét</p></div><div class="space-y-3 text-sm"><div class="flex justify-between items-center border-b border-blue-100 pb-2"><span class="text-gray-600">Ngân hàng:</span><span class="font-bold text-blue-800" id="bankNameDisplay">...</span></div><div class="flex justify-between items-center border-b border-blue-100 pb-2"><span class="text-gray-600">Số tài khoản:</span><div class="flex items-center gap-2"><span class="font-bold text-gray-800" id="bankAccNumDisplay">...</span><button onclick="copyText(document.getElementById('bankAccNumDisplay').innerText)" class="text-blue-500 hover:text-blue-700 clickable"><i class="fa-regular fa-copy"></i></button></div></div><div class="flex justify-between items-center border-b border-blue-100 pb-2"><span class="text-gray-600">Chủ tài khoản:</span><span class="font-bold text-gray-800 uppercase" id="bankOwnerDisplay">...</span></div><div class="flex justify-between items-center"><span class="text-gray-600">Nội dung:</span><div class="flex items-center gap-2"><span class="font-bold text-[#ee4d2d]" id="bankContent">...</span><button onclick="copyContent()" class="text-blue-500 hover:text-blue-700 clickable"><i class="fa-regular fa-copy"></i></button></div></div></div><div class="mt-4 bg-yellow-50 text-yellow-800 text-xs p-2 rounded border border-yellow-100 flex items-start gap-2"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>Lưu ý: Vui lòng ghi đúng nội dung chuyển khoản để đơn hàng được xác nhận tự động.</span></div></div></div></div></div><div class="w-full lg:w-1/3"><div class="bg-white p-6 rounded shadow-sm sticky top-[80px]"><div class="flex justify-between items-center border-b pb-2 mb-4"><h3 class="text-gray-800 font-bold">Đơn hàng</h3><span class="text-xs text-gray-500" id="cartTotalItems">0 sản phẩm</span></div><div id="checkoutCartItems" class="space-y-4 mb-4 max-h-[300px] overflow-y-auto custom-scrollbar"></div><div class="space-y-2 py-4 text-sm text-gray-600 border-t border-dashed"><div class="flex justify-between"><span>Tạm tính:</span><span id="subTotalDisplay">0₫</span></div><div class="flex justify-between"><span>Phí vận chuyển:</span><span id="shippingDisplay">0₫</span></div></div><div class="flex justify-between items-center border-t pt-4 mb-6"><span class="text-gray-700 font-bold">Tổng thanh toán:</span><span id="finalTotalDisplay" class="text-2xl font-bold text-[#ee4d2d]">0₫</span></div><button onclick="submitOrder()" id="btnOrder" class="w-full bg-[#ee4d2d] hover:bg-[#d73211] text-white py-3 rounded shadow font-bold uppercase transition flex justify-center items-center gap-2 clickable">Đặt Hàng</button></div></div></div></div></div>
     
@@ -148,7 +193,7 @@
 
     <script>
         /* =========================================================
-           🧠 LOGIC CORE V20.1 (SMART PWA ENGINE - PUBLIC FOLDER)
+           🧠 LOGIC CORE V21.0 (SMART UI & GUIDE)
            ========================================================= */
         const logicCore = {
             deferredPrompt: null,
@@ -159,19 +204,20 @@
             },
             
             init: function() {
-                // Tự động đăng ký SW với đường dẫn tương đối ./sw.js
-                // Đây là file nằm trong public/sw.js
+                // Tự động đăng ký SW
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('./sw.js')
-                        .then(() => console.log("✅ SW Registered"))
-                        .catch(err => console.warn("❌ SW Fail:", err));
+                        .then(() => console.log("SW Registered"))
+                        .catch(err => console.log("SW Error", err));
                 }
 
                 this.updateStatusDot('init');
                 
+                // Đã cài app
                 if (this.state.isStandalone) {
                     this.updateStatusDot('installed');
                 } else {
+                    // Chưa cài - Bắt sự kiện
                     window.addEventListener('beforeinstallprompt', (e) => {
                         e.preventDefault();
                         this.deferredPrompt = e;
@@ -179,7 +225,8 @@
                         this.updateStatusDot('ready');
                     });
                 }
-
+                
+                // Sự kiện mở hướng dẫn
                 document.getElementById('btnGuide').onclick = () => this.showSmartGuide();
             },
 
@@ -188,11 +235,11 @@
                 const label = document.getElementById('guideLabel');
                 dot.className = "status-dot"; 
                 if (status === 'init') {
-                    dot.classList.add('dot-yellow'); label.innerText = "Chưa cài đặt";
+                    dot.classList.add('dot-yellow'); label.innerText = "Tải App";
                 } else if (status === 'ready') {
-                    dot.classList.add('dot-red'); label.innerText = "Cài App ngay";
+                    dot.classList.add('dot-red'); label.innerText = "Cài ngay";
                 } else if (status === 'installed') {
-                    dot.classList.add('dot-green'); label.innerText = "Đã cài đặt";
+                    dot.classList.add('dot-green'); label.innerText = "Đã cài";
                 }
             },
 
@@ -211,40 +258,97 @@
                     }
                 };
             },
+            
+            closeModal: function() {
+                document.getElementById('pwaModal').classList.add('hidden');
+                document.getElementById('iosArrow').classList.add('hidden');
+            },
 
+            // HIỂN THỊ HƯỚNG DẪN THÔNG MINH (THEO THIẾT BỊ)
             showSmartGuide: function() {
-                const modal = document.getElementById('pwaHealthModal');
-                const content = document.getElementById('smartGuideContent');
+                const modal = document.getElementById('pwaModal');
+                const content = document.getElementById('pwaGuideBody');
                 const arrow = document.getElementById('iosArrow');
                 
                 modal.classList.remove('hidden');
                 arrow.classList.add('hidden');
 
+                // 1. ĐÃ CÀI ĐẶT
                 if (this.state.isStandalone) {
-                    content.innerHTML = `<div class="text-center text-green-600 font-bold text-lg"><i class="fa-solid fa-check-circle text-4xl mb-2"></i><br>Bạn đang sử dụng App!</div>`;
+                    content.innerHTML = `
+                        <div class="text-center py-6">
+                            <div class="inline-block p-4 bg-green-100 rounded-full mb-3 text-green-600">
+                                <i class="fa-solid fa-check text-4xl"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-800 text-lg">Đã cài đặt thành công!</h3>
+                            <p class="text-gray-500 text-sm mt-1">Cảm ơn bạn đã sử dụng App MimiFlower.</p>
+                        </div>
+                    `;
                     return;
                 }
 
+                // 2. iOS (iPhone/iPad)
                 if (this.state.isIOS) {
                     content.innerHTML = `
-                        <div class="guide-step"><div class="step-num">1</div><div>Bấm nút <b>Chia sẻ</b> <i class="fa-solid fa-arrow-up-from-bracket text-blue-600"></i></div></div>
-                        <div class="guide-step"><div class="step-num">2</div><div>Chọn <b>Thêm vào MH chính</b> <i class="fa-regular fa-square-plus"></i></div></div>
-                        <div class="guide-step"><div class="step-num">3</div><div>Bấm <b>Thêm</b> (Add) ở góc trên.</div></div>
+                        <div class="step-card">
+                            <div class="step-icon"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
+                            <div class="step-text">Bấm vào nút <b>Chia sẻ</b> trên thanh công cụ của trình duyệt Safari.</div>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-icon"><i class="fa-regular fa-square-plus"></i></div>
+                            <div class="step-text">Chọn dòng <b class="step-highlight">Thêm vào MH chính</b> (Add to Home Screen).</div>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-icon">Add</div>
+                            <div class="step-text">Bấm nút <b class="step-highlight">Thêm</b> ở góc trên cùng bên phải.</div>
+                        </div>
                     `;
                     arrow.classList.remove('hidden');
-                } else if (this.state.isAndroid) {
+                } 
+                // 3. ANDROID (Chưa cài)
+                else if (this.state.isAndroid) {
                     if (this.deferredPrompt) {
-                         content.innerHTML = `<p class="text-center mb-4 text-gray-600">Ứng dụng đã sẵn sàng.</p><button onclick="document.getElementById('btnInstall').click();" class="w-full bg-[#ee4d2d] text-white py-3 rounded-lg font-bold shadow-lg uppercase animate-pulse">Cài đặt ngay</button>`;
+                         content.innerHTML = `
+                            <div class="text-center">
+                                <p class="text-gray-600 mb-4">Ứng dụng đã sẵn sàng. Cài đặt ngay để mua sắm tiện lợi hơn!</p>
+                                <button onclick="document.getElementById('btnInstall').click(); logicCore.closeModal();" class="w-full bg-[#ee4d2d] hover:bg-[#d03e1e] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-orange-200 transition-transform active:scale-95 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-download"></i> CÀI ĐẶT NGAY
+                                </button>
+                            </div>
+                        `;
                     } else {
-                        content.innerHTML = `<div class="guide-step"><div class="step-num">1</div><div>Bấm dấu <b>3 chấm</b> <i class="fa-solid fa-ellipsis-vertical"></i></div></div><div class="guide-step"><div class="step-num">2</div><div>Chọn <b>Cài đặt ứng dụng</b>.</div></div>`;
+                        // Android Fallback (Khi chưa bắt được event hoặc bị chặn)
+                        content.innerHTML = `
+                            <div class="step-card">
+                                <div class="step-icon"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+                                <div class="step-text">Bấm vào dấu <b>3 chấm</b> ở góc trên bên phải trình duyệt.</div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+                                <div class="step-text">Chọn dòng <b class="step-highlight">Cài đặt ứng dụng</b> hoặc Thêm vào màn hình chính.</div>
+                            </div>
+                        `;
                     }
-                } else {
-                     content.innerHTML = `<div class="text-center"><p class="mb-2">Trên máy tính:</p><p class="text-sm bg-gray-100 p-2 rounded">Bấm biểu tượng <b>Cài đặt</b> <i class="fa-regular fa-circle-down"></i> trên thanh địa chỉ.</p></div>`;
+                } 
+                // 4. MÁY TÍNH (PC/Laptop)
+                else {
+                     content.innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="inline-block p-3 bg-blue-50 rounded-full mb-3">
+                                <i class="fa-solid fa-desktop text-3xl text-blue-500"></i>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">Cài đặt MimiFlower trên máy tính:</p>
+                            <div class="bg-gray-100 p-3 rounded-lg border border-gray-200 text-sm inline-flex items-center gap-2">
+                                <span>Tìm biểu tượng này trên thanh địa chỉ:</span>
+                                <span class="bg-white px-2 py-1 rounded border shadow-sm"><i class="fa-solid fa-download text-gray-600"></i></span>
+                            </div>
+                        </div>
+                    `;
                 }
             }
         };
 
-        // --- CODE GỐC (Logic bán hàng) ---
+        // --- CODE GỐC LOGIC BÁN HÀNG ---
         const BANK_ID = "TCB"; 
         const BANK_ACC_NUM = "19037189711011"; 
         const BANK_ACC_OWNER = "NGUYEN THI THAM";
