@@ -1,54 +1,63 @@
-// MimiFlower Service Worker - Fix Path 404
-const CACHE_NAME = 'mimi-fix-404-v1';
-const REPO = '/mimihoalua'; // Tên repo trên GitHub Pages
+// MimiFlower Service Worker – Production V17 (Fixed Path)
+const CACHE_NAME = 'mimiflower-cache-v17-android-fix';
+const BASE = '/mimihoalua'; // Đường dẫn gốc CỐ ĐỊNH
 
-// Sử dụng đường dẫn tuyệt đối để đảm bảo tìm thấy file
-const ASSETS = [
-  `${REPO}/`,
-  `${REPO}/index.html`,
-  `${REPO}/manifest.json`,
-  `${REPO}/icons/icon-192.png`,
-  `${REPO}/icons/icon-512.png`
+const STATIC_ASSETS = [
+  `${BASE}/`,
+  `${BASE}/index.html`,
+  `${BASE}/manifest.json`,
+  `${BASE}/icons/icon-192.png`,
+  `${BASE}/icons/icon-512.png`
 ];
 
+// INSTALL
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] Caching absolute paths...');
-      return Promise.all(
-        ASSETS.map(url => 
-            fetch(url, {cache: 'reload'}).then(res => {
-                if(res.ok) return cache.put(url, res);
-                console.warn('[SW] 404 on:', url);
-            }).catch(e => console.warn('[SW] Error:', url))
-        )
-      );
+    caches.open(CACHE_NAME).then(async cache => {
+        console.log('[SW] Caching assets V17...');
+        // Dùng map để fetch từng file, tránh lỗi 1 file làm hỏng tất cả
+        await Promise.all(STATIC_ASSETS.map(url => 
+            fetch(url, { cache: 'reload' }).then(res => {
+                if (res.ok) return cache.put(url, res);
+                console.warn('[SW] Skip 404:', url);
+            }).catch(e => console.warn('[SW] Fail:', url))
+        ));
     })
   );
 });
 
+// ACTIVATE
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)
-    )).then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
 });
 
+// FETCH
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+  const req = event.request;
   
-  // Network First cho HTML để luôn lấy nội dung mới nhất
-  if (event.request.mode === 'navigate' || event.request.url.includes('manifest.json')) {
+  // Chỉ xử lý GET request
+  if (req.method !== 'GET') return;
+
+  // HTML & Manifest: Network First (Ưu tiên mạng)
+  // Để đảm bảo không bị kẹt cache cũ trên Android
+  if (req.mode === 'navigate' || req.url.includes('manifest.json')) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(req).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        return res;
+      }).catch(() => caches.match(req))
     );
     return;
   }
 
-  // Cache First cho ảnh/css
+  // Assets khác: Cache First
   event.respondWith(
-    caches.match(event.request).then(res => res || fetch(event.request))
+    caches.match(req).then(cached => cached || fetch(req))
   );
 });
