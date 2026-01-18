@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Mở bằng trình duyệt mặc định</title>
-
-  <!-- Update host to your new domain -->
-  <link rel="dns-prefetch" href="//mimihoalua.github.io">
-  <link rel="preconnect" href="https://mimihoalua.github.io" crossorigin>
+  <title>Mở bằng trình duyệt</title>
 
   <meta name="theme-color" content="#0ea5e9" />
   <meta name="referrer" content="no-referrer-when-downgrade" />
@@ -19,7 +15,6 @@
 
   <style>
     body { font-family: 'Inter', sans-serif; }
-
     .gradient-button{
       background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%);
       box-shadow: 0 6px 18px rgba(14,165,233,.35);
@@ -32,21 +27,14 @@
     }
     .animate-subtle-pulse { animation: subtlePulse 3s infinite ease-in-out; }
 
-    /* Reduce motion */
     @media (prefers-reduced-motion: reduce) {
       .animate-subtle-pulse { animation: none !important; }
       * { scroll-behavior: auto !important; }
     }
 
-    /* Prevent flicker */
     #mainContent { opacity: 0; transform: scale(.985); transition: opacity .25s ease, transform .25s ease; }
     #mainContent.visible { opacity: 1; transform: scale(1); }
 
-    /* Modal */
-    .modal-enter-active, .modal-leave-active { transition: opacity .25s ease, transform .25s ease; }
-    .modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(.97); }
-
-    /* Toast */
     #toast {
       position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
       background: rgba(17,24,39,.92); color: #fff;
@@ -55,11 +43,6 @@
     }
     #toast.hidden { display: none; }
   </style>
-
-  <!-- No-JS fallback -->
-  <noscript>
-    <meta http-equiv="refresh" content="0; url=https://mimihoalua.github.io/mimihoalua/index.html">
-  </noscript>
 </head>
 
 <body class="bg-gradient-to-br from-sky-500 to-emerald-500 min-h-screen flex items-center justify-center relative overflow-hidden text-gray-800">
@@ -68,9 +51,9 @@
 
   <div id="mainContent" class="bg-white p-7 rounded-2xl shadow-xl text-center max-w-md w-full mx-4 relative z-10 animate-subtle-pulse">
     <div class="text-6xl mb-3" role="img" aria-label="Browser">🌐</div>
-    <h1 class="text-2xl sm:text-3xl font-extrabold mb-2 text-gray-900">Mở bằng trình duyệt mặc định</h1>
+    <h1 class="text-2xl sm:text-3xl font-extrabold mb-2 text-gray-900">Mở bằng trình duyệt</h1>
     <p class="text-gray-700 mb-4 leading-relaxed">
-      Zalo / Lotus / Telegram thường dùng <b>trình duyệt nhúng</b> nên có thể bị hạn chế PWA, đăng nhập, thanh toán, chia sẻ…
+      Zalo / Lotus / Telegram thường dùng <b>trình duyệt nhúng</b> nên có thể bị hạn chế PWA, đăng nhập, thanh toán…
       Hãy mở bằng Chrome/Safari để chạy mượt và đầy đủ tính năng.
     </p>
 
@@ -83,12 +66,12 @@
     </div>
 
     <div id="autoOpenBox" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-4 text-left">
-      <div class="text-sm text-emerald-900 font-semibold mb-1">Tự mở sau <span id="countdown">3</span>s…</div>
+      <div class="text-sm text-emerald-900 font-semibold mb-1">Tự thử mở sau <span id="countdown">3</span>s…</div>
       <div class="text-xs text-emerald-900/80">
-        Nếu không tự bật được Chrome/Safari, hãy bấm nút “MỞ TRONG TRÌNH DUYỆT”.
+        Nếu không bật Chrome/Safari, hãy bấm “MỞ TRONG TRÌNH DUYỆT”.
       </div>
       <button id="cancelAutoOpen" class="mt-2 text-xs font-semibold text-emerald-800 underline">
-        Huỷ tự mở
+        Huỷ tự thử mở
       </button>
     </div>
 
@@ -115,18 +98,18 @@
     </div>
 
     <p class="text-gray-500 text-xs mt-4">
-      Tốt nhất: Chrome / Safari / Firefox / Cốc Cốc / Brave / Edge.
+      Tốt nhất: Chrome / Safari / Firefox / Brave / Edge / Cốc Cốc.
     </p>
   </div>
 
   <!-- Help Modal -->
   <div id="infoModalOverlay" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
-    <div id="infoModalContent" class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full text-left modal-enter-from">
+    <div id="infoModalContent" class="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full text-left" style="transform:scale(.97);opacity:0;transition:.25s ease">
       <h2 class="text-xl font-bold mb-3 text-gray-900">💡 Cách mở ra trình duyệt ngoài</h2>
       <ul class="text-sm text-gray-700 space-y-2 leading-relaxed">
-        <li><b>Zalo/Lotus:</b> bấm <b>⋮</b> hoặc <b>Chia sẻ</b> → chọn <b>Mở bằng trình duyệt</b> (Chrome/Safari).</li>
+        <li><b>Zalo/Lotus:</b> bấm <b>⋮</b> / <b>Chia sẻ</b> → <b>Mở bằng trình duyệt</b>.</li>
         <li><b>Telegram:</b> bấm <b>⋮</b> → <b>Open in Browser</b>.</li>
-        <li><b>Nếu vẫn bị giữ trong app:</b> dùng nút <b>SAO CHÉP LINK</b> rồi dán vào Chrome/Safari.</li>
+        <li><b>Nếu vẫn bị giữ trong app:</b> bấm <b>SAO CHÉP LINK</b> rồi dán vào Chrome/Safari.</li>
       </ul>
 
       <div class="mt-4">
@@ -142,52 +125,53 @@
 
   <script>
   (function () {
-    // =========================
-    // 1) TARGET CONFIG
-    // =========================
-    const DEFAULT_TARGET = 'https://mimihoalua.github.io/mimihoalua/index.html';
+    // ========= Helpers =========
+    const params = new URLSearchParams(location.search);
+    const RESERVED_PARAMS = new Set(['to','autotry','noredirect','base']);
 
-    // Optional: allow override via ?to=https%3A%2F%2F...
-    // Example share link: https://mimihoalua.github.io/mimihoalua/go.html?to=https%3A%2F%2F...%2Findex.html&utm_source=zalo
-    const RESERVED_PARAMS = new Set(['to', 'autotry', 'noredirect']);
+    function safeDecode(s){ try { return decodeURIComponent(s); } catch { return s; } }
 
-    function safeDecode(s) {
-      try { return decodeURIComponent(s); } catch (_) { return s; }
+    function normalizeUrl(u){
+      try { const x = new URL(u); x.hash=''; return x.toString().replace(/\/+$/, ''); }
+      catch { return (u||'').split('#')[0].replace(/\/+$/, ''); }
     }
 
-    function normalizeUrl(u) {
-      try {
-        const x = new URL(u);
-        x.hash = '';
-        return x.toString().replace(/\/+$/, '');
-      } catch (_) {
-        return (u || '').split('#')[0].replace(/\/+$/, '');
-      }
+    function inferBasePrefix(){
+      // Goal: always reach ".../<repo>/index.html" if on GitHub Pages,
+      // but still correct if hosted at root and this opener sits in "/public/...".
+      const segs = location.pathname.split('/').filter(Boolean);
+      const first = segs[0] || '';
+      // If opener is in /public or /assets on a root-host, base should be "/"
+      if (first === 'public' || first === 'assets') return '/';
+      // If on GitHub Pages, first is repo name (e.g., "mimihoalua") => base "/mimihoalua/"
+      return first ? '/' + first + '/' : '/';
     }
 
-    const params = new URLSearchParams(window.location.search);
+    // ========= 1) Resolve target URL (your real app index.html) =========
+    // Priority:
+    // - ?to=... (optional override)
+    // - else infer base + "index.html"
+    const baseOverride = params.get('base'); // optional: base=/mimihoalua/ or base=/
+    const basePrefix = baseOverride ? safeDecode(baseOverride) : inferBasePrefix();
+    const defaultTarget = new URL(basePrefix.replace(/\/?$/, '/') + 'index.html', location.origin).toString();
+
     const toParamRaw = params.get('to');
-    const targetBase = toParamRaw ? safeDecode(toParamRaw) : DEFAULT_TARGET;
+    const targetBase = toParamRaw ? safeDecode(toParamRaw) : defaultTarget;
 
     let targetUrlObj;
-    try {
-      targetUrlObj = new URL(targetBase);
-    } catch (_) {
-      targetUrlObj = new URL(DEFAULT_TARGET);
-    }
+    try { targetUrlObj = new URL(targetBase); }
+    catch { targetUrlObj = new URL(defaultTarget); }
 
-    // carry all params except reserved
-    for (const [k, v] of params.entries()) {
+    // carry query params except reserved
+    for (const [k,v] of params.entries()){
       if (!RESERVED_PARAMS.has(k)) targetUrlObj.searchParams.set(k, v);
     }
-    // carry hash if target doesn't have its own
-    if (!targetUrlObj.hash && window.location.hash) targetUrlObj.hash = window.location.hash;
+    // carry hash if target doesn't already have it
+    if (!targetUrlObj.hash && location.hash) targetUrlObj.hash = location.hash;
 
     const TARGET_URL = targetUrlObj.toString();
 
-    // =========================
-    // 2) ENV DETECTION
-    // =========================
+    // ========= 2) Detect env =========
     const ua = navigator.userAgent || '';
     const uaData = navigator.userAgentData || null;
     const platform = (uaData && uaData.platform) ? uaData.platform : '';
@@ -195,16 +179,14 @@
     const isAndroid = /Android/i.test(ua) || /Android/i.test(platform);
     const isIOS = /iPhone|iPad|iPod/i.test(ua) || /iOS/i.test(platform);
 
-    // include Lotus + more common in-app webviews
+    // Include Lotus + common in-app webviews
     const inAppKeywords = [
-      'FBAV','FBAN','Instagram','Line','Snapchat','WeChat','MicroMessenger','TikTok',
-      'Zalo','Lotus','Messenger','Telegram','Viber'
+      'Zalo','Lotus','Telegram','FBAV','FBAN','Instagram','Line','Snapchat','WeChat','MicroMessenger',
+      'TikTok','Messenger','Viber'
     ];
     const isInApp = inAppKeywords.some(k => ua.includes(k));
 
-    // =========================
-    // 3) UI
-    // =========================
+    // ========= 3) Bind UI =========
     const mainContent = document.getElementById('mainContent');
     const targetUrlText = document.getElementById('targetUrlText');
     const openDirectLink = document.getElementById('openDirectLink');
@@ -225,56 +207,41 @@
     const countdownEl = document.getElementById('countdown');
     const cancelAutoBtn = document.getElementById('cancelAutoOpen');
 
-    function haptic(ms) {
-      try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (_) {}
-    }
-
-    function showToast(msg) {
+    function haptic(ms){ try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch {} }
+    function showToast(msg){
       toast.textContent = msg;
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 1800);
     }
-
-    // show content (avoid Telegram blank)
-    mainContent.classList.add('visible');
-
-    targetUrlText.textContent = TARGET_URL;
-    openDirectLink.href = TARGET_URL;
-
-    // =========================
-    // 4) DIRECT REDIRECT (non in-app)
-    // =========================
-    const currentNorm = normalizeUrl(window.location.href);
-    const targetNorm  = normalizeUrl(TARGET_URL);
-
-    const noRedirect = params.get('noredirect') === '1';
-
-    if (!noRedirect && !isInApp && currentNorm !== targetNorm) {
-      window.location.replace(TARGET_URL);
-      return;
-    }
-
-    // =========================
-    // 5) OPEN EXTERNAL (best-effort)
-    // =========================
-    function setLoading(on) {
-      if (on) {
+    function setLoading(on){
+      if (on){
         buttonText.classList.add('hidden');
         spinner.classList.remove('hidden');
-        openBtn.disabled = true;
-        copyBtn.disabled = true;
-        showHelpBtn.disabled = true;
+        openBtn.disabled = true; copyBtn.disabled = true; showHelpBtn.disabled = true;
       } else {
         buttonText.classList.remove('hidden');
         spinner.classList.add('hidden');
-        openBtn.disabled = false;
-        copyBtn.disabled = false;
-        showHelpBtn.disabled = false;
+        openBtn.disabled = false; copyBtn.disabled = false; showHelpBtn.disabled = false;
       }
     }
 
-    function buildAndroidIntent(pkg) {
-      // intent://<host>/<path>?<query>#Intent;scheme=https;package=...;S.browser_fallback_url=...;end
+    mainContent.classList.add('visible');
+    targetUrlText.textContent = TARGET_URL;
+    openDirectLink.href = TARGET_URL;
+
+    // ========= 4) Auto redirect if already in external browser =========
+    const currentNorm = normalizeUrl(location.href);
+    const targetNorm  = normalizeUrl(TARGET_URL);
+    const noRedirect = params.get('noredirect') === '1';
+
+    // Important: only redirect if NOT in-app (avoid being trapped in app webview)
+    if (!noRedirect && !isInApp && currentNorm !== targetNorm){
+      location.replace(TARGET_URL);
+      return;
+    }
+
+    // ========= 5) External open best-effort =========
+    function buildAndroidIntent(pkg){
       const withoutScheme = TARGET_URL.replace(/^https?:\/\//i, '');
       return (
         'intent://' + withoutScheme +
@@ -288,62 +255,46 @@
       );
     }
 
-    function tryOpenAndroid() {
+    function tryOpenAndroid(){
       const pkgs = [
         'com.android.chrome',
+        'com.coccoc.browser',
         'com.brave.browser',
         'com.microsoft.emmx',
         'org.mozilla.firefox',
-        'com.coccoc.browser',
         'com.opera.browser'
       ];
-
       let i = 0;
       const attemptNext = () => {
-        if (i >= pkgs.length) {
-          // Last fallback: open same URL (still may stay in webview, but at least user lands)
-          window.location.href = TARGET_URL;
-          return;
-        }
-        const intent = buildAndroidIntent(pkgs[i++]);
-        window.location.href = intent;
+        if (i >= pkgs.length){ location.href = TARGET_URL; return; }
+        location.href = buildAndroidIntent(pkgs[i++]);
         setTimeout(attemptNext, 900);
       };
       attemptNext();
     }
 
-    function tryOpenIOS() {
+    function tryOpenIOS(){
       const isHttps = /^https:/i.test(TARGET_URL);
       const chromeScheme = isHttps ? 'googlechromes' : 'googlechrome';
       const schemes = [chromeScheme, 'brave', 'firefox', 'microsoft-edge'];
-
       let i = 0;
       const attemptNext = () => {
-        if (i >= schemes.length) {
-          // fallback: open in current webview
-          window.location.href = TARGET_URL;
-          return;
-        }
-        const scheme = schemes[i++];
-        const url = TARGET_URL.replace(/^https?:\/\//i, scheme + '://');
-        window.location.href = url;
+        if (i >= schemes.length){ location.href = TARGET_URL; return; }
+        const url = TARGET_URL.replace(/^https?:\/\//i, schemes[i++] + '://');
+        location.href = url;
         setTimeout(attemptNext, 900);
       };
       attemptNext();
     }
 
-    function tryOpenOther() {
-      // Many in-app browsers still open a new tab inside app; fallback remains helpful
+    function tryOpenOther(){
       window.open(TARGET_URL, '_blank', 'noopener,noreferrer');
     }
 
-    function openExternal() {
+    function openExternal(){
       haptic(12);
       setLoading(true);
-
-      // Stop loading UI if user returns
-      const release = () => setLoading(false);
-      setTimeout(release, 5000);
+      setTimeout(() => setLoading(false), 5000);
 
       if (isAndroid) return tryOpenAndroid();
       if (isIOS) return tryOpenIOS();
@@ -352,34 +303,24 @@
 
     openBtn.addEventListener('click', openExternal);
 
-    // Stop spinner if page becomes hidden (likely switched app/browser)
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) setLoading(false);
     });
 
-    // =========================
-    // 6) COPY LINK (robust)
-    // =========================
-    async function copyText(text) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return true;
-      } catch (_) {
-        // fallback
+    // ========= 6) Copy link (robust) =========
+    async function copyText(text){
+      try { await navigator.clipboard.writeText(text); return true; }
+      catch {
         try {
           const ta = document.createElement('textarea');
-          ta.value = text;
-          ta.setAttribute('readonly', '');
-          ta.style.position = 'fixed';
-          ta.style.top = '-1000px';
+          ta.value = text; ta.setAttribute('readonly','');
+          ta.style.position = 'fixed'; ta.style.top = '-1000px';
           document.body.appendChild(ta);
           ta.select();
           const ok = document.execCommand('copy');
           document.body.removeChild(ta);
           return ok;
-        } catch (_) {
-          return false;
-        }
+        } catch { return false; }
       }
     }
 
@@ -389,21 +330,16 @@
       showToast(ok ? 'Đã sao chép link ✅' : 'Không thể sao chép — hãy bấm giữ để copy');
     });
 
-    // =========================
-    // 7) HELP MODAL
-    // =========================
-    function openModal() {
+    // ========= 7) Help modal =========
+    function openModal(){
       modalOverlay.classList.remove('hidden');
-      requestAnimationFrame(() => modalContent.classList.remove('modal-enter-from'));
+      requestAnimationFrame(() => { modalContent.style.opacity='1'; modalContent.style.transform='scale(1)'; });
       haptic(8);
     }
-    function closeModal() {
-      modalContent.classList.add('modal-leave-to');
-      setTimeout(() => {
-        modalOverlay.classList.add('hidden');
-        modalContent.classList.remove('modal-leave-to');
-        modalContent.classList.add('modal-enter-from');
-      }, 250);
+    function closeModal(){
+      modalContent.style.opacity='0';
+      modalContent.style.transform='scale(.97)';
+      setTimeout(() => modalOverlay.classList.add('hidden'), 220);
       haptic(8);
     }
 
@@ -411,13 +347,11 @@
     closeModalBtn.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
-    // =========================
-    // 8) AUTO-TRY (one time per session; cancellable)
-    // =========================
+    // ========= 8) Auto-try open (safe / cancellable) =========
     let autoTimer = null;
     let autoCancelled = false;
 
-    function startAutoOpen(seconds) {
+    function startAutoOpen(seconds){
       autoOpenBox.classList.remove('hidden');
       let s = seconds;
       countdownEl.textContent = String(s);
@@ -426,10 +360,10 @@
         if (autoCancelled) return;
         s -= 1;
         countdownEl.textContent = String(s);
-        if (s <= 0) {
+        if (s <= 0){
           clearInterval(autoTimer);
           autoTimer = null;
-          // NOTE: may be blocked if no user gesture; but harmless and helps on some Android builds
+          // may be blocked without user gesture; still helps on some Android builds
           openExternal();
         }
       }, 1000);
@@ -440,79 +374,71 @@
       autoCancelled = true;
       if (autoTimer) clearInterval(autoTimer);
       autoOpenBox.classList.add('hidden');
-      showToast('Đã huỷ tự mở');
+      showToast('Đã huỷ tự thử mở');
     });
 
-    if (isInApp && params.get('autotry') !== '0') {
+    if (isInApp && params.get('autotry') !== '0'){
       const key = 'auto_open_once_ts';
       const last = Number(sessionStorage.getItem(key) || '0');
       const now = Date.now();
-
-      // avoid spam retries within 30s
-      if (!last || (now - last) > 30000) {
+      if (!last || (now - last) > 30000){
         sessionStorage.setItem(key, String(now));
         startAutoOpen(3);
       }
     }
 
-    // =========================
-    // 9) LIGHT CANVAS (disable in reduce-motion)
-    // =========================
+    // ========= 9) Lightweight canvas =========
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const canvas = document.getElementById('backgroundCanvas');
-    if (canvas && !reduceMotion) {
+    if (canvas && !reduceMotion){
       const ctx = canvas.getContext('2d');
       let particles = [];
 
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+      function resizeCanvas(){
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
       }
 
-      class Particle {
-        constructor(x, y, r, vx, vy, a) {
-          this.x = x; this.y = y; this.r = r; this.vx = vx; this.vy = vy; this.a = a;
-        }
-        step() {
-          this.x += this.vx;
-          this.y += this.vy;
+      class Particle{
+        constructor(x,y,r,vx,vy,a){ this.x=x; this.y=y; this.r=r; this.vx=vx; this.vy=vy; this.a=a; }
+        step(){
+          this.x += this.vx; this.y += this.vy;
           if (this.x < -20) this.x = canvas.width + 20;
           if (this.x > canvas.width + 20) this.x = -20;
           if (this.y < -20) this.y = canvas.height + 20;
           if (this.y > canvas.height + 20) this.y = -20;
         }
-        draw() {
+        draw(){
           ctx.beginPath();
-          ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+          ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
           ctx.fillStyle = 'rgba(255,255,255,' + this.a + ')';
           ctx.fill();
         }
       }
 
-      function init() {
+      function init(){
         resizeCanvas();
         particles = [];
         const n = Math.min(42, Math.floor((canvas.width * canvas.height) / 40000));
-        for (let i = 0; i < n; i++) {
-          const r = Math.random() * 3 + 1.5;
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const vx = (Math.random() - 0.5) * 0.25;
-          const vy = (Math.random() - 0.5) * 0.25;
-          const a = 0.10 + Math.random() * 0.18;
-          particles.push(new Particle(x, y, r, vx, vy, a));
+        for (let i=0;i<n;i++){
+          const r = Math.random()*3 + 1.5;
+          const x = Math.random()*canvas.width;
+          const y = Math.random()*canvas.height;
+          const vx = (Math.random()-0.5)*0.25;
+          const vy = (Math.random()-0.5)*0.25;
+          const a = 0.10 + Math.random()*0.18;
+          particles.push(new Particle(x,y,r,vx,vy,a));
         }
       }
 
-      function loop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (const p of particles) { p.step(); p.draw(); }
+      function loop(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for (const p of particles){ p.step(); p.draw(); }
         requestAnimationFrame(loop);
       }
 
-      window.addEventListener('resize', init);
-      init();
-      loop();
+      addEventListener('resize', init);
+      init(); loop();
     }
   })();
   </script>
