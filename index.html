@@ -127,55 +127,48 @@
         </div>
     </main>
 
-    <!-- FOOTER WITH SMART MAP BUTTON -->
-    <footer class="bg-[#2d2d2d] text-white pt-8 pb-8 mt-auto border-t-4 border-[#ee4d2d] relative z-10">
+    <!-- FOOTER TINH GỌN - 3 CỘT THÔNG MINH -->
+    <footer class="bg-[#2d2d2d] text-white py-6 mt-auto border-t-4 border-[#ee4d2d] relative z-10 text-sm">
         <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 
-                <!-- Info & Address -->
-                <div class="text-center md:text-left w-full md:w-2/3">
-                    <p class="text-lg font-bold text-[#ee4d2d] mb-3 flex items-center justify-center md:justify-start gap-2 uppercase tracking-wide">
-                        <i class="fa-solid fa-shop"></i> MimiFlower Shop
+                <!-- Cột 1: Thương hiệu -->
+                <div class="text-center md:text-left">
+                    <p class="text-base font-bold text-[#ee4d2d] uppercase tracking-wider mb-2">
+                        <i class="fa-solid fa-shop mr-1"></i> MimiFlower Shop
                     </p>
-                    <p class="text-sm text-gray-400 mb-4 leading-relaxed">
-                        Thế giới hoa lụa & decor cao cấp. Mang đến không gian sống tinh tế và ấm cúng cho ngôi nhà của bạn.
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Thế giới hoa lụa & decor cao cấp.
+                        <br>Mang vẻ đẹp tinh tế đến ngôi nhà bạn.
                     </p>
-                    <div class="space-y-2 text-sm text-gray-300 bg-[#383838] p-4 rounded-lg border border-gray-600 inline-block w-full md:w-auto">
-                        <p class="flex items-start justify-center md:justify-start gap-2">
-                            <i class="fa-solid fa-location-dot text-[#ee4d2d] mt-1"></i> 
-                            <span>Số 3 Ngõ Văn Chỉ 1, Thôn Phù Mã, Xã Sóc Sơn, TP. Hà Nội</span>
+                </div>
+
+                <!-- Cột 2: Liên hệ -->
+                <div class="text-center md:text-left">
+                    <p class="font-bold text-gray-300 mb-2 uppercase text-xs tracking-wide">Liên hệ</p>
+                    <div class="space-y-1.5 text-gray-400 text-xs">
+                        <p class="flex items-center justify-center md:justify-start gap-2">
+                            <i class="fa-solid fa-location-dot text-[#ee4d2d]"></i> 
+                            <span>Sóc Sơn, TP. Hà Nội</span>
                         </p>
                         <p class="flex items-center justify-center md:justify-start gap-2">
-                            <i class="fa-solid fa-phone-volume text-[#ee4d2d]"></i> 
+                            <i class="fa-solid fa-phone text-[#ee4d2d]"></i> 
                             <a href="tel:0348211187" class="hover:text-white transition-colors">0348.211.187</a>
                         </p>
                     </div>
                 </div>
 
-                <!-- Smart Map Button -->
-                <div class="w-full md:w-1/3 flex flex-col items-center md:items-end">
+                <!-- Cột 3: Chỉ đường (Nút Map Gọn) -->
+                <div class="flex flex-col items-center md:items-end">
                     <a href="https://mimihoalua.github.io/mimihoalua/map.html" 
-                       class="group w-full md:w-auto flex items-center gap-4 bg-white/5 hover:bg-white/10 border-2 border-[#ee4d2d] rounded-xl p-3 pr-5 transition-all duration-300 active:scale-95 shadow-lg hover:shadow-[#ee4d2d]/30">
-                        <div class="w-12 h-12 rounded-full bg-[#ee4d2d] flex items-center justify-center text-white text-xl shadow-md animate-pulse">
-                            <i class="fa-solid fa-map-location-dot"></i>
+                       class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-[#ee4d2d]/50 rounded-lg px-3 py-2 transition-all active:scale-95 group w-full md:w-auto justify-center">
+                        <i class="fa-solid fa-map-location-dot text-[#ee4d2d] text-lg group-hover:animate-bounce"></i>
+                        <div class="text-left">
+                            <div class="text-[10px] text-gray-400 font-medium">Bấm để</div>
+                            <div class="text-xs font-bold text-white">Chỉ đường đến Shop</div>
                         </div>
-                        <div class="text-left flex-1">
-                            <div class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Dẫn đường nhanh</div>
-                            <div class="text-base font-bold text-white group-hover:text-[#ee4d2d] transition-colors">Xem Bản Đồ Shop</div>
-                        </div>
-                        <i class="fa-solid fa-arrow-right text-gray-500 group-hover:translate-x-1 transition-transform"></i>
                     </a>
-                    <p class="text-[10px] text-gray-500 mt-2 flex items-center gap-1 italic">
-                        <i class="fa-solid fa-mobile-screen-button"></i>
-                        <span>Tối ưu chỉ đường trên điện thoại</span>
-                    </p>
                 </div>
-            </div>
-
-            <!-- Footer Bottom -->
-            <div class="mt-8 pt-4 border-t border-gray-700 text-[10px] md:text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center gap-2">
-                <span>© 2025 MimiFlower. All rights reserved.</span>
-                <span class="flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> 100% Secure PWA</span>
             </div>
         </div>
     </footer>
