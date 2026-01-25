@@ -54,7 +54,7 @@
                 <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Gemini API Key</label>
                 <div class="mt-1 flex gap-2">
                     <input type="password" id="custom-api-key" placeholder="API Key đã được cài đặt sẵn..." class="flex-1 px-4 py-2 text-sm rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-400">
-                    <p class="text-[10px] text-slate-500 max-w-[200px]">Hệ thống đã nhận diện API Key của bạn. Bạn chỉ cần nhập lại nếu muốn đổi Key khác.</p>
+                    <p class="text-[10px] text-slate-500 max-w-[200px]">Hệ thống sử dụng cơ chế xoay vòng Key thông minh. Bạn chỉ cần nhập nếu muốn dùng Key cá nhân khác.</p>
                 </div>
             </div>
 
@@ -143,7 +143,12 @@
 
     <script>
         // --- Configuration ---
-        const systemApiKey = "AIzaSyCyFmGYeqYmTRzpWB1bAkWYvh-BCvclDSc"; 
+        // Danh sách API Keys hệ thống (Tự động xoay vòng nếu lỗi)
+        const systemApiKeys = [
+            "AIzaSyCyFmGYeqYmTRzpWB1bAkWYvh-BCvclDSc",
+            "AIzaSyBxvTrYseLRVrUukemd38ZLN5pesL92SMg"
+        ]; 
+        
         let currentInputType = 'file';
         let selectedFile = null;
         const MAX_FILE_SIZE = 30 * 1024 * 1024;
@@ -237,13 +242,13 @@
             });
         }
 
+        /**
+         * Hàm gọi AI thông minh: Thử nghiệm lần lượt các API Key có sẵn
+         */
         async function callGeminiAI(base64Data, mimeType) {
-            const finalApiKey = customApiKeyInput.value.trim() || systemApiKey;
+            const customKey = customApiKeyInput.value.trim();
+            const keysToTry = customKey ? [customKey] : [...systemApiKeys];
             
-            if (!finalApiKey) {
-                throw new Error("403_NO_KEY: API Key đang để trống. Vui lòng nhập API Key trong phần Cấu hình.");
-            }
-
             const systemPrompt = "Bạn là một chuyên gia gỡ băng (transcriber). Hãy nghe video/audio này và chép lại chính xác 100% lời người nói bằng tiếng Việt. Yêu cầu: Giữ nguyên ngữ điệu, chia đoạn rõ ràng, sửa các lỗi nói lắp và đảm bảo đúng chính tả văn phong tiếng Việt chuyên nghiệp.";
             const userQuery = "Hãy gỡ băng toàn bộ nội dung trong video này sang tiếng Việt.";
 
@@ -257,31 +262,49 @@
                 systemInstruction: { parts: [{ text: systemPrompt }] }
             };
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${finalApiKey}`;
+            // Thử từng Key cho đến khi thành công hoặc hết Key
+            for (let k = 0; k < keysToTry.length; k++) {
+                const currentKey = keysToTry[k];
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentKey}`;
+                
+                if (keysToTry.length > 1) {
+                    console.log(`Đang thử dùng API Key ${k + 1}...`);
+                }
 
-            let delay = 1000;
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                let delay = 1000;
+                for (let i = 0; i < 3; i++) { // Thử lại tối đa 3 lần cho mỗi Key
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
 
-                    if (!response.ok) {
-                        if (response.status === 403) throw new Error("403_FORBIDDEN");
-                        if (response.status === 413) throw new Error("413_PAYLOAD_TOO_LARGE");
-                        throw new Error(`HTTP_${response.status}`);
+                        if (!response.ok) {
+                            // Nếu lỗi 403 (Forbidden) hoặc 429 (Too many requests), chuyển sang Key tiếp theo
+                            if (response.status === 403 || response.status === 429) {
+                                console.warn(`Key ${k + 1} gặp lỗi ${response.status}. Chuyển vùng dự phòng...`);
+                                break; // Thoát vòng lặp retry để đổi Key
+                            }
+                            if (response.status === 413) throw new Error("413_PAYLOAD_TOO_LARGE");
+                            throw new Error(`HTTP_${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    } catch (err) {
+                        // Nếu là lỗi payload quá lớn hoặc đã thử hết số lần retry mà không phải lỗi đổi key
+                        if (err.message.includes("413") || i === 2) {
+                            if (k === keysToTry.length - 1) throw err; // Nếu là Key cuối cùng thì mới bắn lỗi
+                            break; 
+                        }
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
                     }
-                    
-                    const data = await response.json();
-                    return data.candidates?.[0]?.content?.parts?.[0]?.text;
-                } catch (err) {
-                    if (i === 4 || err.message.includes("403") || err.message.includes("413")) throw err;
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
                 }
             }
+            
+            throw new Error("Tất cả các API Key dự phòng đều không khả dụng hoặc bị giới hạn.");
         }
 
         btnProcess.addEventListener('click', async () => {
@@ -293,7 +316,7 @@
             btnLoader.classList.remove('hidden');
             hideError();
             resultContainer.classList.add('hidden');
-            setStatus("Bắt đầu xử lý...");
+            setStatus("Bắt đầu khởi tạo...");
 
             try {
                 if (currentInputType === 'url') throw new Error("CORS_LIMIT: Do bảo mật trình duyệt, vui lòng tải video về và dùng chức năng 'Tải File Lên'.");
@@ -301,7 +324,7 @@
                 setStatus("Đang mã hóa dữ liệu...");
                 const base64 = await fileToBase64(selectedFile);
                 
-                setStatus("AI đang 'lắng nghe' và gỡ băng (có thể mất 1-2 phút)...");
+                setStatus("AI đang 'lắng nghe' (Hệ thống tự động điều phối API Key)...");
                 const transcription = await callGeminiAI(base64, selectedFile.type);
                 
                 if (transcription) {
@@ -311,10 +334,8 @@
                     resultContainer.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) {
-                if (err.message.includes("403_FORBIDDEN")) {
-                    showError("Lỗi Hệ Thống (403)", "Truy cập bị từ chối. Nguyên nhân có thể do API Key sai, không có quyền dùng model Preview, hoặc vùng địa lý bị chặn. Hãy thử kiểm tra lại Key hoặc vùng truy cập.");
-                } else if (err.message.includes("403_NO_KEY")) {
-                    showError("Thiếu API Key", "Vui lòng kiểm tra lại cấu hình API.");
+                if (err.message.includes("HTTP_403") || err.message.includes("403_FORBIDDEN")) {
+                    showError("Lỗi Truy Cập (403)", "Tất cả các API Key hiện tại đều bị từ chối. Có thể do giới hạn vùng địa lý hoặc model Preview đã hết hạn dùng thử.");
                 } else {
                     showError("Lỗi Xử Lý", err.message);
                 }
