@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyên Gia Gỡ Băng AI - Tiếng Việt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div class="max-w-4xl mx-auto px-4 py-8 md:py-12">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <div class="inline-flex items-center justify-center p-4 bg-blue-600 rounded-2xl mb-4 text-white shadow-lg shadow-blue-200">
+                <i data-lucide="video" class="w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Chuyên Gia Gỡ Băng AI</h1>
+            <p class="text-slate-600">Chuyển đổi video/âm thanh tiếng Việt thành văn bản hoàn chỉnh</p>
+        </header>
+
+        <!-- Main Card -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-100 p-2 bg-slate-50/50">
+                <button id="tab-file" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all text-blue-600 bg-white shadow-sm">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Tải File Lên
+                </button>
+                <button id="tab-url" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all text-slate-500 hover:text-slate-700">
+                    <i data-lucide="link" class="w-4 h-4"></i> Link Video
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <!-- File Upload Section -->
+                <div id="section-file" class="block">
+                    <div class="relative border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group cursor-pointer" id="drop-zone">
+                        <input type="file" id="file-input" accept="video/*,audio/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <i data-lucide="cloud-upload" class="w-8 h-8"></i>
+                            </div>
+                            <p class="text-lg font-semibold text-slate-700" id="file-name-display">Nhấp hoặc kéo thả tệp vào đây</p>
+                            <p class="text-sm text-slate-400 mt-2">Hỗ trợ MP4, MOV, AVI, MP3, WAV (Tối đa 20MB)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- URL Section -->
+                <div id="section-url" class="hidden space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-slate-700 ml-1">Đường dẫn video (TikTok, YouTube...)</label>
+                        <input type="text" id="url-input" placeholder="https://www.tiktok.com/@user/video/..." class="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                    <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl text-amber-700 text-sm">
+                        <i data-lucide="alert-circle" class="w-5 h-5 mt-0.5 shrink-0"></i>
+                        <p><strong>Lưu ý:</strong> Một số nền tảng như TikTok có thể chặn bot. Nếu gặp lỗi, hãy tải video về máy và sử dụng chức năng "Tải File Lên" để có kết quả tốt nhất.</p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button id="btn-process" class="w-full mt-8 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
+                    <span id="btn-text">Bắt Đầu Gỡ Băng</span>
+                    <div id="btn-loader" class="loading-spinner hidden"></div>
+                </button>
+
+                <!-- Status Text -->
+                <p id="status-display" class="mt-4 text-center text-sm font-medium text-slate-500 hidden"></p>
+                
+                <!-- Error Message -->
+                <div id="error-display" class="mt-4 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl hidden flex items-center gap-3 text-sm animate-fade-in">
+                    <i data-lucide="x-circle" class="w-5 h-5 shrink-0"></i>
+                    <span id="error-text"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-container" class="mt-8 hidden animate-fade-in">
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2 font-bold text-slate-800">
+                        <i data-lucide="file-text" class="w-5 h-5 text-blue-500"></i>
+                        Văn Bản Gỡ Băng
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="btn-copy" class="p-2.5 text-slate-600 hover:bg-white hover:text-blue-600 rounded-xl transition-all border border-transparent hover:border-slate-200 bg-slate-100/50" title="Sao chép">
+                            <i data-lucide="copy" class="w-5 h-5" id="copy-icon"></i>
+                        </button>
+                        <button id="btn-download" class="p-2.5 text-slate-600 hover:bg-white hover:text-blue-600 rounded-xl transition-all border border-transparent hover:border-slate-200 bg-slate-100/50" title="Tải về file .txt">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-8">
+                    <div id="result-content" class="whitespace-pre-wrap text-slate-700 leading-relaxed text-lg min-h-[200px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-12 text-center text-slate-400 text-sm">
+            <p>© 2024 AI Transcriber • Powered by Gemini 2.5 Flash</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const apiKey = ""; // API Key được cung cấp bởi hệ thống
+        let currentInputType = 'file';
+        let selectedFile = null;
+
+        // --- DOM Elements ---
+        const tabFile = document.getElementById('tab-file');
+        const tabUrl = document.getElementById('tab-url');
+        const sectionFile = document.getElementById('section-file');
+        const sectionUrl = document.getElementById('section-url');
+        const fileInput = document.getElementById('file-input');
+        const urlInput = document.getElementById('url-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const btnProcess = document.getElementById('btn-process');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const statusDisplay = document.getElementById('status-display');
+        const errorDisplay = document.getElementById('error-display');
+        const errorText = document.getElementById('error-text');
+        const resultContainer = document.getElementById('result-container');
+        const resultContent = document.getElementById('result-content');
+        const btnCopy = document.getElementById('btn-copy');
+        const btnDownload = document.getElementById('btn-download');
+        const copyIcon = document.getElementById('copy-icon');
+
+        // --- Tab Switching ---
+        tabFile.addEventListener('click', () => {
+            currentInputType = 'file';
+            tabFile.classList.add('text-blue-600', 'bg-white', 'shadow-sm');
+            tabFile.classList.remove('text-slate-500');
+            tabUrl.classList.remove('text-blue-600', 'bg-white', 'shadow-sm');
+            tabUrl.classList.add('text-slate-500');
+            sectionFile.classList.remove('hidden');
+            sectionUrl.classList.add('hidden');
+            resetUI();
+        });
+
+        tabUrl.addEventListener('click', () => {
+            currentInputType = 'url';
+            tabUrl.classList.add('text-blue-600', 'bg-white', 'shadow-sm');
+            tabUrl.classList.remove('text-slate-500');
+            tabFile.classList.remove('text-blue-600', 'bg-white', 'shadow-sm');
+            tabFile.classList.add('text-slate-500');
+            sectionUrl.classList.remove('hidden');
+            sectionFile.classList.add('hidden');
+            resetUI();
+        });
+
+        // --- File Handling ---
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 25 * 1024 * 1024) {
+                    showError("Kích thước tệp quá lớn. Vui lòng chọn tệp dưới 25MB.");
+                    fileInput.value = '';
+                    return;
+                }
+                selectedFile = file;
+                fileNameDisplay.textContent = file.name;
+                hideError();
+            }
+        });
+
+        // --- UI Logic ---
+        function resetUI() {
+            hideError();
+            resultContainer.classList.add('hidden');
+        }
+
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorDisplay.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorDisplay.classList.add('hidden');
+        }
+
+        function setStatus(msg) {
+            if (msg) {
+                statusDisplay.textContent = msg;
+                statusDisplay.classList.remove('hidden');
+            } else {
+                statusDisplay.classList.add('hidden');
+            }
+        }
+
+        // --- AI Processing ---
+        async function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function callGeminiAI(base64Data, mimeType) {
+            const systemPrompt = "Bạn là một chuyên gia gỡ băng (transcriber). Hãy nghe video/audio này và chép lại chính xác 100% lời người nói bằng tiếng Việt. Yêu cầu: Giữ nguyên ngữ điệu, chia đoạn rõ ràng, sửa các lỗi nói lắp và đảm bảo đúng chính tả văn phong tiếng Việt chuyên nghiệp.";
+            const userQuery = "Hãy gỡ băng toàn bộ nội dung trong video này sang tiếng Việt.";
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: userQuery },
+                        { inlineData: { mimeType: mimeType, data: base64Data } }
+                    ]
+                }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`Lỗi hệ thống (${response.status})`);
+                    
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                } catch (err) {
+                    if (i === 4) throw err;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        btnProcess.addEventListener('click', async () => {
+            if (currentInputType === 'file' && !selectedFile) {
+                showError("Vui lòng chọn một tệp video hoặc âm thanh.");
+                return;
+            }
+            if (currentInputType === 'url' && !urlInput.value) {
+                showError("Vui lòng nhập đường dẫn video.");
+                return;
+            }
+
+            // Start loading
+            btnProcess.disabled = true;
+            btnText.textContent = "Đang xử lý...";
+            btnLoader.classList.remove('hidden');
+            hideError();
+            resultContainer.classList.add('hidden');
+            setStatus("Bắt đầu xử lý dữ liệu...");
+
+            try {
+                if (currentInputType === 'url') {
+                    throw new Error("Lưu ý: Truy cập URL trực tiếp bị hạn chế bởi bảo mật trình duyệt (CORS). Vui lòng tải video về và dùng chức năng 'Tải File Lên' để AI có thể đọc trực tiếp.");
+                }
+
+                setStatus("Đang tải dữ liệu tệp lên AI...");
+                const base64 = await fileToBase64(selectedFile);
+                
+                setStatus("AI đang 'lắng nghe' và gỡ băng tiếng Việt (có thể mất 1-2 phút)...");
+                const transcription = await callGeminiAI(base64, selectedFile.type);
+                
+                if (transcription) {
+                    resultContent.textContent = transcription;
+                    resultContainer.classList.remove('hidden');
+                    setStatus("");
+                    // Scroll to result
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    throw new Error("AI không thể trích xuất nội dung. Hãy thử với tệp rõ ràng hơn.");
+                }
+            } catch (err) {
+                showError(err.message);
+                setStatus("");
+            } finally {
+                btnProcess.disabled = false;
+                btnText.textContent = "Bắt Đầu Gỡ Băng";
+                btnLoader.classList.add('hidden');
+            }
+        });
+
+        // --- Export Features ---
+        btnCopy.addEventListener('click', () => {
+            const text = resultContent.textContent;
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            // Visual feedback
+            const originalIcon = copyIcon.getAttribute('data-lucide');
+            copyIcon.setAttribute('data-lucide', 'check');
+            copyIcon.classList.add('text-green-500');
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                copyIcon.setAttribute('data-lucide', 'copy');
+                copyIcon.classList.remove('text-green-500');
+                lucide.createIcons();
+            }, 2000);
+        });
+
+        btnDownload.addEventListener('click', () => {
+            const text = resultContent.textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `go-bang-${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
+
+        // Initialize Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
