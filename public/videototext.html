@@ -48,7 +48,7 @@
                 <i data-lucide="video" class="w-8 h-8"></i>
             </div>
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">AI Transcriber Pro</h1>
-            <p class="text-slate-600">Gỡ băng video, âm thanh & Biên tập giọng đọc miền Bắc chuẩn</p>
+            <p class="text-slate-600">Gỡ băng video không mốc thời gian & Trình đọc văn bản thông minh</p>
         </header>
 
         <!-- Main Card -->
@@ -160,7 +160,7 @@
                         Bạn có thể nhấp trực tiếp vào văn bản bên dưới để sửa chữ lỗi hoặc từ địa phương trước khi nghe.
                     </div>
                     <!-- Editable area for results -->
-                    <div id="result-content-container" contenteditable="true" class="whitespace-pre-wrap text-slate-700 leading-relaxed text-xl min-h-[300px] p-4 focus:bg-slate-50/50 transition-colors rounded-xl"></div>
+                    <div id="result-content-container" contenteditable="true" class="whitespace-pre-wrap text-slate-700 leading-relaxed text-xl min-h-[300px] p-4 focus:bg-slate-50/50 transition-colors rounded-xl outline-none"></div>
                 </div>
             </div>
         </div>
@@ -337,7 +337,6 @@
 
             try {
                 if (currentTab === 'manual') {
-                    // Xử lý trực tiếp văn bản thủ công
                     prepareTextForHighlight(manualTextInput.value);
                 } else {
                     if (currentTab === 'url') throw new Error("Chế độ link đang được bảo trì. Vui lòng tải file lên.");
@@ -346,10 +345,10 @@
                     const base64 = await fileToBase64(selectedFile);
                     const payload = {
                         contents: [{ parts: [
-                            { text: "Hãy gỡ băng chính xác 100% lời nói tiếng Việt trong video này. Chia đoạn rõ ràng, đúng chính tả." },
+                            { text: "Hãy gỡ băng chính xác lời nói tiếng Việt trong video này. YÊU CẦU: Chia đoạn rõ ràng, ĐÚNG CHÍNH TẢ và TUYỆT ĐỐI KHÔNG bao gồm mốc thời gian (như 00:01, [00:05])." },
                             { inlineData: { mimeType: selectedFile.type, data: base64 } }
                         ]}],
-                        systemInstruction: { parts: [{ text: "Bạn là chuyên gia gỡ băng chuyên nghiệp. Giữ nguyên sắc thái giọng nói, sửa lỗi lặp từ vô nghĩa." }] }
+                        systemInstruction: { parts: [{ text: "Bạn là chuyên gia gỡ băng chuyên nghiệp. Chép lại lời thoại 100%, giữ nguyên ngữ điệu, sửa các lỗi nói lắp và KHÔNG ghi lại mốc thời gian." }] }
                     };
 
                     const result = await smartRequest(payload);
@@ -369,8 +368,11 @@
         });
 
         function prepareTextForHighlight(fullText) {
-            // Tách theo câu và ngắt dòng để bôi màu thông minh
-            const sentences = fullText.split(/([.!?\n]+)/g);
+            // Lọc bỏ bất kỳ mốc thời gian nào dạng (00:00) hoặc [00:00] còn sót lại
+            const cleanedText = fullText.replace(/[\(\[]\d{1,2}:\d{2}(:\d{2})?[\)\]]/g, '').trim();
+            
+            // Tách theo câu và ngắt dòng
+            const sentences = cleanedText.split(/([.!?\n]+)/g);
             resultContentContainer.innerHTML = "";
             sentences.forEach((s, i) => {
                 if (s.trim()) {
@@ -393,7 +395,6 @@
                 return;
             }
 
-            // Lấy toàn bộ các phần tử con để đọc (span chứa câu)
             const elements = Array.from(resultContentContainer.childNodes).filter(node => node.nodeName === "SPAN");
             if (elements.length === 0) return;
 
@@ -403,62 +404,112 @@
             lucide.createIcons();
 
             try {
-                for (let i = 0; i < elements.length; i++) {
-                    if (!isSpeaking) break;
-                    
-                    const el = elements[i];
-                    const textToRead = el.textContent.trim();
-                    if (!textToRead) continue;
-
-                    // Highlight UI
-                    el.classList.add('highlight-reading');
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    const payload = {
-                        contents: [{ parts: [{ text: `Say clearly in a standard Northern Vietnamese voice: ${textToRead}` }] }],
-                        generationConfig: {
-                            responseModalities: ["AUDIO"],
-                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
-                        }
-                    };
-
-                    const result = await smartRequest(payload, true);
-                    const audioData = result.candidates[0].content.parts[0].inlineData;
-                    const sampleRate = parseInt(audioData.mimeType.match(/rate=(\d+)/)[1]);
-                    
-                    const binary = atob(audioData.data);
-                    const pcm = new Int16Array(binary.length / 2);
-                    for (let j = 0; j < pcm.length; j++) {
-                        pcm[j] = (binary.charCodeAt(j * 2) & 0xFF) | (binary.charCodeAt(j * 2 + 1) << 8);
-                    }
-
-                    const audioBlob = pcmToWav(pcm, sampleRate);
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audio = new Audio(audioUrl);
-                    audioElements.push(audio);
-
-                    await new Promise((res) => {
-                        audio.onended = () => {
-                            el.classList.remove('highlight-reading');
-                            URL.revokeObjectURL(audioUrl);
-                            res();
-                        };
-                        audio.play();
-                        if (!isSpeaking) { audio.pause(); res(); }
-                    });
-                }
+                // Thử dùng Gemini TTS trước
+                await speakWithGeminiTTS(elements);
             } catch (err) {
-                console.error(err);
-                showError("Lỗi giọng đọc", "Không thể khởi tạo TTS. Vui lòng kiểm tra lại Key.");
+                console.warn("Gemini TTS gặp lỗi, chuyển sang trình đọc trình duyệt...", err);
+                await speakWithBrowserTTS(elements);
             } finally {
                 stopSpeaking();
             }
         });
 
+        async function speakWithGeminiTTS(elements) {
+            for (let i = 0; i < elements.length; i++) {
+                if (!isSpeaking) break;
+                
+                const el = elements[i];
+                const textToRead = el.textContent.trim();
+                if (!textToRead) continue;
+
+                el.classList.add('highlight-reading');
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                const payload = {
+                    contents: [{ parts: [{ text: `Say clearly in a standard Northern Vietnamese voice: ${textToRead}` }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                    }
+                };
+
+                const result = await smartRequest(payload, true);
+                const audioData = result.candidates[0].content.parts[0].inlineData;
+                const sampleRate = parseInt(audioData.mimeType.match(/rate=(\d+)/)[1]);
+                
+                const binary = atob(audioData.data);
+                const pcm = new Int16Array(binary.length / 2);
+                for (let j = 0; j < pcm.length; j++) {
+                    pcm[j] = (binary.charCodeAt(j * 2) & 0xFF) | (binary.charCodeAt(j * 2 + 1) << 8);
+                }
+
+                const audioBlob = pcmToWav(pcm, sampleRate);
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audioElements.push(audio);
+
+                await new Promise((res) => {
+                    audio.onended = () => {
+                        el.classList.remove('highlight-reading');
+                        URL.revokeObjectURL(audioUrl);
+                        res();
+                    };
+                    audio.play();
+                    if (!isSpeaking) { audio.pause(); res(); }
+                });
+            }
+        }
+
+        async function speakWithBrowserTTS(elements) {
+            const synth = window.speechSynthesis;
+            
+            for (let i = 0; i < elements.length; i++) {
+                if (!isSpeaking) break;
+                
+                const el = elements[i];
+                const textToRead = el.textContent.trim();
+                if (!textToRead) continue;
+
+                el.classList.add('highlight-reading');
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                const utterance = new SpeechSynthesisUtterance(textToRead);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 1.0;
+                
+                // Cố gắng chọn giọng đọc tiếng Việt nếu có
+                const voices = synth.getVoices();
+                const viVoice = voices.find(v => v.lang.includes('vi')) || voices[0];
+                utterance.voice = viVoice;
+
+                await new Promise((resolve) => {
+                    utterance.onend = () => {
+                        el.classList.remove('highlight-reading');
+                        resolve();
+                    };
+                    utterance.onerror = () => {
+                        el.classList.remove('highlight-reading');
+                        resolve();
+                    };
+                    synth.speak(utterance);
+                    
+                    // Cơ chế kiểm tra dừng đọc giữa chừng
+                    const checkInterval = setInterval(() => {
+                        if (!isSpeaking) {
+                            synth.cancel();
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+        }
+
         function stopSpeaking() {
             isSpeaking = false;
             audioElements.forEach(a => a.pause());
             audioElements = [];
+            window.speechSynthesis.cancel();
             document.querySelectorAll('.highlight-reading').forEach(el => el.classList.remove('highlight-reading'));
             speakText.textContent = "Nghe đọc";
             speakIcon.setAttribute('data-lucide', 'volume-2');
@@ -474,7 +525,7 @@
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            alert("Đã sao chép văn bản sau khi chỉnh sửa!");
+            alert("Đã sao chép văn bản!");
         });
 
         document.getElementById('btn-download').addEventListener('click', () => {
