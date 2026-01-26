@@ -220,6 +220,8 @@
             "AIzaSyCyFmGYeqYmTRzpWB1bAkWYvh-BCvclDSc",
             "AIzaSyBxvTrYseLRVrUukemd38ZLN5pesL92SMg"
         ];
+        // Định nghĩa dung lượng file tối đa (30MB)
+        const MAX_FILE_SIZE = 30 * 1024 * 1024;
 
         let apiKeys = JSON.parse(localStorage.getItem(STORAGE_KEY)) || INITIAL_KEYS;
         let isOnline = navigator.onLine;
@@ -239,23 +241,39 @@
 
             // Tab Buttons
             ['file', 'url', 'manual'].forEach(tab => {
-                document.getElementById(`tab-${tab}`).onclick = () => switchTab(tab);
+                const el = document.getElementById(`tab-${tab}`);
+                if (el) el.onclick = () => switchTab(tab);
             });
 
-            document.getElementById('btn-manage-keys').onclick = () => document.getElementById('modal-keys').classList.remove('hidden');
-            document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-keys').classList.add('hidden');
-            document.getElementById('btn-add-key').onclick = addKey;
+            const btnManage = document.getElementById('btn-manage-keys');
+            if (btnManage) btnManage.onclick = () => document.getElementById('modal-keys').classList.remove('hidden');
             
-            document.getElementById('file-input').onchange = handleFileSelect;
-            document.getElementById('btn-process').onclick = startProcessing;
-            document.getElementById('btn-speak').onclick = toggleSpeak;
-            document.getElementById('btn-copy').onclick = copyText;
-            document.getElementById('btn-download').onclick = downloadTxt;
+            const btnClose = document.getElementById('btn-close-modal');
+            if (btnClose) btnClose.onclick = () => document.getElementById('modal-keys').classList.add('hidden');
+            
+            const btnAdd = document.getElementById('btn-add-key');
+            if (btnAdd) btnAdd.onclick = addKey;
+            
+            const fileInp = document.getElementById('file-input');
+            if (fileInp) fileInp.onchange = handleFileSelect;
+            
+            const btnProc = document.getElementById('btn-process');
+            if (btnProc) btnProc.onclick = startProcessing;
+            
+            const btnSpk = document.getElementById('btn-speak');
+            if (btnSpk) btnSpk.onclick = toggleSpeak;
+            
+            const btnCpy = document.getElementById('btn-copy');
+            if (btnCpy) btnCpy.onclick = copyText;
+            
+            const btnDwn = document.getElementById('btn-download');
+            if (btnDwn) btnDwn.onclick = downloadTxt;
         }
 
         // --- Toast System ---
         function notify(msg, type = 'info') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = 'toast animate-fade-in';
             
@@ -263,7 +281,7 @@
             const colors = { success: 'text-green-500', error: 'text-red-500', info: 'text-blue-500' };
             
             toast.innerHTML = `
-                <i data-lucide="${icons[type]}" class="${colors[type]} w-6 h-6"></i>
+                <i data-lucide="${icons[type] || 'info'}" class="${colors[type] || 'text-blue-500'} w-6 h-6"></i>
                 <div class="text-sm font-black text-slate-700 uppercase tracking-tighter">${msg}</div>
             `;
             
@@ -284,15 +302,17 @@
             const text = document.getElementById('network-text');
             const btn = document.getElementById('btn-process');
 
+            if (!bar || !text || !btn) return;
+
             if (isOnline) {
                 bar.classList.replace('bg-red-600', 'bg-green-600');
                 text.textContent = "Hệ thống đang Online - Sẵn sàng";
-                dot.classList.add('animate-pulse');
+                if (dot) dot.classList.add('animate-pulse');
                 btn.disabled = false;
             } else {
                 bar.classList.replace('bg-green-600', 'bg-red-600');
                 text.textContent = "Bạn đang Offline - Vui lòng kết nối mạng";
-                dot.classList.remove('animate-pulse');
+                if (dot) dot.classList.remove('animate-pulse');
                 btn.disabled = true;
                 notify('Mất kết nối Internet!', 'error');
             }
@@ -306,21 +326,27 @@
                 b.classList.add('text-slate-500');
             });
             const active = document.getElementById(`tab-${tab}`);
-            active.classList.add('active', 'bg-white', 'shadow-sm', 'text-blue-600', 'border', 'border-blue-100');
-            active.classList.remove('text-slate-500');
+            if (active) {
+                active.classList.add('active', 'bg-white', 'shadow-sm', 'text-blue-600', 'border', 'border-blue-100');
+                active.classList.remove('text-slate-500');
+            }
 
             document.querySelectorAll('.workspace-section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            const section = document.getElementById(`section-${tab}`);
+            if (section) section.classList.remove('hidden');
             
             const btnText = document.getElementById('btn-text');
-            if (tab === 'manual') btnText.textContent = "SỬ DỤNG VĂN BẢN";
-            else if (tab === 'url') btnText.textContent = "PHÂN TÍCH LINK";
-            else btnText.textContent = "BẮT ĐẦU XỬ LÝ";
+            if (btnText) {
+                if (tab === 'manual') btnText.textContent = "SỬ DỤNG VĂN BẢN";
+                else if (tab === 'url') btnText.textContent = "PHÂN TÍCH LINK";
+                else btnText.textContent = "BẮT ĐẦU XỬ LÝ";
+            }
         }
 
         // --- API Keys Management ---
         function renderKeys() {
             const container = document.getElementById('key-list-container');
+            if (!container) return;
             container.innerHTML = apiKeys.map((k, i) => `
                 <div class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-md">
                     <div class="w-10 h-10 flex-shrink-0 bg-white rounded-full flex items-center justify-center text-xs font-black text-slate-300 border border-slate-200">${i+1}</div>
@@ -334,7 +360,7 @@
 
         function addKey() {
             const input = document.getElementById('input-new-key');
-            if (input.value.trim().length < 20) return notify('Key không hợp lệ!', 'error');
+            if (!input || input.value.trim().length < 20) return notify('Key không hợp lệ!', 'error');
             apiKeys.push(input.value.trim());
             input.value = '';
             renderKeys();
@@ -354,26 +380,29 @@
             if (file) {
                 if (file.size > MAX_FILE_SIZE) return notify('Dung lượng tối đa 30MB!', 'error');
                 selectedFile = file;
-                document.getElementById('file-name-display').textContent = file.name;
+                const nameDisplay = document.getElementById('file-name-display');
+                if (nameDisplay) nameDisplay.textContent = file.name;
                 notify('Đã nhận tệp: ' + file.name, 'success');
             }
         }
 
         async function startProcessing() {
             if (currentTab === 'file' && !selectedFile) return notify('Chưa chọn tệp!', 'error');
-            if (currentTab === 'url' && !document.getElementById('url-input').value.trim()) return notify('Chưa nhập Link!', 'error');
-            if (currentTab === 'manual' && !document.getElementById('manual-text-input').value.trim()) return notify('Chưa dán nội dung!', 'error');
+            const urlInp = document.getElementById('url-input');
+            const manualInp = document.getElementById('manual-text-input');
+            if (currentTab === 'url' && (!urlInp || !urlInp.value.trim())) return notify('Chưa nhập Link!', 'error');
+            if (currentTab === 'manual' && (!manualInp || !manualInp.value.trim())) return notify('Chưa dán nội dung!', 'error');
 
             setLoading(true);
             const contentArea = document.getElementById('result-content-container');
-            contentArea.innerHTML = "";
-            document.getElementById('result-container').classList.add('hidden');
+            if (contentArea) contentArea.innerHTML = "";
+            const resCont = document.getElementById('result-container');
+            if (resCont) resCont.classList.add('hidden');
 
             try {
                 if (currentTab === 'manual') {
-                    prepareContent(document.getElementById('manual-text-input').value);
+                    prepareContent(manualInp.value);
                 } else if (currentTab === 'url') {
-                    // Logic mở rộng cho link
                     notify('Đang phân tích Link video...', 'info');
                     throw new Error("Lỗi CORS: Nền tảng video từ chối truy cập trực tiếp. Hãy tải video về máy và dùng tab 'File Tải Lên' để xử lý ổn định nhất.");
                 } else {
@@ -382,8 +411,10 @@
                     prepareContent(result);
                 }
                 
-                document.getElementById('result-container').classList.remove('hidden');
-                document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+                if (resCont) {
+                    resCont.classList.remove('hidden');
+                    resCont.scrollIntoView({ behavior: 'smooth' });
+                }
                 notify('Hoàn tất thành công!', 'success');
             } catch (err) {
                 notify(err.message, 'error');
@@ -423,10 +454,10 @@
 
         // --- UI Utils ---
         function prepareContent(text) {
-            // Loại bỏ mốc thời gian dạng (00:00) hoặc [00:00]
             const clean = text.replace(/[\(\[]\d{1,2}:\d{2}(:\d{2})?[\)\]]/g, '').trim();
             const sentences = clean.split(/([.!?\n]+)/g);
             const container = document.getElementById('result-content-container');
+            if (!container) return;
             container.innerHTML = "";
             
             sentences.forEach((s, i) => {
@@ -449,8 +480,10 @@
             if (!spans.length) return;
 
             isSpeaking = true;
-            document.getElementById('speak-text').textContent = "DỪNG ĐỌC";
-            document.getElementById('speak-icon').setAttribute('data-lucide', 'square');
+            const btnTxt = document.getElementById('speak-text');
+            if (btnTxt) btnTxt.textContent = "DỪNG ĐỌC";
+            const btnIcon = document.getElementById('speak-icon');
+            if (btnIcon) btnIcon.setAttribute('data-lucide', 'square');
             lucide.createIcons();
 
             try {
@@ -467,7 +500,8 @@
                 }
             } catch (e) {
                 notify('Sử dụng trình đọc dự phòng...', 'info');
-                browserSpeak(document.getElementById('result-content-container').innerText);
+                const content = document.getElementById('result-content-container');
+                if (content) browserSpeak(content.innerText);
             } finally {
                 stopSpeaking();
             }
@@ -529,8 +563,10 @@
             audioElements = [];
             window.speechSynthesis.cancel();
             document.querySelectorAll('.highlight-reading').forEach(el => el.classList.remove('highlight-reading'));
-            document.getElementById('speak-text').textContent = "NGHE ĐỌC";
-            document.getElementById('speak-icon').setAttribute('data-lucide', 'play-circle');
+            const btnTxt = document.getElementById('speak-text');
+            if (btnTxt) btnTxt.textContent = "NGHE ĐỌC";
+            const btnIcon = document.getElementById('speak-icon');
+            if (btnIcon) btnIcon.setAttribute('data-lucide', 'play-circle');
             lucide.createIcons();
         }
 
@@ -538,14 +574,15 @@
             const btn = document.getElementById('btn-process');
             const loader = document.getElementById('btn-loader');
             const txt = document.getElementById('btn-text');
-            btn.disabled = loading;
-            loader.className = loading ? 'loading-spinner' : 'hidden';
-            txt.textContent = loading ? "ĐANG LÀM VIỆC..." : "BẮT ĐẦU XỬ LÝ";
+            if (btn) btn.disabled = loading;
+            if (loader) loader.className = loading ? 'loading-spinner' : 'hidden';
+            if (txt) txt.textContent = loading ? "ĐANG LÀM VIỆC..." : "BẮT ĐẦU XỬ LÝ";
             if (!loading) setStatus("");
         }
 
         function setStatus(m) {
             const s = document.getElementById('status-display');
+            if (!s) return;
             if (m) { s.textContent = m; s.classList.remove('hidden'); }
             else s.classList.add('hidden');
         }
@@ -571,12 +608,16 @@
         }
 
         function copyText() {
-            const t = document.getElementById('result-content-container').innerText;
+            const content = document.getElementById('result-content-container');
+            if (!content) return;
+            const t = content.innerText;
             navigator.clipboard.writeText(t).then(() => notify('Đã sao chép!', 'success'));
         }
 
         function downloadTxt() {
-            const b = new Blob([document.getElementById('result-content-container').innerText], { type: 'text/plain' });
+            const content = document.getElementById('result-content-container');
+            if (!content) return;
+            const b = new Blob([content.innerText], { type: 'text/plain' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `transcription-${Date.now()}.txt`;
             a.click(); notify('Đang tải xuống...', 'success');
         }
