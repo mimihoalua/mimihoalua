@@ -112,6 +112,18 @@
         input[type=range] {
             accent-color: var(--primary);
         }
+
+        /* Search Bar Transition */
+        #search-replace-bar {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease;
+        }
+        #search-replace-bar.active {
+            max-height: 120px;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen pb-24">
@@ -242,6 +254,9 @@
                             <i data-lucide="play" class="w-4 h-4" id="speak-icon"></i> <span id="speak-text">NGHE ĐỌC</span>
                         </button>
                         <div class="h-10 w-px bg-slate-200 mx-2"></div>
+                        <button id="btn-toggle-find" class="p-3.5 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-2xl transition-all shadow-sm" title="Tìm & Thay thế">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </button>
                         <button id="btn-copy" class="p-3.5 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-2xl transition-all shadow-sm">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                         </button>
@@ -249,6 +264,21 @@
                             <i data-lucide="file-down" class="w-5 h-5"></i>
                         </button>
                     </div>
+                </div>
+
+                <!-- Find & Replace Bar -->
+                <div id="search-replace-bar" class="px-10 bg-blue-50/30 border-b border-slate-100 flex items-center gap-4 flex-wrap">
+                    <div class="flex-1 min-w-[200px] flex items-center bg-white border border-slate-200 rounded-xl px-4 py-2 focus-within:border-blue-400 transition-all shadow-sm">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 mr-2"></i>
+                        <input type="text" id="find-input" placeholder="Tìm từ ngữ..." class="flex-1 outline-none text-sm font-medium">
+                    </div>
+                    <div class="flex-1 min-w-[200px] flex items-center bg-white border border-slate-200 rounded-xl px-4 py-2 focus-within:border-blue-400 transition-all shadow-sm">
+                        <i data-lucide="replace" class="w-4 h-4 text-slate-400 mr-2"></i>
+                        <input type="text" id="replace-input" placeholder="Thay thế bằng..." class="flex-1 outline-none text-sm font-medium">
+                    </div>
+                    <button id="btn-replace-all" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 whitespace-nowrap uppercase tracking-wider">
+                        Thay thế tất cả
+                    </button>
                 </div>
                 
                 <div class="p-12 md:p-16 relative">
@@ -338,6 +368,13 @@
                 notify('Đã xóa nội dung nháp', 'info');
             };
             document.getElementById('btn-clean-text').onclick = cleanResultText;
+            
+            // Find & Replace Logic
+            const btnToggleFind = document.getElementById('btn-toggle-find');
+            const searchBar = document.getElementById('search-replace-bar');
+            btnToggleFind.onclick = () => searchBar.classList.toggle('active');
+            
+            document.getElementById('btn-replace-all').onclick = handleFindReplace;
 
             // Speed Slider
             const speedInput = document.getElementById('voice-speed');
@@ -362,6 +399,32 @@
                 const file = e.dataTransfer.files[0];
                 if (file) handleFile(file);
             });
+        }
+
+        // --- Find & Replace Logic ---
+        function handleFindReplace() {
+            const findText = document.getElementById('find-input').value;
+            const replaceText = document.getElementById('replace-input').value;
+            const container = document.getElementById('result-content-container');
+            
+            if (!findText) {
+                notify('Vui lòng nhập từ khóa cần tìm!', 'error');
+                return;
+            }
+
+            const currentFullText = container.innerText;
+            if (!currentFullText.includes(findText)) {
+                notify('Không tìm thấy từ khóa trong văn bản!', 'info');
+                return;
+            }
+
+            const newText = currentFullText.split(findText).join(replaceText);
+            const count = currentFullText.split(findText).length - 1;
+
+            prepareContent(newText);
+            updateStats();
+            
+            notify(`Đã thay thế ${count} vị trí!`, 'success');
         }
 
         // --- Notification Engine ---
@@ -516,7 +579,6 @@
             }
         }
 
-        // Intelligent API Failover
         async function callGeminiWithFailover(base64, mimeType) {
             const prompt = "Gỡ băng 100% lời nói tiếng Việt trong tệp này. Đảm bảo đúng chính tả, ngữ pháp chuyên nghiệp. YÊU CẦU: Không bao giờ bao gồm mốc thời gian hoặc chú thích thời điểm.";
             const payload = {
@@ -549,7 +611,6 @@
         // --- Processing & UI Utils ---
         function prepareContent(text) {
             if (typeof text !== 'string') return;
-            // Clean residual timestamps
             const clean = text.replace(/[\(\[]\d{1,2}:\d{2}(:\d{2})?[\)\]]/g, '').trim();
             const sentences = clean.split(/([.!?\n]+)/g);
             const container = document.getElementById('result-content-container');
@@ -570,7 +631,10 @@
         }
 
         async function toggleSpeak() {
-            if (isSpeaking) return stopSpeaking();
+            if (isSpeaking) {
+                stopSpeaking();
+                return;
+            }
             
             const spans = Array.from(document.querySelectorAll('#result-content-container span'));
             if (!spans.length) return;
@@ -589,14 +653,20 @@
                     span.classList.add('highlight-reading');
                     span.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                    await runTTS(txt);
+                    try {
+                        await runTTS(txt);
+                    } catch (e) {
+                        console.warn("Gemini TTS lỗi, chuyển sang trình đọc trình duyệt cho đoạn này...");
+                        await browserSpeak(txt);
+                    }
+                    
                     span.classList.remove('highlight-reading');
                 }
-            } catch (e) {
-                notify('Đang dùng trình đọc dự phòng...', 'info');
-                browserSpeak(document.getElementById('result-content-container').innerText);
             } finally {
-                stopSpeaking();
+                if (isSpeaking) {
+                    stopSpeaking();
+                    notify('Đã đọc xong văn bản!', 'success');
+                }
             }
         }
 
@@ -609,6 +679,7 @@
                 }
             };
 
+            let success = false;
             for (let key of apiKeys) {
                 try {
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${key}`, {
@@ -622,41 +693,60 @@
                     const audioParts = data.candidates?.[0]?.content?.parts;
                     if (!audioParts) continue;
                     
-                    const audioData = audioParts.find(p => p.inlineData)?.inlineData;
-                    if (!audioData) continue;
+                    const audioInlineData = audioParts.find(p => p.inlineData)?.inlineData;
+                    if (!audioInlineData) continue;
 
-                    const b64 = audioData.data;
-                    const rateMatch = audioData.mimeType.match(/rate=(\d+)/);
+                    const b64 = audioInlineData.data;
+                    const rateMatch = audioInlineData.mimeType.match(/rate=(\d+)/);
                     const rate = rateMatch ? parseInt(rateMatch[1]) : 24000;
                     
                     const pcm = base64ToPcm(b64);
                     const blob = pcmToWav(pcm, rate);
                     const audio = new Audio(URL.createObjectURL(blob));
-                    audio.playbackRate = playbackSpeed; // Apply speed
+                    audio.playbackRate = playbackSpeed;
                     audioElements.push(audio);
                     
-                    return new Promise(r => {
+                    await new Promise(r => {
                         audio.onended = r;
                         audio.play();
                         if (!isSpeaking) { audio.pause(); r(); }
                     });
+                    success = true;
+                    break;
                 } catch (e) {}
             }
-            throw new Error("TTS Failover Error");
+            if (!success) throw new Error("TTS Failover Error");
         }
 
-        // Browser Fallback
         function browserSpeak(text) {
-            const synth = window.speechSynthesis;
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.lang = 'vi-VN';
-            utter.rate = playbackSpeed;
-            synth.speak(utter);
+            return new Promise((resolve) => {
+                const synth = window.speechSynthesis;
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'vi-VN';
+                utter.rate = playbackSpeed;
+                
+                utter.onend = () => resolve();
+                utter.onerror = () => resolve();
+                
+                synth.speak(utter);
+                
+                // Kiểm tra nếu người dùng nhấn dừng trong khi đang đọc dự phòng
+                const checkInterval = setInterval(() => {
+                    if (!isSpeaking) {
+                        synth.cancel();
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+            });
         }
 
         function stopSpeaking() {
             isSpeaking = false;
-            audioElements.forEach(a => a.pause());
+            audioElements.forEach(a => {
+                a.pause();
+                a.src = "";
+            });
             audioElements = [];
             window.speechSynthesis.cancel();
             document.querySelectorAll('.highlight-reading').forEach(el => el.classList.remove('highlight-reading'));
@@ -715,7 +805,6 @@
             return new Blob([buf], { type: 'audio/wav' });
         }
 
-        // Export Actions
         function copyText() {
             const t = document.getElementById('result-content-container').innerText;
             navigator.clipboard.writeText(t).then(() => notify('Đã sao chép vào bộ nhớ tạm!', 'success'));
