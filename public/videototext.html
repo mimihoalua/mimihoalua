@@ -59,7 +59,6 @@
 
         .toast.show { transform: translateX(0); }
 
-        /* Custom UI fixes */
         .tab-btn.active {
             background: white;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
@@ -220,7 +219,6 @@
             "AIzaSyCyFmGYeqYmTRzpWB1bAkWYvh-BCvclDSc",
             "AIzaSyBxvTrYseLRVrUukemd38ZLN5pesL92SMg"
         ];
-        // Định nghĩa dung lượng file tối đa (30MB)
         const MAX_FILE_SIZE = 30 * 1024 * 1024;
 
         let apiKeys = JSON.parse(localStorage.getItem(STORAGE_KEY)) || INITIAL_KEYS;
@@ -239,7 +237,6 @@
             window.addEventListener('online', checkNetwork);
             window.addEventListener('offline', checkNetwork);
 
-            // Tab Buttons
             ['file', 'url', 'manual'].forEach(tab => {
                 const el = document.getElementById(`tab-${tab}`);
                 if (el) el.onclick = () => switchTab(tab);
@@ -407,8 +404,9 @@
                     throw new Error("Lỗi CORS: Nền tảng video từ chối truy cập trực tiếp. Hãy tải video về máy và dùng tab 'File Tải Lên' để xử lý ổn định nhất.");
                 } else {
                     const base64 = await toBase64(selectedFile);
-                    const result = await callGeminiWithFailover(base64, selectedFile.type);
-                    prepareContent(result);
+                    const resultText = await callGeminiWithFailover(base64, selectedFile.type);
+                    if (!resultText) throw new Error("AI không trả về kết quả văn bản.");
+                    prepareContent(resultText);
                 }
                 
                 if (resCont) {
@@ -442,7 +440,7 @@
 
                     if (res.ok) {
                         const data = await res.json();
-                        return data.candidates[0].content.parts[0].text;
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
                     }
                     if (res.status === 403 || res.status === 429) continue;
                     throw new Error(`Lỗi API: ${res.status}`);
@@ -454,6 +452,11 @@
 
         // --- UI Utils ---
         function prepareContent(text) {
+            if (typeof text !== 'string') {
+                console.error("Dữ liệu đầu vào prepareContent không phải chuỗi:", text);
+                return;
+            }
+            // Loại bỏ mốc thời gian dạng (00:00) hoặc [00:00]
             const clean = text.replace(/[\(\[]\d{1,2}:\d{2}(:\d{2})?[\)\]]/g, '').trim();
             const sentences = clean.split(/([.!?\n]+)/g);
             const container = document.getElementById('result-content-container');
@@ -526,8 +529,15 @@
                     if (!res.ok) continue;
 
                     const data = await res.json();
-                    const b64 = data.candidates[0].content.parts[0].inlineData.data;
-                    const rate = parseInt(data.candidates[0].content.parts[0].inlineData.mimeType.match(/rate=(\d+)/)[1]);
+                    const audioParts = data.candidates?.[0]?.content?.parts;
+                    if (!audioParts) continue;
+                    
+                    const audioInlineData = audioParts.find(p => p.inlineData)?.inlineData;
+                    if (!audioInlineData) continue;
+
+                    const b64 = audioInlineData.data;
+                    const rateMatch = audioInlineData.mimeType.match(/rate=(\d+)/);
+                    const rate = rateMatch ? parseInt(rateMatch[1]) : 24000;
                     
                     const binary = atob(b64);
                     const pcm = new Int16Array(binary.length / 2);
