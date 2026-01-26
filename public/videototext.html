@@ -7,36 +7,50 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        .animate-slide-up { animation: slideUp 0.4s ease-out; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #f59e0b;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            scroll-behavior: smooth;
+        }
+        
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
         .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             border-top: 3px solid #fff;
             width: 20px;
             height: 20px;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .highlight-reading {
-            background-color: #dbeafe;
+            background: linear-gradient(120deg, #dbeafe 0%, #dbeafe 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 0.3em;
+            background-position: 0 88%;
             color: #1e40af;
-            border-radius: 4px;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            padding: 0 2px;
         }
 
         /* Toast Styles */
         #toast-container {
             position: fixed;
-            bottom: 24px;
+            top: 80px;
             right: 24px;
             z-index: 9999;
             display: flex;
@@ -45,99 +59,134 @@
         }
 
         .toast {
-            min-width: 300px;
+            min-width: 320px;
             padding: 16px;
-            border-radius: 12px;
-            background: white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             transform: translateX(120%);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         .toast.show { transform: translateX(0); }
 
-        .tab-btn.active {
-            background: white;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            color: #2563eb;
-            border: 1px solid #dbeafe;
+        .tab-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .drag-over {
+            border-color: var(--primary) !important;
+            background-color: rgba(37, 99, 235, 0.05) !important;
+            transform: scale(1.01);
         }
 
         [contenteditable]:focus {
             outline: none;
-            background-color: #f8fafc;
-            border-radius: 12px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Speed Slider Styling */
+        input[type=range] {
+            accent-color: var(--primary);
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
+<body class="bg-slate-50 text-slate-900 min-h-screen pb-24">
 
     <!-- Smart Network Status Bar -->
-    <div id="network-status" class="sticky top-0 z-50 w-full py-2.5 px-4 transition-all duration-500 bg-green-600 text-white text-center text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3">
-        <span id="network-dot" class="w-2.5 h-2.5 bg-white rounded-full animate-pulse shadow-[0_0_8px_white]"></span>
+    <div id="network-status" class="sticky top-0 z-50 w-full py-2.5 px-4 transition-all duration-700 bg-green-600 text-white text-center text-[10px] font-black uppercase tracking-[0.25em] flex items-center justify-center gap-3 shadow-md">
+        <span id="network-dot" class="w-2.5 h-2.5 bg-white rounded-full animate-pulse shadow-[0_0_10px_white]"></span>
         <span id="network-text">Hệ thống đang Online - Sẵn sàng</span>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto px-4 py-10">
         <!-- Header -->
-        <header class="text-center mb-10 animate-fade-in">
-            <div class="inline-flex items-center justify-center p-5 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] mb-5 text-white shadow-2xl shadow-blue-200">
-                <i data-lucide="zap" class="w-10 h-10"></i>
+        <header class="text-center mb-12 animate-fade-in">
+            <div class="inline-flex items-center justify-center p-6 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-[2.5rem] mb-6 text-white shadow-2xl shadow-blue-200 hover:rotate-3 transition-transform cursor-pointer">
+                <i data-lucide="sparkles" class="w-12 h-12"></i>
             </div>
-            <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-3 tracking-tight">AI Transcriber Pro</h1>
-            <p class="text-slate-500 font-medium">Phiên bản Ultimate: Gỡ băng đa nền tảng & Quản lý Key thông minh</p>
+            <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-4 tracking-tighter">AI Transcriber Pro</h1>
+            <p class="text-slate-500 font-semibold text-lg max-w-2xl mx-auto">
+                Phiên bản tinh hoa dành cho nhà sáng tạo nội dung. Gỡ băng chuẩn xác & Biên tập giọng đọc đỉnh cao.
+            </p>
         </header>
 
-        <!-- Main Card -->
-        <div class="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden animate-slide-up">
+        <!-- Main Content Card -->
+        <div class="bg-white rounded-[3.5rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden animate-slide-up">
             
             <!-- Dynamic Toolbar -->
-            <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
-                <div class="flex p-1.5 bg-slate-100 rounded-2xl gap-1">
-                    <button id="tab-file" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-                        <i data-lucide="upload" class="w-4 h-4"></i> File Tải Lên
+            <div class="px-10 py-6 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between flex-wrap gap-6">
+                <div class="flex p-1.5 bg-slate-200/50 rounded-2xl gap-1">
+                    <button id="tab-file" class="tab-btn active px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                        <i data-lucide="file-video" class="w-4 h-4"></i> File Tải Lên
                     </button>
-                    <button id="tab-url" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                        <i data-lucide="link" class="w-4 h-4"></i> Link Video
+                    <button id="tab-url" class="tab-btn px-6 py-3 rounded-xl text-sm font-bold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-2">
+                        <i data-lucide="globe" class="w-4 h-4"></i> Link Video
                     </button>
-                    <button id="tab-manual" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                        <i data-lucide="file-edit" class="w-4 h-4"></i> Nhập Chữ
+                    <button id="tab-manual" class="tab-btn px-6 py-3 rounded-xl text-sm font-bold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-2">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> Soạn Văn Bản
                     </button>
                 </div>
-                <button id="btn-manage-keys" class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-2xl text-xs font-black hover:bg-blue-600 transition-all shadow-xl hover:-translate-y-0.5 active:translate-y-0">
-                    <i data-lucide="key" class="w-4 h-4"></i> QUẢN LÝ API KEYS
-                </button>
+                
+                <div class="flex gap-2">
+                    <button id="btn-reset" class="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all" title="Làm mới ứng dụng">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+                    <button id="btn-manage-keys" class="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black hover:bg-blue-600 transition-all shadow-xl hover:-translate-y-0.5 active:translate-y-0">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> QUẢN LÝ KEYS
+                    </button>
+                </div>
             </div>
 
-            <div class="p-8 md:p-12">
+            <div class="p-10 md:p-14">
                 <!-- Section 1: File -->
                 <div id="section-file" class="workspace-section">
-                    <div class="relative border-4 border-dashed border-slate-100 rounded-[2.5rem] p-16 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group cursor-pointer overflow-hidden">
+                    <div id="drop-zone" class="relative border-4 border-dashed border-slate-100 rounded-[3rem] p-20 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group cursor-pointer overflow-hidden">
                         <input type="file" id="file-input" accept="video/*,audio/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                         <div class="flex flex-col items-center">
-                            <div class="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
-                                <i data-lucide="video" class="w-12 h-12"></i>
+                            <div class="w-28 h-28 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner">
+                                <i data-lucide="clapperboard" class="w-14 h-14"></i>
                             </div>
-                            <p class="text-2xl font-black text-slate-800" id="file-name-display">Kéo thả Video/Audio</p>
-                            <p class="text-slate-400 mt-2 font-medium">Hỗ trợ đa định dạng, dung lượng lên đến 30MB</p>
+                            <p class="text-3xl font-black text-slate-800" id="file-name-display">Kéo tệp vào đây</p>
+                            <p class="text-slate-400 mt-3 font-semibold">Tự động nhận diện Video/Audio lên đến 30MB</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Section 2: URL -->
                 <div id="section-url" class="workspace-section hidden animate-fade-in">
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 p-4 bg-blue-50 text-blue-700 rounded-2xl text-xs font-bold border border-blue-100 mb-4">
-                            <i data-lucide="info" class="w-5 h-5"></i>
-                            Bạn có thể dán link từ TikTok, YouTube hoặc link video trực tiếp để xử lý.
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4 p-5 bg-indigo-50 text-indigo-700 rounded-3xl text-sm font-bold border border-indigo-100">
+                            <i data-lucide="help-circle" class="w-6 h-6"></i>
+                            Dán link từ bất kỳ nền tảng nào. Lưu ý: Direct link (.mp4) sẽ cho tốc độ gỡ băng nhanh nhất.
                         </div>
-                        <div class="relative">
-                            <input type="text" id="url-input" placeholder="https://www.tiktok.com/@user/video/..." class="w-full px-8 py-6 rounded-[2rem] border-2 border-slate-100 focus:border-blue-400 focus:ring-8 focus:ring-blue-50 outline-none text-lg font-medium transition-all pr-20">
-                            <div class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300">
-                                <i data-lucide="link-2" class="w-8 h-8"></i>
+                        <div class="relative group">
+                            <input type="text" id="url-input" placeholder="https://..." class="w-full px-10 py-8 rounded-[2.5rem] border-2 border-slate-100 focus:border-blue-500 focus:ring-[12px] focus:ring-blue-50 outline-none text-xl font-medium transition-all pr-24 shadow-sm group-hover:shadow-md">
+                            <div class="absolute right-8 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-blue-400 transition-colors">
+                                <i data-lucide="link" class="w-10 h-10"></i>
                             </div>
                         </div>
                     </div>
@@ -145,65 +194,94 @@
 
                 <!-- Section 3: Manual -->
                 <div id="section-manual" class="workspace-section hidden animate-fade-in">
-                    <textarea id="manual-text-input" rows="8" placeholder="Dán nội dung văn bản của bạn vào đây..." class="w-full px-8 py-6 rounded-[2.5rem] border-2 border-slate-100 focus:border-blue-400 focus:ring-8 focus:ring-blue-50 outline-none transition-all resize-none text-xl leading-relaxed"></textarea>
+                    <div class="relative">
+                        <textarea id="manual-text-input" rows="10" placeholder="Bắt đầu soạn thảo hoặc dán nội dung của bạn..." class="w-full px-10 py-8 rounded-[3rem] border-2 border-slate-100 focus:border-blue-500 focus:ring-[12px] focus:ring-blue-50 outline-none transition-all resize-none text-xl leading-relaxed shadow-sm"></textarea>
+                        <div class="absolute bottom-6 right-10 flex gap-2">
+                            <button id="btn-clear-manual" class="px-4 py-2 bg-slate-100 hover:bg-red-100 hover:text-red-600 text-slate-500 rounded-xl text-xs font-bold transition-all">
+                                XÓA TRỐNG
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Process Button -->
-                <button id="btn-process" class="w-full mt-10 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-black text-xl rounded-[2rem] shadow-[0_20px_50px_rgba(37,99,235,0.3)] transition-all flex items-center justify-center gap-4 active:scale-[0.97]">
-                    <span id="btn-text">BẮT ĐẦU XỬ LÝ</span>
-                    <div id="btn-loader" class="loading-spinner hidden"></div>
-                </button>
-
-                <p id="status-display" class="mt-8 text-center text-sm font-black text-blue-500 hidden animate-pulse uppercase tracking-widest"></p>
+                <!-- Primary Action -->
+                <div class="flex flex-col items-center mt-12">
+                    <button id="btn-process" class="w-full py-7 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-indigo-700 hover:to-indigo-800 disabled:opacity-50 text-white font-black text-2xl rounded-[2.5rem] shadow-[0_25px_60px_-10px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-5 active:scale-[0.96] relative overflow-hidden group">
+                        <span id="btn-text" class="relative z-10 uppercase tracking-widest">Bắt Đầu Chuyển Đổi</span>
+                        <div id="btn-loader" class="loading-spinner hidden relative z-10"></div>
+                        <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </button>
+                    <p id="status-display" class="mt-8 text-center text-sm font-black text-blue-500 hidden animate-pulse uppercase tracking-[0.3em]"></p>
+                </div>
             </div>
         </div>
 
-        <!-- Result Container -->
-        <div id="result-container" class="mt-12 hidden animate-slide-up">
-            <div class="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 bg-slate-50 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
-                    <h2 class="font-black text-slate-800 flex items-center gap-3">
-                        <i data-lucide="layout" class="w-6 h-6 text-indigo-600"></i>
-                        TRÌNH BIÊN TẬP THÔNG MINH
-                    </h2>
-                    <div class="flex gap-2">
-                        <button id="btn-speak" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-100">
-                            <i data-lucide="play-circle" class="w-5 h-5" id="speak-icon"></i> <span id="speak-text">NGHE ĐỌC</span>
+        <!-- Ultimate Result Section -->
+        <div id="result-container" class="mt-14 hidden animate-slide-up">
+            <div class="bg-white rounded-[3.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+                <div class="px-10 py-7 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between flex-wrap gap-6">
+                    <div class="flex flex-col">
+                        <h2 class="font-black text-slate-900 text-xl flex items-center gap-3">
+                            <i data-lucide="text-quote" class="w-7 h-7 text-blue-600"></i>
+                            VĂN BẢN KẾT QUẢ
+                        </h2>
+                        <div id="stats-display" class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                            <span id="word-count">0</span> TỪ | <span id="char-count">0</span> KÝ TỰ
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 items-center">
+                        <!-- Speed Control -->
+                        <div class="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200 mr-2 shadow-sm">
+                            <i data-lucide="gauge" class="w-4 h-4 text-slate-400"></i>
+                            <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1.0" class="w-24 h-1.5 rounded-lg cursor-pointer">
+                            <span id="speed-val" class="text-[10px] font-black text-blue-600 min-w-[25px]">1.0x</span>
+                        </div>
+                        
+                        <button id="btn-speak" class="flex items-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-[1.2rem] text-xs font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-100">
+                            <i data-lucide="play" class="w-4 h-4" id="speak-icon"></i> <span id="speak-text">NGHE ĐỌC</span>
                         </button>
-                        <button id="btn-copy" class="p-3 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 rounded-2xl transition-all shadow-sm">
+                        <div class="h-10 w-px bg-slate-200 mx-2"></div>
+                        <button id="btn-copy" class="p-3.5 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-2xl transition-all shadow-sm">
                             <i data-lucide="copy" class="w-5 h-5"></i>
                         </button>
-                        <button id="btn-download" class="p-3 bg-white border border-slate-200 text-slate-600 hover:text-green-600 rounded-2xl transition-all shadow-sm">
-                            <i data-lucide="download" class="w-5 h-5"></i>
+                        <button id="btn-download" class="p-3.5 bg-white border border-slate-200 text-slate-600 hover:text-green-600 hover:border-green-200 rounded-2xl transition-all shadow-sm">
+                            <i data-lucide="file-down" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </div>
-                <div class="p-10 md:p-14">
-                    <div class="flex items-center gap-2 mb-6 p-3 bg-amber-50 text-amber-700 rounded-xl text-xs font-bold border border-amber-100">
-                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                        Bạn có thể sửa trực tiếp văn bản bên dưới để điều chỉnh từ vùng miền trước khi nghe đọc.
+                
+                <div class="p-12 md:p-16 relative">
+                    <div class="absolute top-8 right-12 z-10 flex gap-2">
+                        <button id="btn-clean-text" class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-bold border border-orange-100 hover:bg-orange-100 transition-all">
+                            <i data-lucide="eraser" class="w-3.5 h-3.5"></i> DỌN DẸP KÝ TỰ
+                        </button>
                     </div>
-                    <div id="result-content-container" contenteditable="true" class="whitespace-pre-wrap text-slate-700 leading-relaxed text-2xl min-h-[400px] p-2"></div>
+                    <div id="result-content-container" contenteditable="true" class="whitespace-pre-wrap text-slate-800 leading-[2.2] text-2xl min-h-[500px] outline-none transition-all p-2 focus:bg-slate-50/30 rounded-2xl"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- API Key Modal -->
-    <div id="modal-keys" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in">
+    <!-- Enhanced API Key Modal -->
+    <div id="modal-keys" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xl animate-fade-in">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
-            <div class="p-10 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div class="p-10 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                 <div>
-                    <h3 class="text-2xl font-black text-slate-800">QUẢN LÝ API KEYS</h3>
-                    <p class="text-slate-400 text-xs font-bold mt-1 uppercase tracking-tighter">Xoay vòng thông minh khi lỗi</p>
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">CẤU HÌNH API KEYS</h3>
+                    <p class="text-slate-400 text-[10px] font-bold mt-2 uppercase tracking-[0.2em]">Hệ thống xoay vòng thông minh 2.0</p>
                 </div>
-                <button id="btn-close-modal" class="p-3 hover:bg-slate-200 rounded-full transition-all text-slate-400"><i data-lucide="x" class="w-8 h-8"></i></button>
+                <button id="btn-close-modal" class="p-3 hover:bg-slate-100 rounded-full transition-all text-slate-400"><i data-lucide="x" class="w-8 h-8"></i></button>
             </div>
             <div class="p-10">
-                <div class="mb-8 space-y-3 max-h-[350px] overflow-y-auto pr-4" id="key-list-container"></div>
-                <div class="flex gap-3 bg-slate-50 p-4 rounded-[2rem] border-2 border-slate-100">
-                    <input type="password" id="input-new-key" placeholder="Dán API Key mới..." class="flex-1 bg-transparent px-4 py-2 outline-none text-sm font-bold">
-                    <button id="btn-add-key" class="px-8 py-3 bg-blue-600 text-white rounded-2xl font-black text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">THÊM KEY</button>
+                <div id="key-list-container" class="mb-8 space-y-4 max-h-[350px] overflow-y-auto pr-4 scrollbar-thin"></div>
+                
+                <div class="flex flex-col gap-4 bg-slate-50 p-6 rounded-[2rem] border-2 border-slate-100 shadow-inner">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Dán API Key mới</label>
+                    <div class="flex gap-3">
+                        <input type="password" id="input-new-key" placeholder="AIzaSy..." class="flex-1 bg-white px-6 py-4 rounded-2xl border border-slate-200 outline-none text-sm font-bold shadow-sm focus:border-blue-400 transition-all">
+                        <button id="btn-add-key" class="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 whitespace-nowrap">THÊM KEY</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -213,8 +291,8 @@
     <div id="toast-container"></div>
 
     <script>
-        // --- Core Configuration ---
-        const STORAGE_KEY = 'transcriber_ultimate_keys';
+        // --- Smart Config & State ---
+        const STORAGE_KEY = 'transcriber_ultimate_keys_v3';
         const INITIAL_KEYS = [
             "AIzaSyCyFmGYeqYmTRzpWB1bAkWYvh-BCvclDSc",
             "AIzaSyBxvTrYseLRVrUukemd38ZLN5pesL92SMg"
@@ -227,47 +305,66 @@
         let selectedFile = null;
         let isSpeaking = false;
         let audioElements = [];
+        let playbackSpeed = 1.0;
 
-        // --- Init Function ---
+        // --- Core Application Logic ---
         function init() {
             lucide.createIcons();
             checkNetwork();
             renderKeys();
             
+            // Listeners
             window.addEventListener('online', checkNetwork);
             window.addEventListener('offline', checkNetwork);
 
+            // Interface Tabs
             ['file', 'url', 'manual'].forEach(tab => {
                 const el = document.getElementById(`tab-${tab}`);
                 if (el) el.onclick = () => switchTab(tab);
             });
 
-            const btnManage = document.getElementById('btn-manage-keys');
-            if (btnManage) btnManage.onclick = () => document.getElementById('modal-keys').classList.remove('hidden');
-            
-            const btnClose = document.getElementById('btn-close-modal');
-            if (btnClose) btnClose.onclick = () => document.getElementById('modal-keys').classList.add('hidden');
-            
-            const btnAdd = document.getElementById('btn-add-key');
-            if (btnAdd) btnAdd.onclick = addKey;
-            
-            const fileInp = document.getElementById('file-input');
-            if (fileInp) fileInp.onchange = handleFileSelect;
-            
-            const btnProc = document.getElementById('btn-process');
-            if (btnProc) btnProc.onclick = startProcessing;
-            
-            const btnSpk = document.getElementById('btn-speak');
-            if (btnSpk) btnSpk.onclick = toggleSpeak;
-            
-            const btnCpy = document.getElementById('btn-copy');
-            if (btnCpy) btnCpy.onclick = copyText;
-            
-            const btnDwn = document.getElementById('btn-download');
-            if (btnDwn) btnDwn.onclick = downloadTxt;
+            // Interaction
+            document.getElementById('btn-manage-keys').onclick = () => document.getElementById('modal-keys').classList.remove('hidden');
+            document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-keys').classList.add('hidden');
+            document.getElementById('btn-add-key').onclick = addKey;
+            document.getElementById('file-input').onchange = handleFileSelect;
+            document.getElementById('btn-process').onclick = startProcessing;
+            document.getElementById('btn-speak').onclick = toggleSpeak;
+            document.getElementById('btn-copy').onclick = copyText;
+            document.getElementById('btn-download').onclick = downloadTxt;
+            document.getElementById('btn-reset').onclick = resetApp;
+            document.getElementById('btn-clear-manual').onclick = () => {
+                document.getElementById('manual-text-input').value = '';
+                notify('Đã xóa nội dung nháp', 'info');
+            };
+            document.getElementById('btn-clean-text').onclick = cleanResultText;
+
+            // Speed Slider
+            const speedInput = document.getElementById('voice-speed');
+            speedInput.oninput = (e) => {
+                playbackSpeed = parseFloat(e.target.value);
+                document.getElementById('speed-val').textContent = playbackSpeed.toFixed(1) + 'x';
+            };
+
+            // Stats Update
+            const resArea = document.getElementById('result-content-container');
+            resArea.oninput = updateStats;
+
+            // Drag & Drop
+            const dropZone = document.getElementById('drop-zone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+            });
+            dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', (e) => {
+                dropZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+            });
         }
 
-        // --- Toast System ---
+        // --- Notification Engine ---
         function notify(msg, type = 'info') {
             const container = document.getElementById('toast-container');
             if (!container) return;
@@ -279,7 +376,7 @@
             
             toast.innerHTML = `
                 <i data-lucide="${icons[type] || 'info'}" class="${colors[type] || 'text-blue-500'} w-6 h-6"></i>
-                <div class="text-sm font-black text-slate-700 uppercase tracking-tighter">${msg}</div>
+                <div class="text-xs font-black text-slate-800 uppercase tracking-tight">${msg}</div>
             `;
             
             container.appendChild(toast);
@@ -287,11 +384,11 @@
             setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400);
-            }, 4000);
+                setTimeout(() => toast.remove(), 500);
+            }, 4500);
         }
 
-        // --- Network Monitor ---
+        // --- Health Monitoring ---
         function checkNetwork() {
             isOnline = navigator.onLine;
             const bar = document.getElementById('network-status');
@@ -299,23 +396,21 @@
             const text = document.getElementById('network-text');
             const btn = document.getElementById('btn-process');
 
-            if (!bar || !text || !btn) return;
-
             if (isOnline) {
                 bar.classList.replace('bg-red-600', 'bg-green-600');
                 text.textContent = "Hệ thống đang Online - Sẵn sàng";
-                if (dot) dot.classList.add('animate-pulse');
+                dot.classList.add('animate-pulse');
                 btn.disabled = false;
             } else {
                 bar.classList.replace('bg-green-600', 'bg-red-600');
-                text.textContent = "Bạn đang Offline - Vui lòng kết nối mạng";
-                if (dot) dot.classList.remove('animate-pulse');
+                text.textContent = "Bạn đang Offline - Vui lòng kết nối";
+                dot.classList.remove('animate-pulse');
                 btn.disabled = true;
-                notify('Mất kết nối Internet!', 'error');
+                notify('Đã mất kết nối mạng!', 'error');
             }
         }
 
-        // --- Tab Switching ---
+        // --- Tab Management ---
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(b => {
@@ -334,20 +429,20 @@
             
             const btnText = document.getElementById('btn-text');
             if (btnText) {
-                if (tab === 'manual') btnText.textContent = "SỬ DỤNG VĂN BẢN";
-                else if (tab === 'url') btnText.textContent = "PHÂN TÍCH LINK";
-                else btnText.textContent = "BẮT ĐẦU XỬ LÝ";
+                if (tab === 'manual') btnText.textContent = "Xử Lý Văn Bản";
+                else if (tab === 'url') btnText.textContent = "Phân Tích Link";
+                else btnText.textContent = "Bắt Đầu Chuyển Đổi";
             }
         }
 
-        // --- API Keys Management ---
+        // --- Key Vault Logic ---
         function renderKeys() {
             const container = document.getElementById('key-list-container');
             if (!container) return;
             container.innerHTML = apiKeys.map((k, i) => `
-                <div class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-md">
-                    <div class="w-10 h-10 flex-shrink-0 bg-white rounded-full flex items-center justify-center text-xs font-black text-slate-300 border border-slate-200">${i+1}</div>
-                    <div class="flex-1 font-mono text-xs text-slate-400 truncate tracking-widest">${k.substring(0, 12)}••••••••${k.substring(k.length - 4)}</div>
+                <div class="flex items-center gap-4 p-5 bg-slate-100/30 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-lg">
+                    <div class="w-10 h-10 flex-shrink-0 bg-white rounded-xl flex items-center justify-center text-[10px] font-black text-blue-500 border border-slate-100">${i+1}</div>
+                    <div class="flex-1 font-mono text-xs text-slate-400 truncate tracking-widest">${k.substring(0, 10)}••••${k.substring(k.length - 4)}</div>
                     <button onclick="removeKey(${i})" class="p-2 text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                 </div>
             `).join('');
@@ -357,55 +452,54 @@
 
         function addKey() {
             const input = document.getElementById('input-new-key');
-            if (!input || input.value.trim().length < 20) return notify('Key không hợp lệ!', 'error');
+            if (!input || input.value.trim().length < 20) return notify('API Key không hợp lệ!', 'error');
             apiKeys.push(input.value.trim());
             input.value = '';
             renderKeys();
-            notify('Đã thêm Key mới!', 'success');
+            notify('Đã cập nhật danh sách Key', 'success');
         }
 
         window.removeKey = (i) => {
-            if (apiKeys.length <= 1) return notify('Phải giữ lại ít nhất 1 Key!', 'error');
+            if (apiKeys.length <= 1) return notify('Cần ít nhất một Key để hoạt động!', 'error');
             apiKeys.splice(i, 1);
             renderKeys();
-            notify('Đã xoá Key!', 'info');
+            notify('Đã loại bỏ Key', 'info');
         };
 
-        // --- Processing Logic ---
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
+        // --- File & Data Flow ---
+        function handleFileSelect(e) { handleFile(e.target.files[0]); }
+
+        function handleFile(file) {
             if (file) {
-                if (file.size > MAX_FILE_SIZE) return notify('Dung lượng tối đa 30MB!', 'error');
+                if (file.size > MAX_FILE_SIZE) return notify('File quá lớn (Tối đa 30MB)', 'error');
                 selectedFile = file;
                 const nameDisplay = document.getElementById('file-name-display');
                 if (nameDisplay) nameDisplay.textContent = file.name;
-                notify('Đã nhận tệp: ' + file.name, 'success');
+                notify('Sẵn sàng xử lý: ' + file.name, 'success');
             }
         }
 
         async function startProcessing() {
-            if (currentTab === 'file' && !selectedFile) return notify('Chưa chọn tệp!', 'error');
-            const urlInp = document.getElementById('url-input');
+            if (currentTab === 'file' && !selectedFile) return notify('Bạn chưa chọn tệp video/âm thanh!', 'error');
+            const urlInput = document.getElementById('url-input');
             const manualInp = document.getElementById('manual-text-input');
-            if (currentTab === 'url' && (!urlInp || !urlInp.value.trim())) return notify('Chưa nhập Link!', 'error');
-            if (currentTab === 'manual' && (!manualInp || !manualInp.value.trim())) return notify('Chưa dán nội dung!', 'error');
+            if (currentTab === 'url' && (!urlInput || !urlInput.value.trim())) return notify('Vui lòng dán link!', 'error');
+            if (currentTab === 'manual' && (!manualInp || !manualInp.value.trim())) return notify('Vui lòng soạn văn bản!', 'error');
 
             setLoading(true);
             const contentArea = document.getElementById('result-content-container');
-            if (contentArea) contentArea.innerHTML = "";
             const resCont = document.getElementById('result-container');
-            if (resCont) resCont.classList.add('hidden');
 
             try {
                 if (currentTab === 'manual') {
                     prepareContent(manualInp.value);
                 } else if (currentTab === 'url') {
-                    notify('Đang phân tích Link video...', 'info');
-                    throw new Error("Lỗi CORS: Nền tảng video từ chối truy cập trực tiếp. Hãy tải video về máy và dùng tab 'File Tải Lên' để xử lý ổn định nhất.");
+                    notify('Đang phân tích nguồn tệp...', 'info');
+                    throw new Error("Link này cần quyền truy cập đặc biệt. Vui lòng tải file về và sử dụng tab 'File Tải Lên' để gỡ băng miễn phí.");
                 } else {
                     const base64 = await toBase64(selectedFile);
                     const resultText = await callGeminiWithFailover(base64, selectedFile.type);
-                    if (!resultText) throw new Error("AI không trả về kết quả văn bản.");
+                    if (!resultText) throw new Error("AI không trích xuất được văn bản rõ ràng.");
                     prepareContent(resultText);
                 }
                 
@@ -413,7 +507,8 @@
                     resCont.classList.remove('hidden');
                     resCont.scrollIntoView({ behavior: 'smooth' });
                 }
-                notify('Hoàn tất thành công!', 'success');
+                updateStats();
+                notify('Phân tích hoàn tất!', 'success');
             } catch (err) {
                 notify(err.message, 'error');
             } finally {
@@ -421,16 +516,17 @@
             }
         }
 
+        // Intelligent API Failover
         async function callGeminiWithFailover(base64, mimeType) {
-            const prompt = "Hãy gỡ băng 100% lời nói tiếng Việt trong tệp này. YÊU CẦU: Đúng chính tả, chia đoạn rõ ràng, TUYỆT ĐỐI KHÔNG GHI mốc thời gian (như 00:01).";
+            const prompt = "Gỡ băng 100% lời nói tiếng Việt trong tệp này. Đảm bảo đúng chính tả, ngữ pháp chuyên nghiệp. YÊU CẦU: Không bao giờ bao gồm mốc thời gian hoặc chú thích thời điểm.";
             const payload = {
                 contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType, data: base64 } }] }],
-                systemInstruction: { parts: [{ text: "Bạn là chuyên gia gỡ băng. Hãy chỉ trả về nội dung lời nói tiếng Việt, bỏ sạch mốc thời gian và các chú thích dư thừa." }] }
+                systemInstruction: { parts: [{ text: "Bạn là chuyên gia gỡ băng cấp cao. Hãy trả về văn bản tiếng Việt thuần túy, chia đoạn tự nhiên, bỏ sạch mọi mốc thời gian." }] }
             };
 
             for (let i = 0; i < apiKeys.length; i++) {
                 const key = apiKeys[i];
-                setStatus(`SỬ DỤNG API KEY ${i+1}/${apiKeys.length}...`);
+                setStatus(`TIẾN TRÌNH: DÙNG KEY DỰ PHÒNG ${i+1}...`);
                 try {
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
                         method: 'POST',
@@ -443,27 +539,24 @@
                         return data.candidates?.[0]?.content?.parts?.[0]?.text;
                     }
                     if (res.status === 403 || res.status === 429) continue;
-                    throw new Error(`Lỗi API: ${res.status}`);
+                    throw new Error(`Lỗi API (${res.status})`);
                 } catch (e) {
-                    if (i === apiKeys.length - 1) throw new Error("Tất cả Key đều thất bại. Hãy kiểm tra lại Key hoặc khu vực.");
+                    if (i === apiKeys.length - 1) throw new Error("Tất cả Key hiện tại đều bận hoặc hết hạn.");
                 }
             }
         }
 
-        // --- UI Utils ---
+        // --- Processing & UI Utils ---
         function prepareContent(text) {
-            if (typeof text !== 'string') {
-                console.error("Dữ liệu đầu vào prepareContent không phải chuỗi:", text);
-                return;
-            }
-            // Loại bỏ mốc thời gian dạng (00:00) hoặc [00:00]
+            if (typeof text !== 'string') return;
+            // Clean residual timestamps
             const clean = text.replace(/[\(\[]\d{1,2}:\d{2}(:\d{2})?[\)\]]/g, '').trim();
             const sentences = clean.split(/([.!?\n]+)/g);
             const container = document.getElementById('result-content-container');
             if (!container) return;
             container.innerHTML = "";
             
-            sentences.forEach((s, i) => {
+            sentences.forEach((s) => {
                 if (s.trim()) {
                     const span = document.createElement("span");
                     span.textContent = s;
@@ -483,10 +576,8 @@
             if (!spans.length) return;
 
             isSpeaking = true;
-            const btnTxt = document.getElementById('speak-text');
-            if (btnTxt) btnTxt.textContent = "DỪNG ĐỌC";
-            const btnIcon = document.getElementById('speak-icon');
-            if (btnIcon) btnIcon.setAttribute('data-lucide', 'square');
+            document.getElementById('speak-text').textContent = "DỪNG ĐỌC";
+            document.getElementById('speak-icon').setAttribute('data-lucide', 'square');
             lucide.createIcons();
 
             try {
@@ -502,9 +593,8 @@
                     span.classList.remove('highlight-reading');
                 }
             } catch (e) {
-                notify('Sử dụng trình đọc dự phòng...', 'info');
-                const content = document.getElementById('result-content-container');
-                if (content) browserSpeak(content.innerText);
+                notify('Đang dùng trình đọc dự phòng...', 'info');
+                browserSpeak(document.getElementById('result-content-container').innerText);
             } finally {
                 stopSpeaking();
             }
@@ -512,7 +602,7 @@
 
         async function runTTS(text) {
             const payload = {
-                contents: [{ parts: [{ text: `Read this clearly in a standard Northern Vietnamese accent: ${text}` }] }],
+                contents: [{ parts: [{ text: `Say with a standard Northern Vietnamese voice at speed ${playbackSpeed}: ${text}` }] }],
                 generationConfig: {
                     responseModalities: ["AUDIO"],
                     speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
@@ -532,21 +622,17 @@
                     const audioParts = data.candidates?.[0]?.content?.parts;
                     if (!audioParts) continue;
                     
-                    const audioInlineData = audioParts.find(p => p.inlineData)?.inlineData;
-                    if (!audioInlineData) continue;
+                    const audioData = audioParts.find(p => p.inlineData)?.inlineData;
+                    if (!audioData) continue;
 
-                    const b64 = audioInlineData.data;
-                    const rateMatch = audioInlineData.mimeType.match(/rate=(\d+)/);
+                    const b64 = audioData.data;
+                    const rateMatch = audioData.mimeType.match(/rate=(\d+)/);
                     const rate = rateMatch ? parseInt(rateMatch[1]) : 24000;
                     
-                    const binary = atob(b64);
-                    const pcm = new Int16Array(binary.length / 2);
-                    for (let j = 0; j < pcm.length; j++) {
-                        pcm[j] = (binary.charCodeAt(j * 2) & 0xFF) | (binary.charCodeAt(j * 2 + 1) << 8);
-                    }
-
+                    const pcm = base64ToPcm(b64);
                     const blob = pcmToWav(pcm, rate);
                     const audio = new Audio(URL.createObjectURL(blob));
+                    audio.playbackRate = playbackSpeed; // Apply speed
                     audioElements.push(audio);
                     
                     return new Promise(r => {
@@ -556,14 +642,15 @@
                     });
                 } catch (e) {}
             }
-            throw new Error("TTS Failed");
+            throw new Error("TTS Failover Error");
         }
 
+        // Browser Fallback
         function browserSpeak(text) {
             const synth = window.speechSynthesis;
             const utter = new SpeechSynthesisUtterance(text);
             utter.lang = 'vi-VN';
-            utter.rate = 1.0;
+            utter.rate = playbackSpeed;
             synth.speak(utter);
         }
 
@@ -573,35 +660,46 @@
             audioElements = [];
             window.speechSynthesis.cancel();
             document.querySelectorAll('.highlight-reading').forEach(el => el.classList.remove('highlight-reading'));
-            const btnTxt = document.getElementById('speak-text');
-            if (btnTxt) btnTxt.textContent = "NGHE ĐỌC";
-            const btnIcon = document.getElementById('speak-icon');
-            if (btnIcon) btnIcon.setAttribute('data-lucide', 'play-circle');
+            document.getElementById('speak-text').textContent = "NGHE ĐỌC";
+            document.getElementById('speak-icon').setAttribute('data-lucide', 'play');
             lucide.createIcons();
         }
 
-        function setLoading(loading) {
-            const btn = document.getElementById('btn-process');
-            const loader = document.getElementById('btn-loader');
-            const txt = document.getElementById('btn-text');
-            if (btn) btn.disabled = loading;
-            if (loader) loader.className = loading ? 'loading-spinner' : 'hidden';
-            if (txt) txt.textContent = loading ? "ĐANG LÀM VIỆC..." : "BẮT ĐẦU XỬ LÝ";
-            if (!loading) setStatus("");
+        // Productivity Tools
+        function updateStats() {
+            const text = document.getElementById('result-content-container').innerText;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const chars = text.length;
+            document.getElementById('word-count').textContent = words;
+            document.getElementById('char-count').textContent = chars;
         }
 
-        function setStatus(m) {
-            const s = document.getElementById('status-display');
-            if (!s) return;
-            if (m) { s.textContent = m; s.classList.remove('hidden'); }
-            else s.classList.add('hidden');
+        function cleanResultText() {
+            const area = document.getElementById('result-content-container');
+            const clean = area.innerText.replace(/[\(\[].*?[\)\]]/g, '').trim();
+            prepareContent(clean);
+            notify('Đã xóa sạch ký tự chú thích', 'success');
         }
 
-        const toBase64 = f => new Promise((res, rej) => {
-            const r = new FileReader(); r.readAsDataURL(f);
-            r.onload = () => res(r.result.split(',')[1]);
-            r.onerror = rej;
-        });
+        function resetApp() {
+            selectedFile = null;
+            document.getElementById('file-name-display').textContent = "Kéo tệp vào đây";
+            document.getElementById('url-input').value = '';
+            document.getElementById('manual-text-input').value = '';
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('result-content-container').innerHTML = '';
+            notify('Đã đặt lại trạng thái ứng dụng', 'info');
+        }
+
+        // Audio Utils
+        function base64ToPcm(b64) {
+            const binary = atob(b64);
+            const pcm = new Int16Array(binary.length / 2);
+            for (let j = 0; j < pcm.length; j++) {
+                pcm[j] = (binary.charCodeAt(j * 2) & 0xFF) | (binary.charCodeAt(j * 2 + 1) << 8);
+            }
+            return pcm;
+        }
 
         function pcmToWav(pcm, rate) {
             const buf = new ArrayBuffer(44 + pcm.length * 2);
@@ -617,20 +715,39 @@
             return new Blob([buf], { type: 'audio/wav' });
         }
 
+        // Export Actions
         function copyText() {
-            const content = document.getElementById('result-content-container');
-            if (!content) return;
-            const t = content.innerText;
-            navigator.clipboard.writeText(t).then(() => notify('Đã sao chép!', 'success'));
+            const t = document.getElementById('result-content-container').innerText;
+            navigator.clipboard.writeText(t).then(() => notify('Đã sao chép vào bộ nhớ tạm!', 'success'));
         }
 
         function downloadTxt() {
-            const content = document.getElementById('result-content-container');
-            if (!content) return;
-            const b = new Blob([content.innerText], { type: 'text/plain' });
+            const b = new Blob([document.getElementById('result-content-container').innerText], { type: 'text/plain' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `transcription-${Date.now()}.txt`;
-            a.click(); notify('Đang tải xuống...', 'success');
+            a.click(); notify('Đã tải văn bản xuống máy', 'success');
         }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('btn-process');
+            const loader = document.getElementById('btn-loader');
+            const txt = document.getElementById('btn-text');
+            btn.disabled = loading;
+            loader.className = loading ? 'loading-spinner' : 'hidden';
+            txt.textContent = loading ? "ĐANG PHÂN TÍCH..." : (currentTab === 'manual' ? "XỬ LÝ VĂN BẢN" : "BẮT ĐẦU CHUYỂN ĐỔI");
+            if (!loading) setStatus("");
+        }
+
+        function setStatus(m) {
+            const s = document.getElementById('status-display');
+            if (m) { s.textContent = m; s.classList.remove('hidden'); }
+            else s.classList.add('hidden');
+        }
+
+        const toBase64 = f => new Promise((res, rej) => {
+            const r = new FileReader(); r.readAsDataURL(f);
+            r.onload = () => res(r.result.split(',')[1]);
+            r.onerror = rej;
+        });
 
         window.onload = init;
     </script>
