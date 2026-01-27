@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Tối ưu hóa viewport cho mobile: Ngăn phóng to (zoom) để trải nghiệm giống App Native -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Meta tags cho trải nghiệm App (PWA) -->
+    <meta name="theme-color" content="#ECEFF4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+
+    <title>Luxury Timepiece</title>
+    
+    <!-- Import Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* * =========================================
+         * CORE VARIABLES
+         * =========================================
+         */
+        :root {
+            --bg-color: #ECEFF4;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            
+            --primary-text: #1a202c;
+            --accent-gold: #C5A059;
+            --accent-gold-light: #E6C888;
+            --accent-gold-glow: rgba(197, 160, 89, 0.4);
+            --accent-secondary: #718096;
+            
+            --font-serif: 'Playfair Display', serif;
+            --font-mono: 'Space Mono', monospace;
+            
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* Ngăn chọn văn bản trên mobile để không bị vướng khi bấm nhanh */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(197, 160, 89, 0.15) 0px, transparent 60%),
+                radial-gradient(at 100% 100%, rgba(26, 32, 44, 0.08) 0px, transparent 60%);
+            font-family: var(--font-serif);
+            color: var(--primary-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 15px; /* Giảm padding cho mobile */
+            overflow-x: hidden;
+        }
+
+        /* * =========================================
+         * LAYOUT & CARD (MOBILE OPTIMIZED)
+         * =========================================
+         */
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            perspective: 1000px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: none;
+            border-radius: 32px;
+            padding: 40px 20px; /* Padding nhỏ hơn trên mobile */
+            
+            box-shadow: 
+                inset 1px 1px 2px rgba(255, 255, 255, 0.9),
+                inset -1px -1px 2px rgba(197, 160, 89, 0.1),
+                0 10px 30px -5px rgba(0,0,0,0.08),
+                0 0 0 1px rgba(197, 160, 89, 0.2);
+                
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .card:focus-within {
+            border: 1px solid var(--accent-gold);
+        }
+
+        /* Decorative Background Effect */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-25deg);
+            transition: 0.6s;
+            pointer-events: none;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #5D4037;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 30px;
+            
+            background: linear-gradient(to bottom, #ffffff 0%, #FFF8E1 100%);
+            border: 1px solid #C5A059;
+            border-radius: 50px;
+            padding: 12px 30px;
+            display: inline-block;
+            min-width: 220px;
+            
+            box-shadow: 
+                0 4px 10px rgba(197, 160, 89, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* * =========================================
+         * DISPLAY & ANIMATION
+         * =========================================
+         */
+        .time-display {
+            font-family: var(--font-mono);
+            font-size: 15vw; /* Fluid typography: Co giãn theo chiều rộng màn hình */
+            font-weight: 700;
+            color: var(--primary-text);
+            margin: 10px 0;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+            letter-spacing: -2px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+
+        /* Giới hạn font-size trên màn hình lớn */
+        @media (min-width: 600px) {
+            .time-display { font-size: 5rem; }
+        }
+        
+        .time-display.running {
+            animation: breathe 3s ease-in-out infinite;
+            color: #2c3e50;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { text-shadow: 4px 4px 10px rgba(0,0,0,0.08); transform: scale(1); }
+            50% { text-shadow: 0 0 25px rgba(197, 160, 89, 0.5); transform: scale(1.02); }
+        }
+
+        .time-unit {
+            display: inline-block;
+            min-width: 1.6ch;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .separator {
+            color: var(--accent-gold);
+            margin: 0 2px;
+            position: relative;
+            top: -0.5vw;
+        }
+
+        .milliseconds {
+            font-size: 0.4em; /* Relative to parent font size */
+            color: var(--accent-gold);
+            font-weight: 400;
+            margin-left: 10px;
+            opacity: 0.8;
+        }
+
+        /* * =========================================
+         * INPUTS & PRESETS (FLEXIBLE)
+         * =========================================
+         */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1; /* Chia đều không gian */
+        }
+
+        .time-input {
+            width: 100%;
+            max-width: 100px; /* Giới hạn độ rộng tối đa */
+            height: auto;
+            aspect-ratio: 1/1; /* Luôn vuông vắn */
+            background: #fff;
+            border: 2px solid rgba(0,0,0,0.05);
+            border-radius: 18px;
+            font-family: var(--font-mono);
+            font-size: 2.5rem; /* Font vừa phải trên mobile */
+            font-weight: 700;
+            text-align: center;
+            color: var(--primary-text);
+            outline: none;
+            transition: var(--transition-smooth);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            
+            /* Tắt mũi tên tăng giảm mặc định */
+            -moz-appearance: textfield;
+        }
+
+        @media (max-width: 400px) {
+            .time-input { font-size: 2rem; border-radius: 14px; }
+            .separator { font-size: 2rem !important; margin-top: -15px !important; }
+        }
+
+        .time-input:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px var(--accent-gold-glow);
+            transform: translateY(-2px);
+        }
+        
+        .time-input::-webkit-outer-spin-button,
+        .time-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .input-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .preset-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .preset-btn {
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            padding: 10px 14px; /* Vùng bấm lớn hơn cho ngón tay */
+            border-radius: 30px;
+            font-family: var(--font-serif);
+            font-size: 0.85rem;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            flex-grow: 1; /* Tự lấp đầy khoảng trống */
+            max-width: 120px;
+        }
+        
+        .preset-btn:active, .preset-btn.active-preset {
+            background: var(--accent-gold);
+            color: #fff;
+            border-color: var(--accent-gold);
+            transform: scale(0.95); /* Hiệu ứng nhấn nút vật lý */
+        }
+
+        /* * =========================================
+         * BUTTONS (THUMB FRIENDLY)
+         * =========================================
+         */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 60px;
+            font-family: var(--font-serif);
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: transparent;
+            border: 2px solid var(--primary-text);
+            color: var(--primary-text);
+            /* Touch target optimization */
+            min-height: 54px; 
+            min-width: 54px;
+        }
+
+        .btn-primary {
+            background: var(--primary-text);
+            color: #fff;
+            border-color: var(--primary-text);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            flex: 2; /* Nút chính to hơn */
+        }
+
+        .btn-secondary {
+            border-color: #CBD5E0;
+            color: var(--accent-secondary);
+            flex: 0 0 auto; /* Nút phụ nhỏ gọn */
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* * =========================================
+         * NOTIFICATIONS & INSTRUCTIONS
+         * =========================================
+         */
+        .instruction-text {
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+            color: #856404;
+            background: rgba(255, 248, 225, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: center;
+            width: 100%;
+            line-height: 1.6;
+        }
+        
+        .toast {
+            position: fixed;
+            top: -120px;
+            left: 20px;
+            right: 20px; /* Căn lề mobile */
+            margin: 0 auto;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 20px;
+            border-left: 5px solid var(--accent-gold);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 2000;
+            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .toast.active { top: 20px; }
+
+        .tooltip {
+            position: absolute;
+            background: var(--primary-text);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            top: -50px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .show-tooltip { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Notification Component -->
+    <div id="toast" class="toast">
+        <i data-lucide="bell" color="#d4af37" size="28"></i>
+        <div class="toast-content" style="flex: 1;">
+            <h3 id="toast-title" style="font-size: 1.1rem; font-family: var(--font-serif); margin-bottom: 3px;">Thông báo</h3>
+            <p id="toast-message" style="font-size: 0.9rem; color: #555; line-height: 1.4;">Nội dung thông báo...</p>
+        </div>
+        <button onclick="closeToast()" style="background:none; border:none; padding: 10px; margin: -10px;">
+            <i data-lucide="x" size="20" color="#999"></i>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- 1. STOPWATCH SECTION -->
+        <div class="card" id="stopwatch-card" tabindex="0">
+            <h2>Đếm tăng timer</h2>
+            
+            <div class="time-display" id="sw-display">
+                <span class="time-unit" id="sw-min">00</span>
+                <span class="separator">:</span>
+                <span class="time-unit" id="sw-sec">00</span>
+                <span class="milliseconds" id="sw-ms">.00</span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="sw-reset-btn" aria-label="Đặt lại">
+                    <i data-lucide="rotate-ccw" size="24"></i>
+                </button>
+                <button class="btn btn-primary" id="sw-toggle-btn">
+                    <i data-lucide="play" size="24"></i> Bắt đầu
+                </button>
+            </div>
+
+            <div class="instruction-text">
+                Bấm <strong>"Bắt đầu"</strong> để đo giờ. <br>
+                <em>Mẹo: Màn hình sẽ luôn sáng khi đồng hồ chạy.</em>
+            </div>
+        </div>
+
+        <!-- 2. COUNTDOWN TIMER SECTION -->
+        <div class="card" id="countdown-card" tabindex="0">
+            <h2>Đếm giảm timer</h2>
+            
+            <!-- Input UI (Shown when timer is stopped) -->
+            <div id="cd-input-area" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                
+                <!-- Smart Presets -->
+                <div class="preset-container">
+                    <button class="preset-btn" onclick="applyPreset(5)">5 phút</button>
+                    <button class="preset-btn" onclick="applyPreset(15)">15 phút</button>
+                    <button class="preset-btn" onclick="applyPreset(25)">25 phút</button>
+                    <button class="preset-btn" onclick="applyPreset(45)">45 phút</button>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <!-- inputmode="numeric" kích hoạt bàn phím số trên điện thoại -->
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" class="time-input" id="in-hr" placeholder="00" min="0" max="99" oninput="validateInput(this, 99)">
+                        <div class="input-label">Giờ</div>
+                    </div>
+                    <span class="separator" style="font-size: 2.5rem; margin-top: -30px;">:</span>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" class="time-input" id="in-min" placeholder="00" min="0" max="59" oninput="validateInput(this, 59)">
+                        <div class="input-label">Phút</div>
+                    </div>
+                    <span class="separator" style="font-size: 2.5rem; margin-top: -30px;">:</span>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" class="time-input" id="in-sec" placeholder="00" min="0" max="59" oninput="validateInput(this, 59)">
+                        <div class="input-label">Giây</div>
+                    </div>
+                </div>
+                <div id="tooltip-msg" class="tooltip">Vui lòng nhập thời gian</div>
+            </div>
+
+            <!-- Display UI (Shown when timer is running/paused) -->
+            <div id="cd-display-area" class="time-display" style="display: none;">
+                <span class="time-unit" id="cd-hr">00</span>
+                <span class="separator">:</span>
+                <span class="time-unit" id="cd-min">00</span>
+                <span class="separator">:</span>
+                <span class="time-unit" id="cd-sec">00</span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="cd-reset-btn" aria-label="Đặt lại">
+                    <i data-lucide="rotate-ccw" size="24"></i>
+                </button>
+                <button class="btn btn-primary" id="cd-toggle-btn">
+                    <i data-lucide="play" size="24"></i> Đếm ngược
+                </button>
+            </div>
+
+            <div class="instruction-text">
+                Chọn nhanh hoặc nhập số. <br>
+                <em>Điện thoại sẽ rung và reo khi hết giờ.</em>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+        const pad = (num, size = 2) => num.toString().padStart(size, '0');
+
+        // * =========================================
+        // * SMART WAKE LOCK (Keep screen on)
+        // * =========================================
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock is active');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release()
+                    .then(() => { wakeLock = null; });
+            }
+        }
+
+        // Re-request wake lock if visibility changes (user switches tabs back)
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // * =========================================
+        // * AUDIO ENGINE (SYNTHESIZER)
+        // * =========================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const SoundFX = {
+            click: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            },
+            
+            alarm: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                
+                // Create a rhythmic beeping pattern
+                for(let i=0; i<3; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const startTime = now + i*0.2;
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, startTime);
+                    osc.frequency.linearRampToValueAtTime(800, startTime + 0.1);
+                    
+                    gain.gain.setValueAtTime(0, startTime);
+                    gain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
+                    gain.gain.linearRampToValueAtTime(0, startTime + 0.15);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.15);
+                }
+            }
+        };
+
+        // * =========================================
+        // * NOTIFICATIONS & TITLE
+        // * =========================================
+        const toast = document.getElementById('toast');
+        const toastTitle = document.getElementById('toast-title');
+        const toastMessage = document.getElementById('toast-message');
+        const originalTitle = document.title;
+        let toastTimeout;
+
+        function updateTitle(text) {
+            document.title = text ? `${text} - Luxury Timer` : originalTitle;
+        }
+
+        function showToast(title = "Thông báo", msg = "") {
+            toastTitle.textContent = title;
+            toastMessage.textContent = msg;
+            toast.classList.add('active');
+            
+            // Haptic Feedback for Mobile
+            if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+            
+            SoundFX.alarm();
+            // Loop alarm sound 2 more times
+            setTimeout(SoundFX.alarm, 1000);
+            setTimeout(SoundFX.alarm, 2000);
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(closeToast, 6000);
+        }
+
+        function closeToast() { toast.classList.remove('active'); }
+        window.closeToast = closeToast; 
+
+        function getSmartMessage(minutes) {
+            if (minutes === 5) return "Khởi động tốt! Đã 5 phút trôi qua.";
+            if (minutes === 25) return "Hoàn thành 1 Pomodoro (25p). Hãy nghỉ ngơi.";
+            if (minutes === 60) return "Tròn 1 tiếng tập trung. Tuyệt vời!";
+            return `Đã trôi qua ${minutes} phút.`;
+        }
+
+        // * =========================================
+        // * STOPWATCH LOGIC
+        // * =========================================
+        const sw = {
+            startTime: 0,
+            elapsedTime: 0,
+            intervalId: null,
+            isRunning: false,
+            lastLogMinute: 0,
+            elements: {
+                min: document.getElementById('sw-min'),
+                sec: document.getElementById('sw-sec'),
+                ms: document.getElementById('sw-ms'),
+                toggle: document.getElementById('sw-toggle-btn'),
+                reset: document.getElementById('sw-reset-btn'),
+                display: document.getElementById('sw-display')
+            }
+        };
+
+        function updateStopwatchDisplay() {
+            const time = Date.now() - sw.startTime + sw.elapsedTime;
+            const minutes = Math.floor(time / 60000);
+            const seconds = Math.floor((time % 60000) / 1000);
+            const ms = Math.floor((time % 1000) / 10); 
+
+            const timeStr = `${pad(minutes)}:${pad(seconds)}`;
+            sw.elements.min.textContent = pad(minutes);
+            sw.elements.sec.textContent = pad(seconds);
+            sw.elements.ms.textContent = '.' + pad(ms);
+            
+            // Smart feature: Update browser tab title
+            updateTitle(timeStr);
+
+            if (minutes > 0 && minutes % 5 === 0 && minutes !== sw.lastLogMinute) {
+                sw.lastLogMinute = minutes;
+                showToast("Tiến độ", getSmartMessage(minutes));
+            }
+        }
+
+        function toggleStopwatch() {
+            SoundFX.click();
+            if (!sw.isRunning) {
+                sw.startTime = Date.now();
+                sw.intervalId = setInterval(updateStopwatchDisplay, 10);
+                sw.elements.toggle.innerHTML = `<i data-lucide="pause" size="24"></i> Tạm dừng`;
+                sw.elements.display.classList.add('running');
+                sw.isRunning = true;
+                requestWakeLock(); // Screen on
+            } else {
+                sw.elapsedTime += Date.now() - sw.startTime;
+                clearInterval(sw.intervalId);
+                sw.elements.toggle.innerHTML = `<i data-lucide="play" size="24"></i> Tiếp tục`;
+                sw.elements.display.classList.remove('running');
+                sw.isRunning = false;
+                releaseWakeLock(); // Release screen
+                updateTitle("");
+            }
+            lucide.createIcons();
+        }
+
+        sw.elements.toggle.addEventListener('click', toggleStopwatch);
+        sw.elements.reset.addEventListener('click', () => {
+            SoundFX.click();
+            clearInterval(sw.intervalId);
+            sw.isRunning = false;
+            sw.elapsedTime = 0;
+            sw.lastLogMinute = 0;
+            sw.elements.min.textContent = "00";
+            sw.elements.sec.textContent = "00";
+            sw.elements.ms.textContent = ".00";
+            sw.elements.toggle.innerHTML = `<i data-lucide="play" size="24"></i> Bắt đầu`;
+            sw.elements.display.classList.remove('running');
+            releaseWakeLock();
+            updateTitle("");
+            lucide.createIcons();
+        });
+
+        // * =========================================
+        // * COUNTDOWN LOGIC
+        // * =========================================
+        const cd = {
+            totalSeconds: 0,
+            intervalId: null,
+            isRunning: false,
+            isPaused: false,
+            elements: {
+                inputArea: document.getElementById('cd-input-area'),
+                displayArea: document.getElementById('cd-display-area'),
+                inHr: document.getElementById('in-hr'),
+                inMin: document.getElementById('in-min'),
+                inSec: document.getElementById('in-sec'),
+                dispHr: document.getElementById('cd-hr'),
+                dispMin: document.getElementById('cd-min'),
+                dispSec: document.getElementById('cd-sec'),
+                toggle: document.getElementById('cd-toggle-btn'),
+                reset: document.getElementById('cd-reset-btn'),
+                tooltip: document.getElementById('tooltip-msg'),
+                card: document.getElementById('countdown-card')
+            }
+        };
+
+        window.applyPreset = (minutes) => {
+            SoundFX.click();
+            cd.elements.inHr.value = '';
+            cd.elements.inSec.value = '';
+            cd.elements.inMin.value = minutes;
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active-preset'));
+            event.target.classList.add('active-preset');
+        };
+
+        window.validateInput = (el, max) => {
+            if (el.value.length > 2) el.value = el.value.slice(0, 2); // Limit chars
+            if (parseInt(el.value) > max) el.value = max;
+            if (parseInt(el.value) < 0) el.value = 0;
+            cd.elements.tooltip.classList.remove('show-tooltip');
+        };
+
+        function updateCountdownDisplay() {
+            if (cd.totalSeconds <= 0) {
+                finishCountdown();
+                return;
+            }
+            cd.totalSeconds--;
+            const h = Math.floor(cd.totalSeconds / 3600);
+            const m = Math.floor((cd.totalSeconds % 3600) / 60);
+            const s = cd.totalSeconds % 60;
+            
+            const timeStr = `${pad(h)}:${pad(m)}:${pad(s)}`;
+            cd.elements.dispHr.textContent = pad(h);
+            cd.elements.dispMin.textContent = pad(m);
+            cd.elements.dispSec.textContent = pad(s);
+            
+            updateTitle(timeStr);
+        }
+
+        function finishCountdown() {
+            clearInterval(cd.intervalId);
+            cd.isRunning = false;
+            cd.elements.toggle.innerHTML = `<i data-lucide="play" size="24"></i> Đếm ngược`;
+            cd.elements.displayArea.classList.remove('running');
+            showToast("Hết giờ!", "Đã hoàn thành thời gian đếm ngược.");
+            
+            cd.elements.card.style.boxShadow = "0 0 50px rgba(212, 175, 55, 0.8)";
+            setTimeout(() => {
+                cd.elements.card.style.boxShadow = "";
+                resetCountdownUI();
+            }, 3000);
+            
+            releaseWakeLock();
+            updateTitle("");
+            lucide.createIcons();
+        }
+
+        function resetCountdownUI() {
+            cd.elements.inputArea.style.display = 'flex';
+            cd.elements.displayArea.style.display = 'none';
+            cd.isPaused = false;
+            cd.elements.displayArea.classList.remove('running');
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active-preset'));
+        }
+
+        function toggleCountdown() {
+            SoundFX.click();
+            if (!cd.isRunning && !cd.isPaused) {
+                const h = parseInt(cd.elements.inHr.value) || 0;
+                const m = parseInt(cd.elements.inMin.value) || 0;
+                const s = parseInt(cd.elements.inSec.value) || 0;
+
+                if (h === 0 && m === 0 && s === 0) {
+                    cd.elements.tooltip.classList.add('show-tooltip');
+                    cd.elements.inputArea.style.position = "relative";
+                    setTimeout(() => cd.elements.tooltip.classList.remove('show-tooltip'), 3000);
+                    return;
+                }
+
+                cd.totalSeconds = h * 3600 + m * 60 + s;
+                
+                cd.elements.inputArea.style.display = 'none';
+                cd.elements.displayArea.style.display = 'flex';
+                cd.elements.displayArea.classList.add('running');
+                
+                cd.elements.dispHr.textContent = pad(h);
+                cd.elements.dispMin.textContent = pad(m);
+                cd.elements.dispSec.textContent = pad(s);
+
+                cd.intervalId = setInterval(updateCountdownDisplay, 1000);
+                cd.isRunning = true;
+                cd.elements.toggle.innerHTML = `<i data-lucide="pause" size="24"></i> Tạm dừng`;
+                requestWakeLock();
+            
+            } else if (cd.isRunning) {
+                clearInterval(cd.intervalId);
+                cd.isRunning = false;
+                cd.isPaused = true;
+                cd.elements.displayArea.classList.remove('running');
+                cd.elements.toggle.innerHTML = `<i data-lucide="play" size="24"></i> Tiếp tục`;
+                releaseWakeLock();
+            } else if (cd.isPaused) {
+                cd.intervalId = setInterval(updateCountdownDisplay, 1000);
+                cd.isRunning = true;
+                cd.isPaused = false;
+                cd.elements.displayArea.classList.add('running');
+                cd.elements.toggle.innerHTML = `<i data-lucide="pause" size="24"></i> Tạm dừng`;
+                requestWakeLock();
+            }
+            lucide.createIcons();
+        }
+
+        cd.elements.toggle.addEventListener('click', toggleCountdown);
+        cd.elements.reset.addEventListener('click', () => {
+            SoundFX.click();
+            clearInterval(cd.intervalId);
+            cd.isRunning = false;
+            cd.isPaused = false;
+            cd.elements.inHr.value = '';
+            cd.elements.inMin.value = '';
+            cd.elements.inSec.value = '';
+            resetCountdownUI();
+            cd.elements.toggle.innerHTML = `<i data-lucide="play" size="24"></i> Đếm ngược`;
+            releaseWakeLock();
+            updateTitle("");
+            lucide.createIcons();
+        });
+
+    </script>
+</body>
+</html>
