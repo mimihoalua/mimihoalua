@@ -191,14 +191,16 @@
         <button onclick="closeDetail()" class="fixed top-4 right-4 z-extreme w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 shadow-2xl border-2 border-white cursor-pointer active:scale-90 pt-safe outline-none"><i class="fa-solid fa-times text-xl"></i></button>
         <div class="bg-white w-full h-full md:w-[1000px] md:h-auto md:max-h-[90vh] md:rounded-lg shadow-2xl flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300 overflow-y-auto md:overflow-hidden pb-safe" id="modalContent">
             <div class="w-full md:w-[58%] flex flex-col shrink-0 bg-white relative border-r border-gray-100 pb-0 md:pb-0">
-                <div class="relative w-full aspect-square md:h-[450px] bg-white flex items-center justify-center group border-b border-gray-100 bg-gray-50">
-                    <img id="modalMainImg" src="" class="w-full h-full object-contain p-2 transition-opacity duration-200">
-                    <button onclick="navigateGallery(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-10 clickable outline-none"><i class="fa-solid fa-chevron-left"></i></button>
-                    <button onclick="navigateGallery(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-10 clickable outline-none"><i class="fa-solid fa-chevron-right"></i></button>
+                <div id="galleryWrapper" class="relative w-full aspect-square md:h-[450px] bg-gray-50 flex items-center justify-center overflow-hidden border-b border-gray-100 touch-pan-y select-none">
+                    <div id="galleryTrack" class="flex w-full h-full transition-transform duration-300 ease-out will-change-transform z-0"></div>
+                    <button onclick="GalleryManager.navigate(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-20 clickable outline-none"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button onclick="GalleryManager.navigate(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-20 clickable outline-none"><i class="fa-solid fa-chevron-right"></i></button>
+                    <div id="galleryDots" class="absolute bottom-3 left-0 w-full flex justify-center items-center gap-1.5 z-20 pointer-events-none"></div>
                 </div>
                 <div class="relative w-full bg-gray-50 px-2 py-2 shadow-inner border-b border-gray-200">
                     <div id="thumbList" class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth snap-x items-center h-[60px] px-2"></div>
                 </div>
+
                 <div class="px-5 py-4 space-y-4 bg-white">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm"><span class="text-gray-500">Đang chọn:</span><span id="selectedVariantNameDisplay" class="font-bold text-gray-800 text-base border-b-2 border-[#ee4d2d]">...</span></div>
@@ -252,7 +254,7 @@
     
     <div id="statusModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-95 transition-all" id="statusModalContent"><div id="statusIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"></div><h3 id="statusTitle" class="text-xl font-bold text-gray-800 mb-2"></h3><p id="statusMsg" class="text-gray-600 text-sm mb-6"></p><div id="statusActions"><button type="button" onclick="closeStatusModal()" class="w-full py-2 rounded font-bold text-white transition clickable outline-none border-none" id="statusBtn">Đóng</button></div></div></div>
     
-    <div id="validationModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[80] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="validationContent"><div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></div><h3 class="text-red-600 font-bold text-lg">Thông tin chưa đủ</h3></div><div class="p-5"><p class="text-gray-600 text-sm mb-3">Vui lòng bổ sung các thông tin sau để chúng tôi giao hàng:</p><ul id="errorList" class="space-y-2 text-sm text-gray-700"></ul></div><div class="p-3 bg-gray-50 text-right"><button type="button" onclick="closeValidationModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 clickable outline-none border-none">Đã hiểu</button></div><div class="h-1 bg-red-100 w-full"><div class="h-full bg-red-500 w-full animate-[width_3s_linear_reverse]"></div></div></div></div>
+    <div id="validationModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[80] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="validationContent"><div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></div><h3 class="text-red-600 font-bold text-lg">Thông tương chưa đủ</h3></div><div class="p-5"><p class="text-gray-600 text-sm mb-3">Vui lòng bổ sung các thông tin sau để chúng tôi giao hàng:</p><ul id="errorList" class="space-y-2 text-sm text-gray-700"></ul></div><div class="p-3 bg-gray-50 text-right"><button type="button" onclick="closeValidationModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 clickable outline-none border-none">Đã hiểu</button></div><div class="h-1 bg-red-100 w-full"><div class="h-full bg-red-500 w-full animate-[width_3s_linear_reverse]"></div></div></div></div>
     
     <div id="orderHistoryModal" role="dialog" aria-modal="true" class="fixed inset-0 bg-gray-100 hidden z-[70] overflow-y-auto transition-transform duration-300 translate-x-full pb-safe"><div class="bg-white border-b sticky top-0 z-50 shadow-sm pt-safe"><div class="container mx-auto px-4 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-[#ee4d2d] text-xl"></i><div class="text-xl text-gray-700 font-bold">Đơn Hàng Của Tôi</div></div><button type="button" onclick="closeOrderHistory()" class="text-gray-500 hover:text-[#ee4d2d] font-medium clickable outline-none border-none bg-transparent">Đóng</button></div></div><div class="container mx-auto px-4 py-6 pb-20"><div id="orderHistoryList" class="space-y-4"></div></div></div>
 
@@ -324,8 +326,52 @@
             document.addEventListener('click', e => { const dd = document.getElementById("communeDropdown"); const inp = document.getElementById("searchCommune"); if (!dd.contains(e.target) && e.target !== inp) dd.classList.add("hidden"); });
         });
 
+        /* --- PLUGIN: THUẬT TOÁN SORT ĐỘC LẬP TÁCH KHỎI FIREBASE --- */
+        function sortProductsByBusinessLogic(products, tabName) {
+            return products.sort((a, b) => {
+                let aTotalStock = 0;
+                if (a.variants && a.variants.length > 0) { a.variants.forEach(v => { aTotalStock += (parseInt(v.stock) || 0); }); }
+                else { aTotalStock = (a.stock !== undefined) ? parseInt(a.stock) : 999; }
+
+                let bTotalStock = 0;
+                if (b.variants && b.variants.length > 0) { b.variants.forEach(v => { bTotalStock += (parseInt(v.stock) || 0); }); }
+                else { bTotalStock = (b.stock !== undefined) ? parseInt(b.stock) : 999; }
+
+                const stockA = aTotalStock > 0 ? 1 : 0;
+                const stockB = bTotalStock > 0 ? 1 : 0;
+
+                // Quy tắc 1: CÒN HÀNG ưu tiên trên HẾT HÀNG
+                if (stockA !== stockB) return stockB - stockA;
+
+                if (stockA > 0) {
+                    if (tabName === 'all') {
+                        // Quy tắc 2: Tối ưu GMV (Tổng tồn kho * Giá base)
+                        const priceA = a.basePrice || (a.variants && a.variants.length > 0 ? a.variants[0].price : 0) || 0;
+                        const priceB = b.basePrice || (b.variants && b.variants.length > 0 ? b.variants[0].price : 0) || 0;
+                        const gmvA = aTotalStock * priceA;
+                        const gmvB = bTotalStock * priceB;
+                        if (gmvA !== gmvB) return gmvB - gmvA;
+                    } else if (tabName === 'new') {
+                        // Quy tắc 3: Tốc độ bán (Sold)
+                        const soldA = a.sold || 0;
+                        const soldB = b.sold || 0;
+                        if (soldA !== soldB) return soldB - soldA;
+                    }
+                }
+                
+                // Quy tắc 4: Fallback về Ngày tạo (Mới nhất lên trước)
+                const timeA = a.createdAt?.seconds || a.createdAt || 0;
+                const timeB = b.createdAt?.seconds || b.createdAt || 0;
+                return timeB - timeA;
+            });
+        }
+
         /* --- XÂY DỰNG GIAO DIỆN SẢN PHẨM SHOPEE-LIKE --- */
         function renderSingleProductData(p, container) {
+            let totalStock = 0;
+            if (p.variants && p.variants.length > 0) { p.variants.forEach(v => { totalStock += (parseInt(v.stock) || 0); }); }
+            else { totalStock = (p.stock !== undefined) ? parseInt(p.stock) : 999; }
+
             let thumb = (p.images && p.images.length > 0) ? p.images[0] : "https://via.placeholder.com/300";
             let displayPrice = p.basePrice || 0;
             if (displayPrice === 0 && p.variants && p.variants.length > 0) { displayPrice = p.variants[0].price; }
@@ -336,30 +382,28 @@
                 const minPrice = Math.min(...prices); const maxPrice = Math.max(...prices);
                 if(minPrice !== maxPrice) priceDisplay = `${new Intl.NumberFormat('vi-VN').format(minPrice)} - ${new Intl.NumberFormat('vi-VN').format(maxPrice)}`;
             }
-
-            let totalStock = 0;
-            if (p.variants && p.variants.length > 0) { p.variants.forEach(v => { totalStock += (parseInt(v.stock) || 0); }); }
-            else { totalStock = (p.stock !== undefined) ? parseInt(p.stock) : 999; }
             
+            // Xử lý UI Hết Hàng
             const isOut = (totalStock <= 0);
-            const overlay = isOut ? '<div class="absolute inset-0 bg-white/70 flex items-center justify-center z-20"><span class="bg-gray-800 text-white text-[10px] px-2 py-1 rounded-sm font-bold border border-gray-600">HẾT HÀNG</span></div>' : '';
-            const opacityClass = isOut ? 'opacity-75 grayscale-[30%]' : '';
+            const overlay = isOut ? '<div class="absolute inset-0 bg-white/60 flex items-center justify-center z-20"><span class="bg-gray-800 text-white text-[10px] px-2 py-1 rounded-[2px] font-bold border border-gray-600 shadow-sm">HẾT HÀNG</span></div>' : '';
+            const opacityClass = isOut ? 'opacity-70 grayscale-[50%]' : '';
             const soldCount = p.sold || Math.floor(Math.random() * 500) + 12;
 
             const card = document.createElement('article');
             card.className = `bg-white rounded-[2px] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:-translate-y-[1px] hover:shadow-[0_1px_8px_0_rgba(0,0,0,0.08)] transition-all duration-200 cursor-pointer border border-transparent hover:border-[#ee4d2d] flex flex-col h-full relative group gpu-accel ${opacityClass}`;
             card.onclick = () => { UI.vibrate(); openDetail(p); };
 
+            // Thay đổi object-cover thành object-contain p-1.5, bg-gray-50
             card.innerHTML = `
-                <div class="w-full pt-[100%] relative bg-gray-50 overflow-hidden shrink-0">
-                    <img src="${thumb}" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" alt="${p.name}">
+                <div class="w-full pt-[100%] relative bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border-b border-gray-100">
+                    <img src="${thumb}" loading="lazy" class="absolute inset-0 w-full h-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.03]" alt="${p.name}">
                     ${overlay}
                     <div class="absolute top-1 left-[-2px] bg-[#f25220] text-white text-[10px] font-medium px-1.5 py-[2px] rounded-r-[2px] shadow-sm z-10 flex items-center gap-1 shopee-badge-fav">
                         <i class="fa-solid fa-check text-[8px]"></i> Yêu thích
                     </div>
                     ${p.variants?.length > 1 ? '<div class="absolute bottom-0 right-0 bg-[#ee4d2d]/90 backdrop-blur-sm text-white text-[9px] font-medium px-1.5 py-0.5 rounded-tl-sm z-10">Nhiều mẫu</div>' : ''}
                 </div>
-                <div class="p-2 flex flex-col flex-1 bg-white border-t border-gray-50">
+                <div class="p-2 flex flex-col flex-1 bg-white">
                     <h3 class="text-xs md:text-[13px] text-gray-800 line-clamp-2 leading-[1.3] mb-1.5 min-h-[31px] font-normal break-words">${p.name}</h3>
                     <div class="flex items-center gap-1 mb-1">
                         <span class="text-[9px] text-[#ee4d2d] border border-[#ee4d2d] px-1 py-[1px] bg-red-50 rounded-[2px] leading-none whitespace-nowrap">Rẻ vô địch</span>
@@ -374,6 +418,9 @@
         }
 
         function renderProductGrid(products, grid) {
+            // PLUGIN SORT CHẠY TẠI ĐÂY - BẢO VỆ FIREBASE
+            products = sortProductsByBusinessLogic(products, currentTab);
+
             grid.innerHTML = ""; 
             if (products.length === 0) { 
                 grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400"><p>Chưa có sản phẩm nào phù hợp.</p></div>`; 
@@ -382,7 +429,7 @@
             }
         }
 
-        /* --- LOGIC KÉO DỮ LIỆU TỪ FIREBASE --- */
+        /* --- ⛔ TẦNG FIREBASE: GIỮ NGUYÊN BẢN 100% NHƯ CŨ ⛔ --- */
         function switchHomeTab(tabName) {
             UI.vibrate();
             ['all', 'categories', 'new'].forEach(t => { 
@@ -433,7 +480,138 @@
             }, 400);
         }
 
-        /* --- CHI TIẾT SẢN PHẨM --- */
+        /* --- GALLERY MANAGER (CHUẨN ISO BẢO VỆ MEMORY) --- */
+        const GalleryManager = {
+            images: [], currentIndex: 0, track: null, dots: null, wrapper: null,
+            startX: 0, currentX: 0, isDragging: false, zoomLevel: 1, lastTap: 0, abortController: null,
+
+            init(images) {
+                this.cleanup();
+                this.images = images?.length ? images : ["https://via.placeholder.com/300"];
+                this.currentIndex = 0;
+                this.wrapper = document.getElementById("galleryWrapper");
+                this.track = document.getElementById("galleryTrack");
+                this.dots = document.getElementById("galleryDots");
+
+                if (!this.track) return;
+
+                this.render();
+                
+                this.abortController = new AbortController();
+                const signal = this.abortController.signal;
+
+                this.wrapper.addEventListener('touchstart', this.onStart.bind(this), { signal, passive: false });
+                this.wrapper.addEventListener('touchmove', this.onMove.bind(this), { signal, passive: false });
+                this.wrapper.addEventListener('touchend', this.onEnd.bind(this), { signal });
+            },
+
+            render() {
+                this.track.innerHTML = this.images.map(src => `
+                    <div class="w-full h-full shrink-0 flex items-center justify-center relative touch-pan-y overflow-hidden">
+                        <img src="${src}" class="w-full h-full object-contain p-2 transition-transform duration-300 origin-center gallery-img" onerror="this.src='https://via.placeholder.com/300'">
+                    </div>
+                `).join('');
+                this.updatePosition(false);
+            },
+
+            updatePosition(smooth = true) {
+                if (!this.track) return;
+                this.track.style.transition = smooth ? 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+                this.track.style.transform = `translateX(-${this.currentIndex * 100}%)`;
+                
+                if (this.dots) {
+                    this.dots.innerHTML = this.images.length > 1 ? this.images.map((_, i) => `<div class="h-1.5 rounded-full transition-all duration-300 shadow-sm ${i === this.currentIndex ? 'bg-[#ee4d2d] w-4' : 'bg-gray-300/80 w-1.5'}"></div>`).join('') : '';
+                }
+
+                document.querySelectorAll('#thumbList > button').forEach((t, i) => {
+                    if (i === this.currentIndex) { t.classList.add('border-[#ee4d2d]', 'opacity-100'); t.classList.remove('opacity-60', 'border-gray-200'); t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } 
+                    else { t.classList.remove('border-[#ee4d2d]', 'opacity-100'); t.classList.add('opacity-60', 'border-gray-200'); }
+                });
+                this.syncVariantUI();
+            },
+
+            syncVariantUI() {
+                if (!currentProduct || !currentProduct.variants) return;
+                const currentImg = this.images[this.currentIndex];
+                const matchedIndex = currentProduct.variants.findIndex(v => (v.originalImage || currentProduct.images[0]) === currentImg);
+                if (matchedIndex !== -1 && typeof selectedVariantIndex !== 'undefined' && selectedVariantIndex !== matchedIndex) {
+                    const btn = document.getElementById(`btn-text-var-${matchedIndex}`);
+                    if (btn && !btn.disabled) selectVariant(matchedIndex, true); 
+                }
+            },
+
+            navigate(dir) {
+                if (this.zoomLevel > 1) this.toggleZoom();
+                UI.vibrate();
+                if (this.images.length <= 1) return;
+                this.currentIndex = (this.currentIndex + dir + this.images.length) % this.images.length;
+                this.updatePosition();
+            },
+
+            goTo(index) {
+                if (this.zoomLevel > 1) this.toggleZoom();
+                if (index >= 0 && index < this.images.length) { this.currentIndex = index; this.updatePosition(); }
+            },
+
+            onStart(e) {
+                if (e.touches.length > 1) return;
+                this.startX = e.touches[0].clientX; this.currentX = this.startX; this.isDragging = true; 
+                if (this.zoomLevel === 1) this.track.style.transition = 'none';
+
+                const now = Date.now();
+                if (now - this.lastTap > 0 && now - this.lastTap < 300) { e.preventDefault(); this.toggleZoom(e.touches[0]); }
+                this.lastTap = now;
+            },
+
+            onMove(e) {
+                if (!this.isDragging || this.zoomLevel > 1 || e.touches.length > 1) return;
+                this.currentX = e.touches[0].clientX;
+                const diffX = this.currentX - this.startX;
+                if (Math.abs(diffX) > 10 && e.cancelable) e.preventDefault();
+                const translate = -(this.currentIndex * this.wrapper.offsetWidth) + diffX;
+                this.track.style.transform = `translateX(${translate}px)`;
+            },
+
+            onEnd(e) {
+                if (!this.isDragging || this.zoomLevel > 1) return;
+                this.isDragging = false;
+                const diffX = this.currentX - this.startX;
+                if (Math.abs(diffX) > 50) {
+                    if (diffX > 0 && this.currentIndex > 0) this.currentIndex--;
+                    else if (diffX < 0 && this.currentIndex < this.images.length - 1) this.currentIndex++;
+                }
+                this.updatePosition();
+            },
+
+            toggleZoom(touch) {
+                const imgEl = this.track.querySelectorAll('.gallery-img')[this.currentIndex];
+                if (!imgEl) return;
+                const parent = imgEl.parentElement;
+                if (this.zoomLevel === 1) {
+                    this.zoomLevel = 2.5;
+                    if (touch) {
+                        const rect = parent.getBoundingClientRect();
+                        const x = ((touch.clientX - rect.left) / rect.width) * 100;
+                        const y = ((touch.clientY - rect.top) / rect.height) * 100;
+                        imgEl.style.transformOrigin = `${x}% ${y}%`;
+                    } else imgEl.style.transformOrigin = `center center`;
+                    imgEl.style.transform = 'scale(2.5)';
+                    parent.classList.replace('overflow-hidden', 'overflow-auto');
+                } else {
+                    this.zoomLevel = 1; imgEl.style.transform = 'scale(1)';
+                    parent.classList.replace('overflow-auto', 'overflow-hidden');
+                    parent.scrollTop = 0; parent.scrollLeft = 0;
+                    setTimeout(() => imgEl.style.transformOrigin = 'center center', 300);
+                }
+            },
+
+            cleanup() {
+                if (this.abortController) { this.abortController.abort(); this.abortController = null; }
+                this.zoomLevel = 1; this.isDragging = false;
+            }
+        };
+
+        /* --- CHI TIẾT SẢN PHẨM & GALLERY SỬA ĐỔI NÚT MUA --- */
         function openDetail(product) {
             UI.lockScroll();
             currentProduct = product; selectedVariantIndex = 0; document.getElementById("qtyInput").value = 1; document.getElementById("modalTitle").innerText = product.name;
@@ -441,12 +619,26 @@
             
             const buyBtns = document.querySelectorAll('#detailModal button[id="btnAddToCart"], #detailModal button[id="btnBuyNow"]');
             buyBtns.forEach(b => {
-                b.disabled = false; b.classList.remove('bg-gray-300', 'cursor-not-allowed', 'border-gray-300', 'text-gray-500');
-                if(b.id === 'btnBuyNow') { b.innerText = 'Mua Ngay'; b.className = "flex-1 bg-gradient-to-r from-[#ee4d2d] to-[#ff7337] text-white font-bold py-3.5 rounded shadow-lg shadow-orange-500/30 hover:shadow-xl active:scale-95 transition-transform uppercase text-sm md:text-base clickable border-none"; } 
-                else { b.className = "flex-1 bg-[#ee4d2d]/10 border border-[#ee4d2d] text-[#ee4d2d] hover:bg-[#ee4d2d]/20 font-bold py-3.5 rounded shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform uppercase text-sm md:text-base clickable"; }
+                b.disabled = false; b.classList.remove('invisible', 'pointer-events-none');
+                if(b.id === 'btnBuyNow') { b.innerText = 'Mua Ngay'; b.className = "flex-1 bg-[#ee4d2d] hover:bg-[#d73211] text-white font-bold py-3.5 rounded shadow-lg shadow-orange-500/30 active:scale-95 transition-transform uppercase text-sm md:text-base clickable outline-none border-none"; } 
+                else { b.className = "flex-1 bg-[#ffefe9] border border-[#ee4d2d] text-[#ee4d2d] hover:bg-[#ffdfd1] font-bold py-3.5 rounded shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-transform uppercase text-sm md:text-base clickable outline-none"; }
             });
 
-            if (product.images && product.images.length > 0) { product.images.forEach((imgUrl) => { const thumb = document.createElement("button"); thumb.type="button"; thumb.className = `min-w-[48px] w-[48px] h-[48px] border-2 rounded-[2px] cursor-pointer overflow-hidden snap-start transition-all shrink-0 border-gray-200 opacity-60 hover:opacity-100 outline-none bg-transparent p-0`; thumb.onclick = () => { UI.vibrate(); document.getElementById("modalMainImg").src = imgUrl; document.querySelectorAll('#thumbList > button').forEach(d => { d.classList.remove('border-[#ee4d2d]', 'opacity-100'); d.classList.add('opacity-60', 'border-gray-200'); }); thumb.classList.add('border-[#ee4d2d]', 'opacity-100'); thumb.classList.remove('opacity-60', 'border-gray-200'); }; thumb.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`; thumbList.appendChild(thumb); }); }
+            let allImages = product.images ? [...product.images] : [];
+            if (product.variants?.length > 0) {
+                product.variants.forEach(v => { if (v.originalImage && !allImages.includes(v.originalImage)) allImages.push(v.originalImage); });
+            }
+            if (allImages.length === 0) allImages.push("https://via.placeholder.com/300");
+
+            GalleryManager.init(allImages);
+
+            allImages.forEach((imgUrl, idx) => { 
+                const thumb = document.createElement("button"); thumb.type="button"; 
+                thumb.className = `min-w-[48px] w-[48px] h-[48px] border-2 rounded-[2px] cursor-pointer overflow-hidden snap-start transition-all shrink-0 border-gray-200 opacity-60 hover:opacity-100 outline-none bg-transparent p-0`; 
+                thumb.onclick = () => { UI.vibrate(); GalleryManager.goTo(idx); }; 
+                thumb.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`; 
+                thumbList.appendChild(thumb); 
+            });
 
             let firstInStockIndex = -1;
             if (product.variants?.length > 0) {
@@ -459,25 +651,54 @@
                     else { btn.className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-[2px] text-xs hover:border-[#ee4d2d] transition-all clickable outline-none"; btn.innerText = v.name; btn.onclick = () => { UI.vibrate(); selectVariant(index); }; }
                     variantListText.appendChild(btn);
                 });
-                if (firstInStockIndex === -1) { buyBtns.forEach(b => { b.disabled = true; b.classList.add('bg-gray-300', 'cursor-not-allowed'); b.classList.remove('bg-[#ee4d2d]', 'bg-gradient-to-r'); if(b.id === 'btnBuyNow') b.innerText = 'HẾT HÀNG'; }); } 
-                else { selectVariant(firstInStockIndex); }
+                if (firstInStockIndex === -1) { 
+                    buyBtns.forEach(b => { b.disabled = true; b.classList.add('invisible', 'pointer-events-none'); }); 
+                    selectVariant(0, true); 
+                } 
+                else { selectVariant(firstInStockIndex, true); }
             } else {
-                document.getElementById("modalMainImg").src = product.images?.[0] || "https://via.placeholder.com/300"; 
-                let price = product.basePrice; if(price === 0 && product.variants && product.variants.length > 0) price = product.variants[0].price;
+                let price = product.basePrice || 0;
+                if(price === 0 && product.variants && product.variants.length > 0) price = product.variants[0].price;
                 document.getElementById("modalPrice").innerText = new Intl.NumberFormat('vi-VN').format(price) + ' ₫'; 
-                document.getElementById("selectedVariantNameDisplay").innerText = "Mặc định"; document.getElementById("stockDisplay").innerText = "Còn hàng";
+                document.getElementById("selectedVariantNameDisplay").innerText = "Mặc định"; 
+                const stock = (product.stock !== undefined) ? parseInt(product.stock) : 999;
+                document.getElementById("stockDisplay").innerText = stock > 0 ? "Còn hàng" : "Hết hàng";
+                if(stock <= 0) buyBtns.forEach(b => { b.disabled = true; b.classList.add('invisible', 'pointer-events-none'); });
             }
             const modal = document.getElementById("detailModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => { modal.classList.remove("opacity-0"); document.getElementById("modalContent").classList.add("scale-100"); });
         }
 
-        function selectVariant(index) {
+        function selectVariant(index, skipGallerySync = false) {
             selectedVariantIndex = index; const v = currentProduct.variants[index]; const stock = (v.stock !== undefined && v.stock !== null) ? parseInt(v.stock) : 999;
-            document.getElementById("modalMainImg").src = v.originalImage || currentProduct.images[0]; document.getElementById("modalPrice").innerText = new Intl.NumberFormat('vi-VN').format(v.price) + ' ₫'; document.getElementById("selectedVariantNameDisplay").innerText = v.name; document.getElementById("stockDisplay").innerText = `Kho: ${stock}`;
-            const btns = document.getElementById("variantListText").children; for (let i = 0; i < btns.length; i++) { if (btns[i].disabled) continue; if (i === index) btns[i].className = "px-3 py-1.5 border border-[#ee4d2d] bg-[#ee4d2d]/10 text-[#ee4d2d] rounded-[2px] text-xs font-bold shadow-sm transition-all outline-none"; else btns[i].className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-[2px] text-xs hover:border-[#ee4d2d] transition-all outline-none"; }
+            document.getElementById("modalPrice").innerText = new Intl.NumberFormat('vi-VN').format(v.price) + ' ₫'; document.getElementById("selectedVariantNameDisplay").innerText = v.name; document.getElementById("stockDisplay").innerText = stock > 0 ? `Kho: ${stock}` : "Hết hàng";
+            
+            const btns = document.getElementById("variantListText").children; 
+            for (let i = 0; i < btns.length; i++) { 
+                if (btns[i].disabled) continue; 
+                if (i === index) btns[i].className = "px-3 py-1.5 border border-[#ee4d2d] bg-[#ee4d2d]/10 text-[#ee4d2d] rounded-[2px] text-xs font-bold shadow-sm transition-all outline-none"; 
+                else btns[i].className = "px-3 py-1.5 border border-gray-200 bg-white text-gray-600 rounded-[2px] text-xs hover:border-[#ee4d2d] transition-all outline-none"; 
+            }
+
+            const buyBtns = document.querySelectorAll('#detailModal button[id="btnAddToCart"], #detailModal button[id="btnBuyNow"]');
+            buyBtns.forEach(b => {
+                if(stock <= 0) {
+                    b.disabled = true;
+                    b.classList.add('invisible', 'pointer-events-none');
+                } else {
+                    b.disabled = false;
+                    b.classList.remove('invisible', 'pointer-events-none');
+                }
+            });
+
+            if (!skipGallerySync) {
+                let targetImg = v.originalImage || currentProduct.images?.[0];
+                let imgIdx = GalleryManager.images.indexOf(targetImg);
+                if (imgIdx !== -1) GalleryManager.goTo(imgIdx);
+            }
         }
 
-        function closeDetail() { const modal = document.getElementById("detailModal"); modal.classList.add("opacity-0"); document.getElementById("modalContent").classList.remove("scale-100"); setTimeout(() => { modal.classList.add("hidden"); UI.unlockScroll(); }, 300); }
-        function navigateGallery(direction) { UI.vibrate(); if (!currentProduct.variants) return; let newIndex = selectedVariantIndex + direction; if (newIndex < 0) newIndex = currentProduct.variants.length - 1; if (newIndex >= currentProduct.variants.length) newIndex = 0; selectVariant(newIndex); }
+        function closeDetail() { GalleryManager.cleanup(); const modal = document.getElementById("detailModal"); modal.classList.add("opacity-0"); document.getElementById("modalContent").classList.remove("scale-100"); setTimeout(() => { modal.classList.add("hidden"); UI.unlockScroll(); }, 300); }
+
         function updateQty(change) { UI.vibrate(); const input = document.getElementById("qtyInput"); let val = parseInt(input.value) + change; if (val < 1) val = 1; input.value = val; }
 
         /* --- GIỎ HÀNG & THANH TOÁN --- */
