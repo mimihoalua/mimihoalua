@@ -56,6 +56,23 @@
         .shopee-badge-fav { position: absolute; top: 4px; left: -2px; background-color: #f25220; color: white; font-size: 10px; font-weight: 500; padding: 2px 5px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; z-index: 2; box-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
         .shopee-badge-fav::after { content: ''; position: absolute; left: 0; bottom: -3px; border-top: 3px solid #9a2c16; border-left: 2px solid transparent; width: 0; height: 0; }
 
+
+
+        /* DAO MỔ ẢNH SẢN PHẨM - GIỮ TOÀN CẢNH, KHÔNG CROP, KHÔNG ZOOM LỐ */
+        #productGrid article img,
+        #galleryTrack .gallery-img,
+        #thumbList img {
+            object-fit: contain !important;
+            object-position: center center !important;
+            background-color: #f9fafb;
+        }
+        #productGrid article img {
+            transform: none !important;
+        }
+        #productGrid article:hover img {
+            transform: none !important;
+        }
+
         /* PWA UI STYLES V22 */
         .install-fab { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(238, 77, 45, 0.4); display: none; z-index: 9999; }
         .install-fab:active { transform: scale(0.9) translateY(2px); box-shadow: 0 4px 10px rgba(238, 77, 45, 0.3); }
@@ -82,6 +99,53 @@
         .benefit-pill { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 12px; padding: 10px; width: 32%; text-align: center; }
         .benefit-icon { font-size: 18px; color: #ea580c; margin-bottom: 4px; }
         .benefit-text { font-size: 11px; font-weight: 700; color: #9a3412; }
+
+
+        /* XIEMSANSANG AUDIO PLAYER - NAMESPACED EMBED, KHÔNG ĐỤNG RADIO / FIREBASE / SHOP CORE */
+        #xsAudioWindow {
+            --xs-bg: #fff7f7; --xs-card: #ffffff; --xs-text: #431018; --xs-muted: #9f1239; --xs-primary: #ee4d2d; --xs-border: #fecdd3; --xs-soft: #fff1f2;
+            color: var(--xs-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            box-shadow: 0 24px 70px rgba(0,0,0,.35);
+            contain: layout style;
+        }
+        #xsAudioWindow[data-xs-theme="dark"] { --xs-bg:#111827; --xs-card:#1f2937; --xs-text:#f9fafb; --xs-muted:#d1d5db; --xs-primary:#fb7185; --xs-border:#374151; --xs-soft:#111827; }
+        #xsAudioWindow[data-xs-theme="mint"] { --xs-bg:#f0fdf4; --xs-card:#ffffff; --xs-text:#064e3b; --xs-muted:#047857; --xs-primary:#10b981; --xs-border:#bbf7d0; --xs-soft:#ecfdf5; }
+        #xsAudioWindow.xs-audio-window { transition: opacity .2s ease, transform .2s ease; }
+        #xsAudioWindow .xs-audio-scroll { background: var(--xs-bg); color: var(--xs-text); overflow: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        #xsAudioWindow .xs-audio-scroll::-webkit-scrollbar { width: 5px; }
+        #xsAudioWindow .xs-audio-scroll::-webkit-scrollbar-thumb { background: var(--xs-border); border-radius: 99px; }
+        #xsAudioWindow .xs-btn { min-height: 38px; min-width: 38px; display:inline-flex; align-items:center; justify-content:center; gap:6px; border-radius:999px; border:1px solid var(--xs-border); background:var(--xs-card); color:var(--xs-text); font-size:12px; font-weight:800; transition:transform .08s ease, background .15s ease; touch-action:manipulation; }
+        #xsAudioWindow .xs-btn:active { transform: scale(.94); }
+        #xsAudioWindow .xs-btn-primary { background: var(--xs-primary); color:#fff; border-color:transparent; }
+        #xsAudioWindow .xs-input, #xsAudioWindow .xs-select { width:100%; border:1px solid var(--xs-border); background:var(--xs-card); color:var(--xs-text); border-radius:14px; padding:10px 12px; outline:none; font-size:13px; font-weight:700; }
+        #xsAudioWindow .xs-song-row { height:58px; display:flex; align-items:center; gap:8px; padding:0 10px; border-bottom:1px solid var(--xs-border); background:var(--xs-card); cursor:pointer; touch-action:manipulation; }
+        #xsAudioWindow .xs-song-row:active { background: var(--xs-soft); }
+        #xsAudioWindow .xs-song-row.xs-active { background: linear-gradient(90deg, var(--xs-soft), var(--xs-card)); border-left:4px solid var(--xs-primary); }
+        #xsAudioWindow .xs-song-title { font-size:13px; font-weight:900; color:var(--xs-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #xsAudioWindow .xs-song-artist { font-size:10px; font-weight:700; color:var(--xs-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #xsAudioWindow .xs-icon-btn { width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; color:var(--xs-primary); flex-shrink:0; }
+        #xsAudioWindow .xs-icon-btn:active { background:var(--xs-soft); transform:scale(.92); }
+        #xsAudioWindow .xs-progress-wrap { height:6px; background:var(--xs-border); border-radius:99px; overflow:hidden; cursor:pointer; }
+        #xsAudioWindow .xs-progress-bar { height:100%; width:0%; background:var(--xs-primary); border-radius:99px; transition:width .25s linear; }
+        #xsAudioWindow #xsAudioList { flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding-bottom:128px; scroll-padding-bottom:140px; }
+        #xsAudioWindow #xsAudioList::-webkit-scrollbar { width:5px; }
+        #xsAudioWindow #xsAudioList::-webkit-scrollbar-thumb { background:var(--xs-border); border-radius:99px; }
+        #xsAudioWindow .xs-mini-player { position:absolute; left:0; right:0; bottom:0; z-index:8; background:rgba(255,255,255,.74); border-top:1px solid rgba(254,205,211,.86); -webkit-backdrop-filter:blur(18px) saturate(150%); backdrop-filter:blur(18px) saturate(150%); padding:10px 10px max(10px, env(safe-area-inset-bottom, 0px)); box-shadow:0 -12px 34px rgba(67,16,24,.12); }
+        #xsAudioWindow[data-xs-theme="dark"] .xs-mini-player { background:rgba(31,41,55,.74); border-top-color:rgba(55,65,81,.88); }
+        #xsAudioWindow[data-xs-theme="mint"] .xs-mini-player { background:rgba(255,255,255,.74); border-top-color:rgba(187,247,208,.88); }
+        #xsAudioWindow #xsAudioMoreBtn { position:absolute; left:10px; right:10px; bottom:116px; z-index:7; border-radius:14px; background:rgba(255,255,255,.78); -webkit-backdrop-filter:blur(14px) saturate(145%); backdrop-filter:blur(14px) saturate(145%); box-shadow:0 8px 24px rgba(67,16,24,.08); }
+        #xsAudioWindow[data-xs-theme="dark"] #xsAudioMoreBtn { background:rgba(31,41,55,.82); }
+        #xsAudioWindow .xs-guide-box { border:1px solid var(--xs-border); background:var(--xs-card); border-radius:14px; overflow:hidden; }
+        #xsAudioWindow .xs-guide-box summary { padding:10px 12px; font-size:12px; font-weight:900; color:var(--xs-primary); cursor:pointer; user-select:none; }
+        #xsAudioWindow .xs-guide-box div { padding:0 12px 12px; font-size:12px; line-height:1.5; color:var(--xs-muted); }
+        #xsAudioWindow .xs-hidden { display:none !important; }
+        @media (max-width: 640px) {
+            #xsAudioWindow { top: calc(70px + var(--safe-top)) !important; left: 8px !important; right:auto !important; width: calc(100vw - 16px) !important; height: min(78vh, 680px) !important; resize: none !important; }
+            #xsAudioWindowHeader { cursor: default; }
+            #xsAudioWindow .xs-song-row { height:60px; }
+        }
+
     </style>
 </head>
 <body class="bg-[#f5f5f5] flex flex-col min-h-screen relative">
@@ -100,6 +164,10 @@
                 <div class="flex items-center gap-3 md:gap-4 py-1">
                     <button onclick="toggleRadio()" class="hover:text-yellow-100 font-bold flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full clickable transition-all active:scale-95 border border-white/20 backdrop-blur-sm outline-none text-yellow-300 shadow-sm">
                         <i class="fa-solid fa-compact-disc animate-spin-slow"></i><span class="text-[10px] md:text-[11px]">Radio</span>
+                    </button>
+
+                    <button onclick="toggleAudioPlayer()" class="hover:text-yellow-100 font-bold flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full clickable transition-all active:scale-95 border border-white/20 backdrop-blur-sm outline-none text-yellow-300 shadow-sm">
+                        <i class="fa-solid fa-music"></i><span class="text-[10px] md:text-[11px]">Audio</span>
                     </button>
                     <a href="#" class="hover:text-gray-200 hidden md:inline text-[11px] md:text-xs">Thông báo</a>
                     <a href="#" class="hover:text-gray-200 hidden md:inline text-[11px] md:text-xs">Hỗ trợ</a>
@@ -123,6 +191,82 @@
             </div>
         </div>
     </header>
+
+
+
+    <!-- XIEMSANSANG AUDIO PLAYER - CỬA SỔ NỔI RIÊNG, KHÔNG CAN THIỆP RADIO -->
+    <div id="xsAudioWindow" data-xs-theme="rose" class="xs-audio-window fixed z-[100000] hidden flex-col bg-white border border-rose-200 rounded-xl overflow-hidden" style="top: 80px; right: 20px; width: 460px; height: 640px; resize: both;">
+        <div id="xsAudioWindowHeader" class="bg-gradient-to-r from-[#ee4d2d] to-rose-500 px-3 py-2 flex justify-between items-center text-white border-b border-white/20 shrink-0 cursor-move touch-none select-none">
+            <span class="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 drop-shadow-md"><i class="fa-solid fa-music text-yellow-200"></i> Audio Player (Kéo & Mở Rộng)</span>
+            <div class="flex items-center gap-1">
+                <button type="button" onclick="XSAudioPlayer.toggleCompact()" class="text-white/80 hover:text-white px-2 py-1 outline-none active:scale-90 transition-transform" title="Thu gọn"><i class="fa-solid fa-window-minimize text-xs"></i></button>
+                <button type="button" onclick="toggleAudioPlayer()" class="text-white/80 hover:text-white px-2 py-1 outline-none active:scale-90 transition-transform" title="Đóng"><i class="fa-solid fa-times text-sm"></i></button>
+            </div>
+        </div>
+        <div id="xsAudioDragOverlay" class="absolute inset-0 z-10 hidden cursor-move"></div>
+        <div id="xsAudioBody" class="xs-audio-scroll flex-1 min-h-0 flex flex-col relative">
+            <div class="p-3 space-y-3 shrink-0">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="text-xl font-black text-[var(--xs-primary)] tracking-wide">XIEMSANSANG</div>
+                        <div id="xsAudioStatus" class="text-[11px] font-bold text-[var(--xs-muted)]">Đang chuẩn bị trình nghe nhạc...</div>
+                    </div>
+                    <button type="button" id="xsAudioThemeBtn" class="xs-btn" title="Đổi màu"><i class="fa-solid fa-palette"></i></button>
+                </div>
+                <div class="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                    <select id="xsAudioTimer" class="xs-select">
+                        <option value="0">🕒 Hẹn giờ: Tắt</option>
+                        <option value="15">Tắt sau 15 phút</option>
+                        <option value="30">Tắt sau 30 phút</option>
+                        <option value="45">Tắt sau 45 phút</option>
+                        <option value="60">Tắt sau 60 phút</option>
+                        <option value="90">Tắt sau 90 phút</option>
+                        <option value="120">Tắt sau 120 phút</option>
+                    </select>
+                    <button type="button" id="xsAudioRefreshBtn" class="xs-btn" title="Đồng bộ lại"><i class="fa-solid fa-rotate"></i></button>
+                    <button type="button" id="xsAudioClearBtn" class="xs-btn" title="Xóa cache nhạc"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+                <label class="flex items-center justify-between gap-2 text-[11px] font-extrabold border border-[var(--xs-border)] bg-[var(--xs-card)] rounded-xl px-3 py-2 text-[var(--xs-muted)]">
+                    <span>Giữ sáng màn hình khi cần nhìn giao diện lâu</span>
+                    <input id="xsAudioWake" type="checkbox" class="accent-[#ee4d2d] w-4 h-4">
+                </label>
+                <details class="xs-guide-box">
+                    <summary>Hướng dẫn nghe nền trên điện thoại Xiaomi / Android</summary>
+                    <div>
+                        <b>1.</b> Mở trang bằng Chrome hoặc app đã cài từ màn hình chính.<br>
+                        <b>2.</b> Bấm nút <b>Audio</b>, bấm <b>Khởi động & phát</b> một lần để cấp quyền âm thanh.<br>
+                        <b>3.</b> Chọn bài trong danh sách hoặc dùng nút lui/tới; khi khóa màn hình hãy điều khiển bằng thông báo nhạc/màn hình khóa.<br>
+                        <b>4.</b> Nghe qua đêm ổn nhất: đặt pin của Chrome/app ở chế độ không hạn chế, khóa app trong màn hình đa nhiệm nếu máy hay tự dọn nền.
+                    </div>
+                </details>
+                <input id="xsAudioSearch" class="xs-input" type="search" placeholder="Tìm tên bài hát...">
+                <div id="xsAudioTimerLeft" class="xs-hidden text-center text-[11px] font-black text-rose-600"></div>
+            </div>
+            <div id="xsAudioList" class="flex-1 min-h-[180px] border-y border-[var(--xs-border)] bg-[var(--xs-card)]"></div>
+            <button id="xsAudioMoreBtn" type="button" class="xs-hidden w-full py-3 text-xs font-black text-[var(--xs-primary)] bg-[var(--xs-card)] border-b border-[var(--xs-border)]">Tải thêm danh sách</button>
+            <div id="xsAudioPlayerBar" class="xs-mini-player shrink-0">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <div class="min-w-0 flex-1">
+                        <div id="xsAudioNowTitle" class="truncate text-sm font-black text-[var(--xs-text)]">Chưa chọn bài</div>
+                        <div id="xsAudioNowSub" class="truncate text-[11px] font-bold text-[var(--xs-muted)]">Bấm Khởi động & phát để nghe</div>
+                    </div>
+                    <div id="xsAudioTime" class="text-[11px] font-mono font-black text-[var(--xs-primary)] whitespace-nowrap">0:00 / 0:00</div>
+                </div>
+                <div id="xsAudioProgress" class="xs-progress-wrap mb-3"><div id="xsAudioProgressBar" class="xs-progress-bar"></div></div>
+                <div class="flex items-center justify-between gap-2">
+                    <button type="button" id="xsAudioShuffle" class="xs-btn" title="Trộn bài"><i class="fa-solid fa-shuffle"></i></button>
+                    <div class="flex items-center justify-center gap-2">
+                        <button type="button" id="xsAudioPrev" class="xs-btn"><i class="fa-solid fa-backward-step"></i></button>
+                        <button type="button" id="xsAudioPlay" class="xs-btn xs-btn-primary px-4"><i class="fa-solid fa-play"></i><span>Khởi động & phát</span></button>
+                        <button type="button" id="xsAudioNext" class="xs-btn"><i class="fa-solid fa-forward-step"></i></button>
+                    </div>
+                    <button type="button" id="xsAudioRepeat" class="xs-btn" title="Lặp lại"><i class="fa-solid fa-repeat"></i></button>
+                </div>
+            </div>
+        </div>
+        <audio id="xsNativePlayer" preload="auto" playsinline webkit-playsinline crossorigin="anonymous"></audio>
+        <audio id="xsSilenceAnchor" preload="auto" loop playsinline webkit-playsinline src="silence_30min.mp3"></audio>
+    </div>
 
     <div id="radioWindow" class="fixed z-[100000] hidden flex-col bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" style="top: 80px; right: 20px; width: 440px; height: 180px; resize: both; overflow: hidden;">
         <div id="radioWindowHeader" class="bg-gradient-to-r from-purple-800 to-[#ee4d2d] px-3 py-2 flex justify-between items-center text-white border-b border-white/20 shrink-0 cursor-move touch-none select-none">
@@ -511,7 +655,7 @@
             // Phục hồi khung ảnh 3:4 pt-[133%] và object-contain nguyên bản
             card.innerHTML = `
                 <div class="w-full pt-[133%] relative bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border-b border-gray-100">
-                    <img src="${thumb}" loading="lazy" class="absolute inset-0 w-full h-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.03]" alt="${p.name}">
+                    <img src="${thumb}" loading="lazy" class="absolute inset-0 w-full h-full object-contain p-1.5 transition-opacity duration-300" alt="${p.name}">
                     ${overlay}
                     <div class="absolute top-1 left-[-2px] bg-[#f25220] text-white text-[10px] font-medium px-1.5 py-[2px] rounded-r-[2px] shadow-sm z-10 flex items-center gap-1 shopee-badge-fav">
                         <i class="fa-solid fa-check text-[8px]"></i> Yêu thích
@@ -770,7 +914,7 @@
                 const thumb = document.createElement("button"); thumb.type="button"; 
                 thumb.className = `min-w-[48px] w-[48px] h-[48px] border-2 rounded-[2px] cursor-pointer overflow-hidden snap-start transition-all shrink-0 border-gray-200 opacity-60 hover:opacity-100 outline-none bg-transparent p-0`; 
                 thumb.onclick = () => { UI.vibrate(); GalleryManager.goTo(idx); }; 
-                thumb.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover">`; 
+                thumb.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-contain bg-gray-50">`; 
                 thumbList.appendChild(thumb); 
             });
 
@@ -859,7 +1003,7 @@
 
         function openCheckout() { UI.vibrate(); if(cartItems.length === 0) { showStatusModal('error', 'Giỏ Hàng Trống', 'Hãy chọn mua thêm sản phẩm nhé!'); return; } UI.lockScroll(); const modal = document.getElementById("checkoutModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => modal.classList.remove("translate-y-full")); renderCheckoutItems(); checkFormProgress(); document.querySelector('input[name="payment"][value="cod"]').checked = true; togglePaymentMethod(); }
         function closeCheckout() { const modal = document.getElementById("checkoutModal"); modal.classList.add("translate-y-full"); setTimeout(() => { modal.classList.add("hidden"); UI.unlockScroll(); }, 300); }
-        function renderCheckoutItems() { const container = document.getElementById("checkoutCartItems"); container.innerHTML = ""; let subTotal = 0; cartItems.forEach((item, index) => { const div = document.createElement("div"); div.className = "flex gap-3 bg-gray-50 p-2 rounded border border-gray-100"; div.innerHTML = `<img src="${item.image}" class="w-16 h-16 object-cover rounded border border-gray-200"><div class="flex-1"><div class="text-sm font-bold text-gray-800 line-clamp-1">${item.name}</div><div class="text-[10px] text-gray-500 bg-white inline-block px-1 border rounded mt-1">${item.variant}</div><div class="flex justify-between items-end mt-1"><span class="text-[#ee4d2d] font-bold text-sm">${new Intl.NumberFormat('vi-VN').format(item.price)}₫</span><span class="text-xs font-bold text-gray-600">x${item.qty}</span></div></div><button type="button" onclick="askDeleteItem(${index})" class="text-gray-400 hover:text-red-500 px-2 outline-none border-none bg-transparent"><i class="fa-solid fa-trash"></i></button>`; container.appendChild(div); subTotal += (item.price * item.qty); }); document.getElementById("cartTotalItems").innerText = `${cartItems.length} sản phẩm`; updateTotal(subTotal, document.querySelector('input[name="deliveryMethod"]:checked').value === 'home' ? 30000 : 0); }
+        function renderCheckoutItems() { const container = document.getElementById("checkoutCartItems"); container.innerHTML = ""; let subTotal = 0; cartItems.forEach((item, index) => { const div = document.createElement("div"); div.className = "flex gap-3 bg-gray-50 p-2 rounded border border-gray-100"; div.innerHTML = `<img src="${item.image}" class="w-16 h-16 object-contain bg-white rounded border border-gray-200"><div class="flex-1"><div class="text-sm font-bold text-gray-800 line-clamp-1">${item.name}</div><div class="text-[10px] text-gray-500 bg-white inline-block px-1 border rounded mt-1">${item.variant}</div><div class="flex justify-between items-end mt-1"><span class="text-[#ee4d2d] font-bold text-sm">${new Intl.NumberFormat('vi-VN').format(item.price)}₫</span><span class="text-xs font-bold text-gray-600">x${item.qty}</span></div></div><button type="button" onclick="askDeleteItem(${index})" class="text-gray-400 hover:text-red-500 px-2 outline-none border-none bg-transparent"><i class="fa-solid fa-trash"></i></button>`; container.appendChild(div); subTotal += (item.price * item.qty); }); document.getElementById("cartTotalItems").innerText = `${cartItems.length} sản phẩm`; updateTotal(subTotal, document.querySelector('input[name="deliveryMethod"]:checked').value === 'home' ? 30000 : 0); }
         function askDeleteItem(index) { UI.vibrate(); if(confirm("Bạn có chắc muốn xóa sản phẩm này?")) { cartItems.splice(index, 1); saveCart(); renderCheckoutItems(); updateCartBadge(cartItems.length); if(cartItems.length === 0) closeCheckout(); } }
         function toggleDeliveryMethod() { UI.vibrate(); const method = document.querySelector('input[name="deliveryMethod"]:checked').value; const addrForm = document.getElementById("addressFormSection"); const storeMsg = document.getElementById("storePickupMsg"); const progressContainer = document.getElementById("formProgressContainer"); if(method === 'home') { addrForm.classList.remove("hidden"); storeMsg.classList.add("hidden"); progressContainer.classList.remove("hidden"); updateShipping(30000); } else { addrForm.classList.add("hidden"); storeMsg.classList.remove("hidden"); progressContainer.classList.add("hidden"); updateShipping(0); } checkFormProgress(); }
         function togglePaymentMethod() { UI.vibrate(); const paymentMethod = document.querySelector('input[name="payment"]:checked').value; const bankingInfo = document.getElementById("bankingInfo"); if (paymentMethod === 'banking') { bankingInfo.classList.remove("hidden"); updateQRCode(); } else { bankingInfo.classList.add("hidden"); } }
@@ -907,6 +1051,316 @@
         function openOrderHistory() { UI.vibrate(); UI.lockScroll(); const modal = document.getElementById("orderHistoryModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => modal.classList.remove("translate-x-full")); loadOrderHistory(); }
         function closeOrderHistory() { const modal = document.getElementById("orderHistoryModal"); modal.classList.add("translate-x-full"); setTimeout(() => { modal.classList.add("hidden"); UI.unlockScroll(); }, 300); }
         function loadOrderHistory() { const list = document.getElementById("orderHistoryList"); list.innerHTML = '<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i></div>'; const myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); if(!myOrders.length) { list.innerHTML = '<div class="text-center text-gray-500 py-10 font-medium">Bạn chưa có đơn hàng nào.</div>'; return; } db.collection("orders").where(firebase.firestore.FieldPath.documentId(), 'in', myOrders.slice(-10)).get().then(snap => { list.innerHTML = ""; snap.forEach(doc => { const d = doc.data(); const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : 'Vừa xong'; const item = document.createElement("div"); item.className = "bg-white p-4 rounded shadow-sm border border-gray-100 mb-3"; item.innerHTML = `<div class="flex justify-between items-center border-b pb-2 mb-3"><span class="font-bold text-gray-800">#${doc.id.slice(-6).toUpperCase()}</span><span class="text-xs text-gray-500">${date}</span></div><div class="space-y-2 mb-3">${d.items.map(i => `<div class="text-sm text-gray-600 flex justify-between"><span>${i.qty}x ${i.name}</span></div>`).join('')}</div><div class="flex justify-between items-center border-t pt-3 mt-2"><span class="font-bold text-[#ee4d2d] text-lg">${new Intl.NumberFormat('vi-VN').format(d.total)}₫</span><span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold uppercase border border-blue-100">${d.status === 'new' ? 'Chờ xác nhận' : d.status}</span></div>`; list.appendChild(item); }); }); }
+
+
+        /* --- XIEMSANSANG AUDIO PLAYER EMBED: ĐỘC LẬP, KHÔNG ĐỤNG LUỒNG SHOP/RADIO --- */
+        const XSAudioPlayer = {
+            keys: { songs:'xs_embed_songs_v1', idx:'xs_embed_idx_v1', shuffle:'xs_embed_shuffle_v1', repeat:'xs_embed_repeat_v1', theme:'xs_embed_theme_v1' },
+            els: {}, playlist: [], filtered: [], visible: 80, currentIndex: 0, playing: false, userPaused: true,
+            shuffle: false, repeat: 'all', themeIndex: 0, themes: ['rose','dark','mint'], timerId: null, timerEnd: 0,
+            lastUi: 0, lastMedia: 0, prefetchDone: false, compact: false, wakeLock: null, fetching: false,
+            init() {
+                this.els.win = document.getElementById('xsAudioWindow');
+                this.els.player = document.getElementById('xsNativePlayer');
+                this.els.anchor = document.getElementById('xsSilenceAnchor');
+                this.els.list = document.getElementById('xsAudioList');
+                this.els.status = document.getElementById('xsAudioStatus');
+                this.els.search = document.getElementById('xsAudioSearch');
+                this.els.more = document.getElementById('xsAudioMoreBtn');
+                this.els.play = document.getElementById('xsAudioPlay');
+                this.els.prev = document.getElementById('xsAudioPrev');
+                this.els.next = document.getElementById('xsAudioNext');
+                this.els.shuffle = document.getElementById('xsAudioShuffle');
+                this.els.repeat = document.getElementById('xsAudioRepeat');
+                this.els.title = document.getElementById('xsAudioNowTitle');
+                this.els.sub = document.getElementById('xsAudioNowSub');
+                this.els.time = document.getElementById('xsAudioTime');
+                this.els.progress = document.getElementById('xsAudioProgress');
+                this.els.bar = document.getElementById('xsAudioProgressBar');
+                this.els.timer = document.getElementById('xsAudioTimer');
+                this.els.timerLeft = document.getElementById('xsAudioTimerLeft');
+                this.els.refresh = document.getElementById('xsAudioRefreshBtn');
+                this.els.clear = document.getElementById('xsAudioClearBtn');
+                this.els.theme = document.getElementById('xsAudioThemeBtn');
+                this.els.wake = document.getElementById('xsAudioWake');
+                if (!this.els.win || !this.els.player) return;
+
+                this.playlist = this.load(this.keys.songs, []);
+                this.currentIndex = Math.max(0, parseInt(localStorage.getItem(this.keys.idx) || '0', 10) || 0);
+                this.shuffle = this.load(this.keys.shuffle, false);
+                this.repeat = this.load(this.keys.repeat, 'all');
+                const savedTheme = localStorage.getItem(this.keys.theme) || 'rose';
+                this.themeIndex = Math.max(0, this.themes.indexOf(savedTheme));
+                this.els.win.setAttribute('data-xs-theme', this.themes[this.themeIndex]);
+
+                this.bind();
+                this.renderControls();
+                if (this.playlist.length) this.setStatus(`${this.playlist.length} bài • sẵn sàng nghe`);
+                this.applyFilter();
+                this.fetchSongs(false);
+            },
+            bind() {
+                this.els.search.addEventListener('input', () => { this.visible = 80; this.applyFilter(); });
+                this.els.more.addEventListener('click', () => { this.vibrate(); this.visible += 80; this.renderList(); });
+                this.els.play.addEventListener('click', () => this.togglePlay());
+                this.els.prev.addEventListener('click', () => { this.vibrate(); this.playIndex(this.prevIndex(), true); });
+                this.els.next.addEventListener('click', () => { this.vibrate(); this.playIndex(this.nextIndex(), true); });
+                this.els.shuffle.addEventListener('click', () => { this.vibrate(); this.shuffle = !this.shuffle; this.save(this.keys.shuffle, this.shuffle); this.renderControls(); });
+                this.els.repeat.addEventListener('click', () => { this.vibrate(); this.repeat = this.repeat === 'all' ? 'one' : this.repeat === 'one' ? 'off' : 'all'; this.save(this.keys.repeat, this.repeat); this.renderControls(); });
+                this.els.refresh.addEventListener('click', () => { this.vibrate(); this.fetchSongs(true); });
+                this.els.clear.addEventListener('click', () => { this.vibrate(); if(confirm('Xóa cache danh sách nhạc và đồng bộ lại?')){ localStorage.removeItem(this.keys.songs); this.playlist=[]; this.applyFilter(); this.fetchSongs(true); } });
+                this.els.theme.addEventListener('click', () => { this.vibrate(); this.themeIndex = (this.themeIndex + 1) % this.themes.length; const t = this.themes[this.themeIndex]; this.els.win.setAttribute('data-xs-theme', t); localStorage.setItem(this.keys.theme, t); });
+                this.els.timer.addEventListener('change', () => this.setTimer(parseInt(this.els.timer.value, 10) || 0));
+                this.els.wake.addEventListener('change', () => this.syncWakeLock());
+                this.els.progress.addEventListener('click', (ev) => this.seekByClick(ev));
+
+                this.els.list.addEventListener('click', (ev) => {
+                    const action = ev.target.closest('[data-xs-action]');
+                    const row = ev.target.closest('[data-xs-song-id]');
+                    if (!row) return;
+                    const id = row.getAttribute('data-xs-song-id');
+                    const idx = this.playlist.findIndex(s => s.id === id);
+                    if (idx < 0) return;
+                    if (action) {
+                        ev.stopPropagation();
+                        const s = this.playlist[idx];
+                        if (action.dataset.xsAction === 'share') this.shareTrack(s);
+                        if (action.dataset.xsAction === 'download') this.downloadTrack(s);
+                        return;
+                    }
+                    this.playIndex(idx, true);
+                });
+
+                const a = this.els.player;
+                a.addEventListener('timeupdate', () => this.onTime());
+                a.addEventListener('ended', () => this.onEnded());
+                a.addEventListener('play', () => { this.playing = true; this.renderControls(); });
+                a.addEventListener('pause', () => { this.playing = false; this.renderControls(); if (!this.userPaused && !a.ended && a.src) setTimeout(() => this.safePlay(), 900); });
+                ['stalled','waiting','abort','error'].forEach(evt => a.addEventListener(evt, () => { if (!this.userPaused && a.src) setTimeout(() => this.safePlay(true), 1100); }));
+                a.addEventListener('suspend', () => { /* suspend là trạng thái bình thường của trình duyệt, không ép load/play để tránh vấp âm */ });
+                a.addEventListener('canplay', () => { if (!this.userPaused && a.src && a.paused) this.safePlay(false); });
+                a.addEventListener('playing', () => { this.playing = true; this.setStatus(`${this.playlist.length} bài • đang phát ổn định`); this.renderControls(); this.renderNow(); });
+                document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { this.renderNow(); this.renderList(); this.syncWakeLock(); } });
+                this.setupMediaSession();
+            },
+            save(k,v){ try{ if(document.visibilityState !== 'hidden') localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+            load(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+            vibrate(ms=16){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} },
+            fmt(sec){ if(!isFinite(sec)||sec<0) return '0:00'; const m=Math.floor(sec/60), s=Math.floor(sec%60); return `${m}:${String(s).padStart(2,'0')}`; },
+            setStatus(t){ if(this.els.status) this.els.status.textContent = t; },
+            async fetchSongs(force){
+                if (this.fetching) return;
+                if (!force && this.playlist.length) return;
+                this.fetching = true; this.setStatus('Đang đồng bộ danh sách nhạc...');
+                try{
+                    const query = 'identifier:(giai-toa-moi-thu) OR uploader:(xiemsansang) AND mediatype:(audio)';
+                    const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,creator&sort[]=publicdate+desc&rows=500&page=1&output=json`;
+                    const res = await fetch(url, {cache:'no-store'});
+                    if(!res.ok) throw new Error('advancedsearch failed');
+                    const data = await res.json();
+                    const docs = (data && data.response && data.response.docs) ? data.response.docs : [];
+                    const all = [];
+                    let cursor = 0;
+                    const worker = async () => {
+                        while(cursor < docs.length){
+                            const d = docs[cursor++];
+                            try{
+                                const metaRes = await fetch(`https://archive.org/metadata/${d.identifier}`, {cache:'no-store'});
+                                if(!metaRes.ok) continue;
+                                const meta = await metaRes.json();
+                                (meta.files || []).forEach(f => {
+                                    const format = String(f.format || '').toUpperCase();
+                                    const name = String(f.name || '');
+                                    if(format.includes('MP3') || /\.mp3$/i.test(name)){
+                                        const rawTitle = (f.title && String(f.title).trim() && String(f.title).trim() !== String(d.title||'').trim()) ? f.title : name;
+                                        all.push({
+                                            id: `${d.identifier}/${name}`,
+                                            title: String(rawTitle).replace(/\.mp3$/i,'').replace(/_/g,' ').trim() || 'Không tên',
+                                            artist: d.creator || 'Xiemsansang',
+                                            stream_url: `https://archive.org/download/${d.identifier}/${encodeURIComponent(name)}`,
+                                            duration: parseFloat(f.length || 0) || 0
+                                        });
+                                    }
+                                });
+                            }catch(e){}
+                        }
+                    };
+                    await Promise.all(Array.from({length: Math.min(6, Math.max(1, docs.length))}, worker));
+                    if(!all.length) throw new Error('empty');
+                    all.sort((a,b) => String(a.title).localeCompare(String(b.title), 'vi', {numeric:true, sensitivity:'base'}));
+                    this.playlist = all;
+                    this.save(this.keys.songs, all);
+                    this.setStatus(`${all.length} bài • nghe liên tục nền mobile`);
+                    if(this.currentIndex >= all.length) this.currentIndex = 0;
+                    this.applyFilter(); this.renderNow();
+                }catch(e){
+                    if(this.playlist.length) this.setStatus(`${this.playlist.length} bài từ cache • mạng đang chậm`);
+                    else this.setStatus('Chưa lấy được danh sách nhạc. Bấm đồng bộ lại.');
+                }finally{ this.fetching = false; }
+            },
+            applyFilter(){
+                const q = (this.els.search?.value || '').trim().toLowerCase();
+                this.filtered = q ? this.playlist.filter(s => (s.title||'').toLowerCase().includes(q) || (s.artist||'').toLowerCase().includes(q)) : [...this.playlist];
+                this.renderList();
+            },
+            renderList(){
+                if(!this.els.list) return;
+                if(!this.filtered.length){ this.els.list.innerHTML = '<div class="p-6 text-center text-xs font-bold text-[var(--xs-muted)]">Chưa có bài hát hoặc chưa tìm thấy kết quả.</div>'; this.els.more.classList.add('xs-hidden'); return; }
+                const rows = this.filtered.slice(0, this.visible).map((s, i) => {
+                    const realIdx = this.playlist.findIndex(x => x.id === s.id);
+                    const active = realIdx === this.currentIndex;
+                    return `<div class="xs-song-row ${active?'xs-active':''}" data-xs-song-id="${this.escapeAttr(s.id)}">
+                        <div class="w-7 text-center text-[11px] font-black text-[var(--xs-primary)] shrink-0">${active?'▶':(i+1)}</div>
+                        <div class="min-w-0 flex-1"><div class="xs-song-title">${this.escapeHtml(s.title)}</div><div class="xs-song-artist">${this.escapeHtml(s.artist||'Xiemsansang')}</div></div>
+                        <button type="button" class="xs-icon-btn" data-xs-action="share" title="Chia sẻ"><i class="fa-solid fa-share-nodes text-xs"></i></button>
+                        <span class="w-10 text-center text-[10px] font-mono font-black text-[var(--xs-muted)]">${this.fmt(s.duration)}</span>
+                        <button type="button" class="xs-icon-btn" data-xs-action="download" title="Tải về"><i class="fa-solid fa-download text-xs"></i></button>
+                    </div>`;
+                }).join('');
+                this.els.list.innerHTML = rows;
+                this.els.more.classList.toggle('xs-hidden', this.filtered.length <= this.visible);
+            },
+            keepActiveSongComfortablyVisible(){
+                if(!this.els.list || document.visibilityState === 'hidden') return;
+                const active = this.els.list.querySelector('.xs-song-row.xs-active');
+                if(!active) return;
+                const listRect = this.els.list.getBoundingClientRect();
+                const rowRect = active.getBoundingClientRect();
+                const bottomGuard = 132;
+                if(rowRect.top < listRect.top + 6 || rowRect.bottom > listRect.bottom - bottomGuard){
+                    active.scrollIntoView({block:'center', behavior:'smooth'});
+                }
+            },
+            escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); },
+            escapeAttr(s){ return this.escapeHtml(s).replace(/'/g, '&#39;'); },
+            ensureAnchor(){ const a=this.els.anchor; if(a && a.paused){ a.volume = 0; a.play().catch(()=>{}); } },
+            async safePlay(withLoad){
+                const a=this.els.player; if(!a || !a.src) return;
+                try{ this.ensureAnchor(); if(withLoad && a.readyState < 2) a.load(); await a.play(); this.playing=true; this.userPaused=false; this.syncWakeLock(); this.updateMediaState('playing'); }
+                catch(e){ this.playing=false; this.updateMediaState('paused'); }
+                this.renderControls(); this.renderNow();
+            },
+            playIndex(idx, fromUser){
+                if(!this.playlist.length) { this.fetchSongs(true); return; }
+                idx = (idx + this.playlist.length) % this.playlist.length;
+                const s = this.playlist[idx]; if(!s) return;
+                this.vibrate(); this.currentIndex = idx; localStorage.setItem(this.keys.idx, String(idx));
+                this.prefetchDone = false; this.userPaused = false;
+                const a = this.els.player;
+                this.ensureAnchor();
+                this.setStatus(`${this.playlist.length} bài • đang nạp ${this.escapeHtml(s.title).slice(0, 36)}`);
+                if(a.src !== s.stream_url){
+                    try { a.pause(); } catch(e) {}
+                    a.preload = 'auto';
+                    a.src = s.stream_url;
+                    a.load();
+                }
+                if('mediaSession' in navigator){ try{ navigator.mediaSession.metadata = new MediaMetadata({ title:s.title, artist:s.artist, album:'XIEMSANSANG' }); }catch(e){} }
+                this.safePlay(false);
+                setTimeout(() => {
+                    const aa = this.els.player;
+                    if(!this.userPaused && aa && aa.src === s.stream_url && aa.currentTime === 0 && aa.readyState < 3){
+                        try { aa.load(); } catch(e) {}
+                        this.safePlay(false);
+                    }
+                }, 1800);
+                this.renderNow(); this.renderList();
+                requestAnimationFrame(() => this.keepActiveSongComfortablyVisible());
+            },
+            togglePlay(){
+                this.vibrate();
+                const a=this.els.player;
+                if(!this.playlist.length){ this.fetchSongs(true); return; }
+                if(!a.src){ this.playIndex(this.currentIndex, true); return; }
+                if(a.paused){ this.userPaused=false; this.safePlay(false); }
+                else { this.userPaused=true; a.pause(); this.releaseWakeLock(); this.updateMediaState('paused'); }
+                this.renderControls();
+            },
+            prevIndex(){ return (this.currentIndex - 1 + this.playlist.length) % this.playlist.length; },
+            nextIndex(){ if(this.shuffle && this.playlist.length > 1){ let n=Math.floor(Math.random()*this.playlist.length); return n===this.currentIndex?(n+1)%this.playlist.length:n; } return (this.currentIndex + 1) % Math.max(1,this.playlist.length); },
+            onEnded(){ if(this.repeat === 'one'){ this.els.player.currentTime = 0; this.safePlay(false); return; } if(this.repeat === 'off' && this.currentIndex >= this.playlist.length-1 && !this.shuffle){ this.userPaused=true; this.playing=false; this.renderControls(); return; } this.playIndex(this.nextIndex(), false); },
+            onTime(){
+                const a=this.els.player; if(!a || !isFinite(a.duration) || a.duration <= 0) return;
+                if(document.visibilityState === 'visible'){
+                    const now=Date.now(); if(now - this.lastUi > 500){ this.renderProgress(); this.lastUi = now; }
+                }
+                const sec = Math.floor(a.currentTime);
+                if(sec !== this.lastMedia){ this.updatePositionState(); this.lastMedia = sec; }
+                if(a.duration > 35 && a.currentTime >= a.duration - 45 && !this.prefetchDone){ this.prefetchDone = true; this.prefetch(this.nextIndex()); }
+            },
+            prefetch(idx){ const s=this.playlist[idx]; if(s && s.stream_url) fetch(s.stream_url, {mode:'no-cors', cache:'force-cache'}).catch(()=>{}); },
+            renderNow(){
+                const s=this.playlist[this.currentIndex];
+                if(s){ this.els.title.textContent=s.title; this.els.sub.textContent=(this.playing?'Đang phát • ':'Sẵn sàng • ')+(s.artist||'Xiemsansang'); }
+                this.renderProgress(); this.renderControls();
+            },
+            renderProgress(){ const a=this.els.player; const c=a?.currentTime||0, d=a?.duration||this.playlist[this.currentIndex]?.duration||0; this.els.time.textContent = `${this.fmt(c)} / ${this.fmt(d)}`; this.els.bar.style.width = d>0 ? `${Math.max(0, Math.min(100, c/d*100))}%` : '0%'; },
+            renderControls(){
+                const playIcon = this.playing ? 'fa-pause' : 'fa-play';
+                const playText = this.playing ? 'Tạm dừng' : (this.els.player?.src ? 'Phát tiếp' : 'Khởi động & phát');
+                this.els.play.innerHTML = `<i class="fa-solid ${playIcon}"></i><span>${playText}</span>`;
+                this.els.shuffle.classList.toggle('xs-btn-primary', !!this.shuffle);
+                this.els.repeat.classList.toggle('xs-btn-primary', this.repeat !== 'off');
+                this.els.repeat.innerHTML = this.repeat === 'one' ? '<i class="fa-solid fa-repeat"></i><span class="text-[10px]">1</span>' : '<i class="fa-solid fa-repeat"></i>';
+            },
+            seekByClick(ev){ const a=this.els.player; if(!a || !isFinite(a.duration) || a.duration<=0) return; const r=this.els.progress.getBoundingClientRect(); const pct=(ev.clientX-r.left)/Math.max(1,r.width); a.currentTime = Math.max(0, Math.min(a.duration, a.duration*pct)); this.renderProgress(); this.updatePositionState(); },
+            async shareTrack(s){ this.vibrate(); try{ if(navigator.share) await navigator.share({title:s.title, url:s.stream_url}); else { await navigator.clipboard.writeText(s.stream_url); if(window.showToast) showToast('Đã copy link!', s.title); else alert('Đã copy link'); } }catch(e){} },
+            downloadTrack(s){ this.vibrate(); const a=document.createElement('a'); a.href=s.stream_url; a.download=(s.title||'audio')+'.mp3'; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); },
+            setTimer(min){
+                this.vibrate(); clearInterval(this.timerId); this.timerId=null; this.timerEnd=0; this.els.timerLeft.classList.add('xs-hidden');
+                if(!min) return;
+                this.timerEnd = Date.now() + min*60000; this.els.timerLeft.classList.remove('xs-hidden');
+                this.timerId = setInterval(() => { const left=this.timerEnd-Date.now(); if(left<=0){ clearInterval(this.timerId); this.userPaused=true; this.els.player.pause(); this.els.timerLeft.classList.add('xs-hidden'); this.els.timer.value='0'; } else { this.els.timerLeft.textContent = 'Sẽ tự tắt sau: '+this.fmt(Math.ceil(left/1000)); } }, 1000);
+            },
+            async syncWakeLock(){
+                if(!('wakeLock' in navigator)) return;
+                if(this.els.wake.checked && this.playing && document.visibilityState === 'visible'){
+                    try{ if(!this.wakeLock) this.wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+                } else this.releaseWakeLock();
+            },
+            releaseWakeLock(){ if(this.wakeLock){ try{ this.wakeLock.release(); }catch(e){} this.wakeLock=null; } },
+            setupMediaSession(){
+                if(!('mediaSession' in navigator)) return;
+                try{
+                    navigator.mediaSession.setActionHandler('play', () => { this.userPaused=false; if(!this.els.player.src) this.playIndex(this.currentIndex,true); else this.safePlay(false); });
+                    navigator.mediaSession.setActionHandler('pause', () => { this.userPaused=true; this.els.player.pause(); this.updateMediaState('paused'); });
+                    navigator.mediaSession.setActionHandler('nexttrack', () => this.playIndex(this.nextIndex(), false));
+                    navigator.mediaSession.setActionHandler('previoustrack', () => this.playIndex(this.prevIndex(), false));
+                    navigator.mediaSession.setActionHandler('seekto', (d) => { if(d && typeof d.seekTime === 'number'){ if(d.fastSeek && 'fastSeek' in this.els.player) this.els.player.fastSeek(d.seekTime); else this.els.player.currentTime=d.seekTime; this.updatePositionState(); } });
+                }catch(e){}
+            },
+            updateMediaState(state){ if('mediaSession' in navigator){ try{ navigator.mediaSession.playbackState = state; }catch(e){} } },
+            updatePositionState(){ const a=this.els.player; if('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && a && isFinite(a.duration) && a.duration>0){ try{ navigator.mediaSession.setPositionState({duration:a.duration, playbackRate:a.playbackRate||1, position:a.currentTime||0}); }catch(e){} } },
+            toggleCompact(){
+                this.vibrate(); this.compact = !this.compact;
+                const body=document.getElementById('xsAudioBody');
+                if(this.compact){ body.style.display='none'; this.els.win.style.height='44px'; }
+                else { body.style.display='flex'; if(parseInt(this.els.win.style.height||'0',10)<260) this.els.win.style.height='640px'; }
+            }
+        };
+
+        function toggleAudioPlayer() {
+            UI.vibrate();
+            const widget = document.getElementById('xsAudioWindow');
+            if (!widget) return;
+            if (widget.classList.contains('hidden')) {
+                widget.classList.remove('hidden');
+                requestAnimationFrame(() => { widget.classList.remove('opacity-0','scale-0'); widget.classList.add('flex'); });
+                if (!XSAudioPlayer.playlist.length) XSAudioPlayer.fetchSongs(false);
+            } else {
+                widget.classList.remove('flex');
+                widget.classList.add('opacity-0','scale-0');
+                setTimeout(() => { if(widget.classList.contains('opacity-0')) widget.classList.add('hidden'); }, 220);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                XSAudioPlayer.init();
+                DragManager.init('xsAudioWindowHeader', 'xsAudioWindow', 'xsAudioDragOverlay');
+            } catch(e) { console.error('XSAudio init error', e); }
+        });
+
     </script>
 </body>
 </html>
