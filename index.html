@@ -64,15 +64,11 @@
             object-position: center center !important;
             background-color: #f9fafb;
         }
-        #productGrid article img {
-            transform: none !important;
-        }
-        #productGrid article:hover img {
-            transform: none !important;
-        }
+        #productGrid article img { transform: none !important; }
+        #productGrid article:hover img { transform: none !important; }
 
-        /* PWA UI STYLES V22 */
-        .install-fab { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(238, 77, 45, 0.4); z-index: 9999; }
+        /* PWA UI STYLES */
+        .install-fab { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(238, 77, 45, 0.4); z-index: 9999; display: none; }
         .install-fab:active { transform: scale(0.9) translateY(2px); box-shadow: 0 4px 10px rgba(238, 77, 45, 0.3); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; position: relative; }
         .status-dot::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.6; }
@@ -102,14 +98,10 @@
         .benefit-icon { font-size: 18px; color: #ea580c; margin-bottom: 4px; }
         .benefit-text { font-size: 11px; font-weight: 700; color: #9a3412; }
 
-
-        /* XIEMSANSANG AUDIO PLAYER - NAMESPACED EMBED, KHÔNG ĐỤNG RADIO / FIREBASE / SHOP CORE */
+        /* XIEMSANSANG AUDIO PLAYER */
         #xsAudioWindow {
             --xs-bg: #fff7f7; --xs-card: #ffffff; --xs-text: #431018; --xs-muted: #9f1239; --xs-primary: #ee4d2d; --xs-border: #fecdd3; --xs-soft: #fff1f2;
-            color: var(--xs-text);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            box-shadow: 0 24px 70px rgba(0,0,0,.35);
-            contain: layout style;
+            color: var(--xs-text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 24px 70px rgba(0,0,0,.35); contain: layout style;
         }
         #xsAudioWindow[data-xs-theme="dark"] { --xs-bg:#111827; --xs-card:#1f2937; --xs-text:#f9fafb; --xs-muted:#d1d5db; --xs-primary:#fb7185; --xs-border:#374151; --xs-soft:#111827; }
         #xsAudioWindow[data-xs-theme="mint"] { --xs-bg:#f0fdf4; --xs-card:#ffffff; --xs-text:#064e3b; --xs-muted:#047857; --xs-primary:#10b981; --xs-border:#bbf7d0; --xs-soft:#ecfdf5; }
@@ -142,12 +134,13 @@
         #xsAudioWindow .xs-guide-box summary { padding:10px 12px; font-size:12px; font-weight:900; color:var(--xs-primary); cursor:pointer; user-select:none; }
         #xsAudioWindow .xs-guide-box div { padding:0 12px 12px; font-size:12px; line-height:1.5; color:var(--xs-muted); }
         #xsAudioWindow .xs-hidden { display:none !important; }
+        
         @media (max-width: 640px) {
             #xsAudioWindow { top: calc(70px + var(--safe-top)) !important; left: 8px !important; right:auto !important; width: calc(100vw - 16px) !important; height: min(78vh, 680px) !important; resize: none !important; }
             #xsAudioWindowHeader { cursor: default; }
             #xsAudioWindow .xs-song-row { height:60px; }
+            #radioWindow { top: calc(70px + var(--safe-top)) !important; left: 8px !important; right:auto !important; width: calc(100vw - 16px) !important; resize: none !important; }
         }
-
     </style>
 </head>
 <body class="bg-[#f5f5f5] flex flex-col min-h-screen relative">
@@ -194,11 +187,9 @@
         </div>
     </header>
 
-
-
-    <div id="xsAudioWindow" data-xs-theme="rose" class="xs-audio-window fixed z-[100000] hidden flex-col bg-white border border-rose-200 rounded-xl overflow-hidden" style="top: 80px; right: 20px; width: 460px; height: 640px; resize: both;">
+    <div id="xsAudioWindow" data-xs-theme="rose" class="xs-audio-window fixed z-[100000] hidden flex-col bg-white border border-rose-200 rounded-xl overflow-hidden scale-0 opacity-0 transform-gpu" style="top: 80px; right: 20px; width: 460px; height: 640px; resize: both; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px);">
         <div id="xsAudioWindowHeader" class="bg-gradient-to-r from-[#ee4d2d] to-rose-500 px-3 py-2 flex justify-between items-center text-white border-b border-white/20 shrink-0 cursor-move touch-none select-none">
-            <span class="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 drop-shadow-md"><i class="fa-solid fa-music text-yellow-200"></i> Audio Player (Kéo & Mở Rộng)</span>
+            <span class="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 drop-shadow-md"><i class="fa-solid fa-music text-yellow-200"></i> Audio Player</span>
             <div class="flex items-center gap-1">
                 <button type="button" onclick="XSAudioPlayer.toggleCompact()" class="text-white/80 hover:text-white px-2 py-1 outline-none active:scale-90 transition-transform" title="Thu gọn"><i class="fa-solid fa-window-minimize text-xs"></i></button>
                 <button type="button" onclick="toggleAudioPlayer()" class="text-white/80 hover:text-white px-2 py-1 outline-none active:scale-90 transition-transform" title="Đóng"><i class="fa-solid fa-times text-sm"></i></button>
@@ -232,12 +223,11 @@
                     <input id="xsAudioWake" type="checkbox" class="accent-[#ee4d2d] w-4 h-4">
                 </label>
                 <details class="xs-guide-box">
-                    <summary>Hướng dẫn nghe nền trên điện thoại Xiaomi / Android</summary>
+                    <summary>Hướng dẫn nghe nền trên điện thoại</summary>
                     <div>
-                        <b>1.</b> Mở trang bằng Chrome hoặc app đã cài từ màn hình chính.<br>
-                        <b>2.</b> Bấm nút <b>Audio</b>, bấm <b>Khởi động & phát</b> một lần để cấp quyền âm thanh.<br>
-                        <b>3.</b> Chọn bài trong danh sách hoặc dùng nút lui/tới; khi khóa màn hình hãy điều khiển bằng thông báo nhạc/màn hình khóa.<br>
-                        <b>4.</b> Nghe qua đêm ổn nhất: đặt pin của Chrome/app ở chế độ không hạn chế, khóa app trong màn hình đa nhiệm nếu máy hay tự dọn nền.
+                        <b>1.</b> Mở trang bằng Chrome hoặc app đã cài.<br>
+                        <b>2.</b> Bấm nút <b>Audio</b>, bấm <b>Khởi động & phát</b>.<br>
+                        <b>3.</b> Chọn bài trong danh sách hoặc dùng nút lui/tới.
                     </div>
                 </details>
                 <input id="xsAudioSearch" class="xs-input" type="search" placeholder="Tìm tên bài hát...">
@@ -258,7 +248,7 @@
                     <button type="button" id="xsAudioShuffle" class="xs-btn" title="Trộn bài"><i class="fa-solid fa-shuffle"></i></button>
                     <div class="flex items-center justify-center gap-2">
                         <button type="button" id="xsAudioPrev" class="xs-btn"><i class="fa-solid fa-backward-step"></i></button>
-                        <button type="button" id="xsAudioPlay" class="xs-btn xs-btn-primary px-4"><i class="fa-solid fa-play"></i><span>Khởi động & phát</span></button>
+                        <button type="button" id="xsAudioPlay" class="xs-btn xs-btn-primary px-4"><i class="fa-solid fa-play"></i><span>Phát ngay</span></button>
                         <button type="button" id="xsAudioNext" class="xs-btn"><i class="fa-solid fa-forward-step"></i></button>
                     </div>
                     <button type="button" id="xsAudioRepeat" class="xs-btn" title="Lặp lại"><i class="fa-solid fa-repeat"></i></button>
@@ -269,9 +259,9 @@
         <audio id="xsSilenceAnchor" preload="auto" loop playsinline webkit-playsinline src="silence_30min.mp3"></audio>
     </div>
 
-    <div id="radioWindow" class="fixed z-[100000] hidden flex-col bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" style="top: 80px; right: 20px; width: 440px; height: 180px; resize: both; overflow: hidden;">
+    <div id="radioWindow" class="fixed z-[100000] hidden flex-col bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 scale-0 opacity-0 transform-gpu" style="top: 80px; right: 20px; width: 440px; height: 180px; resize: both; overflow: hidden; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px);">
         <div id="radioWindowHeader" class="bg-gradient-to-r from-purple-800 to-[#ee4d2d] px-3 py-2 flex justify-between items-center text-white border-b border-white/20 shrink-0 cursor-move touch-none select-none">
-            <span class="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 drop-shadow-md"><i class="fa-solid fa-headphones text-yellow-300"></i> Player (Kéo & Mở Rộng)</span>
+            <span class="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 drop-shadow-md"><i class="fa-solid fa-headphones text-yellow-300"></i> Player Nhạc Chill</span>
             <button onclick="toggleRadio()" class="text-white/80 hover:text-white p-1 outline-none active:scale-90 transition-transform"><i class="fa-solid fa-times text-sm"></i></button>
         </div>
         <div class="w-full flex-1 bg-black/50 relative pointer-events-auto">
@@ -316,12 +306,12 @@
         </div>
     </footer>
 
-    <button id="btnInstall" onclick="logicCore.installApp()" style="display: none;" class="install-fab fixed bottom-[100px] right-4 z-[9999] bg-gradient-to-r from-[#ee4d2d] to-[#ff6b6b] text-white p-3 pr-6 pl-5 rounded-full font-bold border-4 border-white items-center gap-3 cursor-pointer shadow-2xl animate-pop-in outline-none">
+    <button id="btnInstall" onclick="logicCore.installApp()" style="display: none;" class="install-fab fixed bottom-[100px] right-4 bg-gradient-to-r from-[#ee4d2d] to-[#ff6b6b] text-white p-3 pr-6 pl-5 rounded-full font-bold border-4 border-white items-center gap-3 cursor-pointer shadow-2xl animate-pop-in outline-none z-[9999]">
         <span class="text-3xl animate-bounce">📲</span>
         <div class="flex flex-col items-start leading-none"><span class="text-[10px] font-medium opacity-90 text-yellow-100">Cài đặt ngay</span><span class="text-base font-bold uppercase tracking-wide">Mimi App</span></div>
     </button>
 
-    <div id="pwaModal" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-[100000] bg-black/70 flex items-end md:items-center justify-center backdrop-blur-sm transition-all duration-300">
+    <div id="pwaModal" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-[100005] bg-black/70 flex items-end md:items-center justify-center backdrop-blur-sm transition-all duration-300">
         <div id="pwaModalContent" class="w-full md:w-[420px] bg-white rounded-t-3xl md:rounded-2xl shadow-2xl overflow-hidden animate-slide-up md:animate-fade-scale pb-safe">
             <div class="bg-gradient-to-br from-[#ee4d2d] to-[#ff5722] p-6 text-white relative overflow-hidden">
                 <div class="absolute top-[-20px] right-[-20px] w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
@@ -330,15 +320,13 @@
                         <i class="fa-solid fa-leaf text-2xl text-[#ee4d2d] absolute z-0 opacity-50 drop-shadow-sm"></i>
                         <img src="./icons/icon-192.png" class="absolute inset-0 w-full h-full object-cover z-10 bg-white" alt="App Icon" onerror="this.style.display='none'">
                     </div>
-                    
                     <div class="flex-1"><h3 class="font-bold text-xl leading-tight">Cài đặt MimiFlower</h3><p class="text-xs text-white/90 mt-1 opacity-90">Phiên bản Web App nhẹ & mượt</p></div>
                     <button onclick="logicCore.closeModal()" class="text-white/70 hover:text-white p-1 transition-colors outline-none"><i class="fa-solid fa-xmark text-2xl"></i></button>
                 </div>
             </div>
-            <div id="pwaGuideBody">
-                </div>
+            <div id="pwaGuideBody" class="px-5 py-6"></div>
         </div>
-        <div id="iosArrow" class="hidden fixed bottom-[100px] left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce text-white z-[100001] drop-shadow-2xl pointer-events-none pb-safe">
+        <div id="iosArrow" class="hidden fixed bottom-[100px] left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce text-white z-[100006] drop-shadow-2xl pointer-events-none pb-safe">
             <span class="text-sm font-bold bg-[#ee4d2d] px-4 py-1.5 rounded-full mb-2 shadow-lg border border-white">Bấm vào đây</span>
             <i class="fa-solid fa-arrow-down text-5xl text-[#ee4d2d] drop-shadow-[0_2px_0_#fff]"></i>
         </div>
@@ -348,18 +336,15 @@
         <button onclick="closeDetail()" class="fixed top-4 right-4 z-extreme w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 shadow-2xl border-2 border-white cursor-pointer active:scale-90 pt-safe outline-none"><i class="fa-solid fa-times text-xl"></i></button>
         <div class="bg-white w-full h-full md:w-[1000px] md:h-auto md:max-h-[90vh] md:rounded-lg shadow-2xl flex flex-col md:flex-row relative transform scale-95 transition-transform duration-300 overflow-y-auto md:overflow-hidden pb-safe" id="modalContent">
             <div class="w-full md:w-[58%] flex flex-col shrink-0 bg-white relative border-r border-gray-100 pb-0 md:pb-0">
-                
                 <div id="galleryWrapper" class="relative w-full aspect-[3/4] md:h-[450px] bg-gray-50 flex items-center justify-center overflow-hidden border-b border-gray-100 touch-pan-y select-none">
                     <div id="galleryTrack" class="flex w-full h-full transition-transform duration-300 ease-out will-change-transform z-0"></div>
                     <button onclick="GalleryManager.navigate(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-20 clickable outline-none"><i class="fa-solid fa-chevron-left"></i></button>
                     <button onclick="GalleryManager.navigate(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-white active:scale-90 border border-gray-100 z-20 clickable outline-none"><i class="fa-solid fa-chevron-right"></i></button>
                     <div id="galleryDots" class="absolute bottom-3 left-0 w-full flex justify-center items-center gap-1.5 z-20 pointer-events-none"></div>
                 </div>
-                
                 <div class="relative w-full bg-gray-50 px-2 py-2 shadow-inner border-b border-gray-200">
                     <div id="thumbList" class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth snap-x items-center h-[60px] px-2"></div>
                 </div>
-
                 <div class="px-5 py-4 space-y-4 bg-white">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm"><span class="text-gray-500">Đang chọn:</span><span id="selectedVariantNameDisplay" class="font-bold text-gray-800 text-base border-b-2 border-[#ee4d2d]">...</span></div>
@@ -409,11 +394,11 @@
         </div>
     </div>
     
-    <div id="toast" role="alert" class="fixed top-20 right-4 bg-white border-l-4 border-green-500 text-gray-800 px-4 py-3 rounded shadow-2xl transform translate-x-full transition-transform duration-300 z-[90] flex items-center gap-3 min-w-[280px]"><div id="toastIcon" class="text-green-500 text-xl"><i class="fa-solid fa-circle-check"></i></div><div><div id="toastTitle" class="font-bold text-sm">Thành công!</div><div id="toastMsg" class="text-xs text-gray-500">Đã thêm vào giỏ hàng.</div></div></div>
+    <div id="toast" role="alert" class="fixed top-20 right-4 bg-white border-l-4 border-green-500 text-gray-800 px-4 py-3 rounded shadow-2xl transform translate-x-full transition-transform duration-300 z-[100005] flex items-center gap-3 min-w-[280px]"><div id="toastIcon" class="text-green-500 text-xl"><i class="fa-solid fa-circle-check"></i></div><div><div id="toastTitle" class="font-bold text-sm">Thành công!</div><div id="toastMsg" class="text-xs text-gray-500">Đã thêm vào giỏ hàng.</div></div></div>
     
-    <div id="statusModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-95 transition-all" id="statusModalContent"><div id="statusIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"></div><h3 id="statusTitle" class="text-xl font-bold text-gray-800 mb-2"></h3><p id="statusMsg" class="text-gray-600 text-sm mb-6"></p><div id="statusActions"><button type="button" onclick="closeStatusModal()" class="w-full py-2 rounded font-bold text-white transition clickable outline-none border-none" id="statusBtn">Đóng</button></div></div></div>
+    <div id="statusModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[100006] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm p-6 text-center transform scale-95 transition-all" id="statusModalContent"><div id="statusIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"></div><h3 id="statusTitle" class="text-xl font-bold text-gray-800 mb-2"></h3><p id="statusMsg" class="text-gray-600 text-sm mb-6"></p><div id="statusActions"><button type="button" onclick="closeStatusModal()" class="w-full py-2 rounded font-bold text-white transition clickable outline-none border-none" id="statusBtn">Đóng</button></div></div></div>
     
-    <div id="validationModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[80] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="validationContent"><div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></div><h3 class="text-red-600 font-bold text-lg">Thông tin chưa đủ</h3></div><div class="p-5"><p class="text-gray-600 text-sm mb-3">Vui lòng bổ sung các thông tin sau để chúng tôi giao hàng:</p><ul id="errorList" class="space-y-2 text-sm text-gray-700"></ul></div><div class="p-3 bg-gray-50 text-right"><button type="button" onclick="closeValidationModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 clickable outline-none border-none">Đã hiểu</button></div><div class="h-1 bg-red-100 w-full"><div class="h-full bg-red-500 w-full animate-[width_3s_linear_reverse]"></div></div></div></div>
+    <div id="validationModal" role="dialog" aria-modal="true" class="fixed inset-0 z-[100007] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity opacity-0"><div class="bg-white rounded-lg shadow-2xl w-[90%] max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="validationContent"><div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></div><h3 class="text-red-600 font-bold text-lg">Thông tin chưa đủ</h3></div><div class="p-5"><p class="text-gray-600 text-sm mb-3">Vui lòng bổ sung các thông tin sau để chúng tôi giao hàng:</p><ul id="errorList" class="space-y-2 text-sm text-gray-700"></ul></div><div class="p-3 bg-gray-50 text-right"><button type="button" onclick="closeValidationModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 clickable outline-none border-none">Đã hiểu</button></div><div class="h-1 bg-red-100 w-full"><div class="h-full bg-red-500 w-full animate-[width_3s_linear_reverse]"></div></div></div></div>
     
     <div id="orderHistoryModal" role="dialog" aria-modal="true" class="fixed inset-0 bg-gray-100 hidden z-[70] overflow-y-auto transition-transform duration-300 translate-x-full pb-safe"><div class="bg-white border-b sticky top-0 z-50 shadow-sm pt-safe"><div class="container mx-auto px-4 py-4 flex items-center justify-between"><div class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-[#ee4d2d] text-xl"></i><div class="text-xl text-gray-700 font-bold">Đơn Hàng Của Tôi</div></div><button type="button" onclick="closeOrderHistory()" class="text-gray-500 hover:text-[#ee4d2d] font-medium clickable outline-none border-none bg-transparent">Đóng</button></div></div><div class="container mx-auto px-4 py-6 pb-20"><div id="orderHistoryList" class="space-y-4"></div></div></div>
 
@@ -61694,6 +61679,8 @@
         };
 
         /* --- BỘ ĐIỀU KHIỂN KÉO THẢ CỬA SỔ (DRAGGABLE MANAGER) --- */
+        let windowHighestZIndex = 100000;
+
         const DragManager = {
             init(headerId, modalId, overlayId) {
                 const header = document.getElementById(headerId);
@@ -61706,6 +61693,11 @@
                 const dragStart = (e) => {
                     if (e.target.closest('button')) return; 
                     isDragging = true;
+                    
+                    // Nâng z-index lên trên cùng khi chạm vào cửa sổ
+                    windowHighestZIndex++;
+                    modal.style.zIndex = windowHighestZIndex;
+
                     const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
                     startX = clientX;
@@ -61727,11 +61719,8 @@
                     const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
                     const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
                     
-                    const dx = clientX - startX;
-                    const dy = clientY - startY;
-                    
-                    let newLeft = initialLeft + dx;
-                    let newTop = initialTop + dy;
+                    let newLeft = initialLeft + (clientX - startX);
+                    let newTop = initialTop + (clientY - startY);
                     
                     // Giới hạn để cửa sổ không bay khỏi màn hình
                     const maxLeft = window.innerWidth - 50; 
@@ -61749,6 +61738,10 @@
                     if(overlay) overlay.classList.add('hidden'); // Tắt khiên
                 };
 
+                // Click thường vào Modal cũng nâng Z-index
+                modal.addEventListener('mousedown', () => { windowHighestZIndex++; modal.style.zIndex = windowHighestZIndex; });
+                modal.addEventListener('touchstart', () => { windowHighestZIndex++; modal.style.zIndex = windowHighestZIndex; }, {passive: true});
+
                 header.addEventListener('mousedown', dragStart);
                 document.addEventListener('mousemove', dragMove, {passive: false});
                 document.addEventListener('mouseup', dragEnd);
@@ -61764,20 +61757,26 @@
             UI.vibrate();
             const widget = document.getElementById('radioWindow');
             const iframe = document.getElementById('radioIframe');
-            if (widget.classList.contains('hidden')) {
-                // Tải iframe lần đầu tiên khi mở để không gây chậm web
+            if (widget.classList.contains('hidden') || widget.classList.contains('scale-0')) {
                 if (!iframe.src || iframe.src === 'about:blank' || iframe.src !== iframe.getAttribute('data-src')) {
                     iframe.src = iframe.getAttribute('data-src');
                 }
                 widget.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    widget.classList.remove('opacity-0', 'scale-0');
-                    widget.classList.add('flex');
-                });
+                
+                // Force Reflow cho animation mượt mà
+                void widget.offsetWidth;
+                
+                widget.classList.remove('opacity-0', 'scale-0');
+                
+                windowHighestZIndex++;
+                widget.style.zIndex = windowHighestZIndex;
             } else {
-                widget.classList.remove('flex');
                 widget.classList.add('opacity-0', 'scale-0');
-                setTimeout(() => { if(widget.classList.contains('opacity-0')) widget.classList.add('hidden'); }, 300);
+                setTimeout(() => { 
+                    if(widget.classList.contains('opacity-0')) {
+                        widget.classList.add('hidden'); 
+                    }
+                }, 300);
             }
         }
 
@@ -61834,7 +61833,10 @@
             showFAB: function() {
                 if (this.state.isStandalone) return;
                 const fab = document.getElementById('btnInstall'); 
-                if(fab) fab.style.display = 'flex'; 
+                if(fab) {
+                    // Hiển thị nút tải
+                    fab.style.display = 'flex'; 
+                }
             },
             hideFAB: function() {
                 const fab = document.getElementById('btnInstall'); 
@@ -61899,18 +61901,25 @@
 
         let currentProduct = null; let selectedVariantIndex = 0; let cartItems = []; let currentTab = 'all'; let activeProductListener = null;
 
+        /* --- 🚀 DUY NHẤT 1 HÀM DOMContentLoaded TRUNG TÂM --- */
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. Init PWA & Firebase
             logicCore.init(); auth.signInAnonymously().catch(()=>{}); db.enablePersistence().catch(()=>{});
             
-            // Kích hoạt chức năng kéo thả cửa sổ Radio và XS Audio
-            DragManager.init('radioWindowHeader', 'radioWindow', 'radioDragOverlay');
+            // 2. Init Widgets & Drag Managers
+            try {
+                XSAudioPlayer.init();
+                DragManager.init('xsAudioWindowHeader', 'xsAudioWindow', 'xsAudioDragOverlay');
+                DragManager.init('radioWindowHeader', 'radioWindow', 'radioDragOverlay');
+            } catch(e) { console.error('Widget init error', e); }
             
+            // 3. Init Shop Data
             const cachedProducts = localStorage.getItem('mimi_product_cache');
             if (cachedProducts) renderProductGrid(JSON.parse(cachedProducts), document.getElementById("productGrid"));
             switchHomeTab('all'); loadProvinces(); loadCart(); setupCommuneSearch();
             document.getElementById("bankNameDisplay").innerText = BANK_NAME_DISPLAY; document.getElementById("bankAccNumDisplay").innerText = BANK_ACC_NUM; document.getElementById("bankOwnerDisplay").innerText = BANK_ACC_OWNER;
             
-            // Xóa menu xã khi click ra ngoài
+            // 4. Global Event Listeners
             document.addEventListener('click', e => { 
                 const dd = document.getElementById("communeDropdown"); const inp = document.getElementById("searchCommune"); 
                 if (!dd.contains(e.target) && e.target !== inp) dd.classList.add("hidden"); 
@@ -62364,7 +62373,18 @@
             if(errors.length > 0) { errorFields.forEach(el => el.classList.add('border-red-500')); showValidationModal(errors); return; }
             
             btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ĐANG GỬI...`; btn.classList.add('opacity-80');
-            db.collection("orders").add(orderData).then((docRef) => { let myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); myOrders.push(docRef.id); localStorage.setItem('mimi_my_orders', JSON.stringify(myOrders)); showStatusModal('success', "Thành Công!", `Mã đơn: ${docRef.id.slice(-6).toUpperCase()}`); cartItems = []; saveCart(); updateCartBadge(0); closeCheckout(); btn.disabled=false; btn.innerHTML=originalContent; btn.classList.remove('opacity-80'); }).catch((error) => { alert("Lỗi mạng!"); btn.disabled=false; btn.innerHTML=originalContent; btn.classList.remove('opacity-80'); });
+            db.collection("orders").add(orderData).then((docRef) => { 
+                let myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); myOrders.push(docRef.id); localStorage.setItem('mimi_my_orders', JSON.stringify(myOrders)); 
+                showStatusModal('success', "Thành Công!", `Mã đơn: ${docRef.id.slice(-6).toUpperCase()}`); 
+                cartItems = []; saveCart(); updateCartBadge(0); closeCheckout(); 
+                
+                // Dọn sạch Form cho đơn hàng tiếp theo
+                document.getElementById('checkoutForm').reset();
+                document.getElementById('storeCusInfo').value = '';
+                checkFormProgress();
+
+                btn.disabled=false; btn.innerHTML=originalContent; btn.classList.remove('opacity-80'); 
+            }).catch((error) => { alert("Lỗi mạng!"); btn.disabled=false; btn.innerHTML=originalContent; btn.classList.remove('opacity-80'); });
         }
 
         /* --- XỬ LÝ ĐỊA CHỈ TỈNH THÀNH --- */
@@ -62383,7 +62403,7 @@
         
         function openOrderHistory() { UI.vibrate(); UI.lockScroll(); const modal = document.getElementById("orderHistoryModal"); modal.classList.remove("hidden"); requestAnimationFrame(() => modal.classList.remove("translate-x-full")); loadOrderHistory(); }
         function closeOrderHistory() { const modal = document.getElementById("orderHistoryModal"); modal.classList.add("translate-x-full"); setTimeout(() => { modal.classList.add("hidden"); UI.unlockScroll(); }, 300); }
-        function loadOrderHistory() { const list = document.getElementById("orderHistoryList"); list.innerHTML = '<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i></div>'; const myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); if(!myOrders.length) { list.innerHTML = '<div class="text-center text-gray-500 py-10 font-medium">Bạn chưa có đơn hàng nào.</div>'; return; } db.collection("orders").where(firebase.firestore.FieldPath.documentId(), 'in', myOrders.slice(-10)).get().then(snap => { list.innerHTML = ""; snap.forEach(doc => { const d = doc.data(); const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : 'Vừa xong'; const item = document.createElement("div"); item.className = "bg-white p-4 rounded shadow-sm border border-gray-100 mb-3"; item.innerHTML = `<div class="flex justify-between items-center border-b pb-2 mb-3"><span class="font-bold text-gray-800">#${doc.id.slice(-6).toUpperCase()}</span><span class="text-xs text-gray-500">${date}</span></div><div class="space-y-2 mb-3">${d.items.map(i => `<div class="text-sm text-gray-600 flex justify-between"><span>${i.qty}x ${i.name}</span></div>`).join('')}</div><div class="flex justify-between items-center border-t pt-3 mt-2"><span class="font-bold text-[#ee4d2d] text-lg">${new Intl.NumberFormat('vi-VN').format(d.total)}₫</span><span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold uppercase border border-blue-100">${d.status === 'new' ? 'Chờ xác nhận' : d.status}</span></div>`; list.appendChild(item); }); }); }
+        function loadOrderHistory() { const list = document.getElementById("orderHistoryList"); list.innerHTML = '<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i></div>'; const myOrders = JSON.parse(localStorage.getItem('mimi_my_orders') || '[]'); if(!myOrders.length) { list.innerHTML = '<div class="text-center text-gray-500 py-10 font-medium">Bạn chưa có đơn hàng nào.</div>'; return; } db.collection("orders").where(firebase.firestore.FieldPath.documentId(), 'in', myOrders.slice(-10)).get().then(snap => { list.innerHTML = ""; snap.forEach(doc => { const d = doc.data(); const date = d.createdAt?.seconds ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : 'Vừa xong'; const item = document.createElement("div"); item.className = "bg-white p-4 rounded shadow-sm border border-gray-100 mb-3"; item.innerHTML = `<div class="flex justify-between items-center border-b pb-2 mb-3"><span class="font-bold text-gray-800">#${doc.id.slice(-6).toUpperCase()}</span><span class="text-xs text-gray-500">${date}</span></div><div class="space-y-2 mb-3">${d.items.map(i => `<div class="text-sm text-gray-600 flex justify-between"><span>${i.qty}x ${i.name}</span></div>`).join('')}</div><div class="flex justify-between items-center border-t pt-3 mt-2"><span class="font-bold text-[#ee4d2d] text-lg">${new Intl.NumberFormat('vi-VN').format(d.total)}₫</span><span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold uppercase border border-blue-100">${d.status === 'new' ? 'Chờ xác nhận' : d.status}</span></div>`; list.appendChild(item); }); }); }
 
 
         /* --- XIEMSANSANG AUDIO PLAYER EMBED --- */
@@ -62716,22 +62736,38 @@
             UI.vibrate();
             const widget = document.getElementById('xsAudioWindow');
             if (!widget) return;
-            if (widget.classList.contains('hidden')) {
+            if (widget.classList.contains('hidden') || widget.classList.contains('scale-0')) {
                 widget.classList.remove('hidden');
-                requestAnimationFrame(() => { widget.classList.remove('opacity-0','scale-0'); widget.classList.add('flex'); });
+                
+                // Force Reflow
+                void widget.offsetWidth;
+
+                widget.classList.remove('opacity-0','scale-0');
+                
+                // Đẩy lên trên cùng
+                windowHighestZIndex++;
+                widget.style.zIndex = windowHighestZIndex;
+
                 if (!XSAudioPlayer.playlist.length) XSAudioPlayer.fetchSongs(false);
             } else {
-                widget.classList.remove('flex');
                 widget.classList.add('opacity-0','scale-0');
-                setTimeout(() => { if(widget.classList.contains('opacity-0')) widget.classList.add('hidden'); }, 220);
+                
+                // [VÁ LỖI MEMORY LEAK] Tắt nhạc chạy ngầm khi đóng cửa sổ
+                if (XSAudioPlayer.els && XSAudioPlayer.els.player && !XSAudioPlayer.els.player.paused) {
+                    XSAudioPlayer.userPaused = true;
+                    XSAudioPlayer.playIntent = false;
+                    XSAudioPlayer.els.player.pause();
+                    XSAudioPlayer.updateMediaState('paused');
+                    XSAudioPlayer.renderControls();
+                }
+
+                setTimeout(() => { 
+                    if(widget.classList.contains('opacity-0')) {
+                        widget.classList.add('hidden'); 
+                    }
+                }, 300);
             }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                XSAudioPlayer.init();
-            } catch(e) { console.error('XSAudio init error', e); }
-        });
 
     </script>
 </body>
