@@ -73,9 +73,43 @@
             transform: none !important;
         }
 
+
+        /* PHA 5 - PRODUCT IMAGE TRUE-FIT: TOÀN CẢNH, KHÔNG CROP, KHÔNG ZOOM */
+        #productGrid article .aspect-square,
+        #productGrid article [class*="aspect-square"],
+        #productGrid article .relative.overflow-hidden {
+            background: #f8fafc !important;
+        }
+        #productGrid article img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+            object-position: center center !important;
+            transform: none !important;
+            scale: 1 !important;
+            padding: 4px !important;
+            background: #f8fafc !important;
+            image-rendering: auto;
+        }
+        #productGrid article:hover img,
+        #productGrid article img:hover,
+        #productGrid article.group:hover img {
+            transform: none !important;
+            scale: 1 !important;
+        }
+        #galleryTrack .gallery-img,
+        #thumbList img {
+            object-fit: contain !important;
+            object-position: center center !important;
+            transform: none !important;
+            scale: 1 !important;
+            background: #f8fafc !important;
+        }
+
         /* PWA UI STYLES V22 */
-        .install-fab { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 20px rgba(238, 77, 45, 0.4); display: none; z-index: 9999; }
-        .install-fab:active { transform: scale(0.9) translateY(2px); box-shadow: 0 4px 10px rgba(238, 77, 45, 0.3); }
+        .install-fab { transition: box-shadow .18s ease, transform .08s ease, opacity .18s ease; box-shadow: 0 8px 18px rgba(238, 77, 45, 0.28); display: flex; z-index: 9999; touch-action: none; user-select: none; cursor: grab; }
+        .install-fab:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(238, 77, 45, 0.22); cursor: grabbing; }
+        .install-fab.mimi-dragging { opacity: .92; cursor: grabbing; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; position: relative; }
         .status-dot::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.6; }
         @keyframes ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
@@ -141,9 +175,10 @@
         #xsAudioWindow .xs-guide-box div { padding:0 12px 12px; font-size:12px; line-height:1.5; color:var(--xs-muted); }
         #xsAudioWindow .xs-hidden { display:none !important; }
         @media (max-width: 640px) {
-            #xsAudioWindow { top: calc(70px + var(--safe-top)) !important; left: 8px !important; right:auto !important; width: calc(100vw - 16px) !important; height: min(78vh, 680px) !important; resize: none !important; }
-            #xsAudioWindowHeader { cursor: default; }
+            #xsAudioWindow { top: calc(70px + var(--safe-top)); left: 8px; right:auto; width: calc(100vw - 16px); height: min(78vh, 680px); resize: none; max-width: calc(100vw - 12px); max-height: calc(100vh - 12px); }
+            #xsAudioWindowHeader { cursor: move; touch-action: none; }
             #xsAudioWindow .xs-song-row { height:60px; }
+            #xsAudioResizeGrip { width: 42px !important; height: 42px !important; }
         }
 
     </style>
@@ -263,7 +298,7 @@
                 </div>
             </div>
         </div>
-        <audio id="xsNativePlayer" preload="auto" playsinline webkit-playsinline crossorigin="anonymous"></audio>
+        <audio id="xsNativePlayer" preload="auto" playsinline webkit-playsinline></audio>
         <audio id="xsSilenceAnchor" preload="auto" loop playsinline webkit-playsinline src="silence_30min.mp3"></audio>
     </div>
 
@@ -314,9 +349,9 @@
         </div>
     </footer>
 
-    <button id="btnInstall" class="install-fab fixed bottom-[100px] right-4 z-[9999] bg-gradient-to-r from-[#ee4d2d] to-[#ff6b6b] text-white p-3 pr-6 pl-5 rounded-full font-bold border-4 border-white items-center gap-3 cursor-pointer shadow-2xl animate-pop-in flex outline-none">
-        <span class="text-3xl animate-bounce">📲</span>
-        <div class="flex flex-col items-start leading-none"><span class="text-[10px] font-medium opacity-90 text-yellow-100">Cài đặt ngay</span><span class="text-base font-bold uppercase tracking-wide">Mimi App</span></div>
+    <button id="btnInstall" class="install-fab fixed bottom-[104px] right-3 z-[9999] bg-gradient-to-r from-[#ee4d2d] to-[#ff6b6b] text-white px-3 py-2 rounded-full font-black border-2 border-white items-center gap-1.5 cursor-grab shadow-xl outline-none text-[12px] uppercase tracking-wide" title="Kéo thả tự do • Bấm để cài app">
+        <span class="text-base leading-none">📲</span>
+        <span class="leading-none whitespace-nowrap">Cài App</span>
     </button>
 
     <div id="pwaModal" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-[100000] bg-black/70 flex items-end md:items-center justify-center backdrop-blur-sm transition-all duration-300">
@@ -428,6 +463,86 @@
             // ---> DÁN MẢNG CỦA BẠN VÀO ĐÂY <---
         ];
 
+
+        /* --- PHA 5: PWA INSTALL FAB DRAGGABLE - PC + MOBILE --- */
+        const PWAInstallFabDrag = {
+            init(){
+                const fab = document.getElementById('btnInstall');
+                if(!fab || fab.dataset.dragReady === '1') return;
+                fab.dataset.dragReady = '1';
+
+                const vibrate = (ms=10) => { try { if(navigator.vibrate) navigator.vibrate(ms); } catch(e){} };
+                const clamp = () => {
+                    const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+                    const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+                    const rect = fab.getBoundingClientRect();
+                    const margin = 6;
+                    let left = rect.left;
+                    let top = rect.top;
+                    if(rect.left < margin) left = margin;
+                    if(rect.top < margin) top = margin;
+                    if(rect.right > vw - margin) left = Math.max(margin, vw - rect.width - margin);
+                    if(rect.bottom > vh - margin) top = Math.max(margin, vh - rect.height - margin);
+                    fab.style.left = Math.round(left) + 'px';
+                    fab.style.top = Math.round(top) + 'px';
+                    fab.style.right = 'auto';
+                    fab.style.bottom = 'auto';
+                };
+
+                let dragging = false;
+                let sx = 0, sy = 0, sl = 0, st = 0;
+                let moved = false;
+
+                const start = (ev) => {
+                    const p = ev.touches ? ev.touches[0] : ev;
+                    const rect = fab.getBoundingClientRect();
+                    dragging = true; moved = false;
+                    sx = p.clientX; sy = p.clientY;
+                    sl = rect.left; st = rect.top;
+                    fab.style.left = sl + 'px';
+                    fab.style.top = st + 'px';
+                    fab.style.right = 'auto';
+                    fab.style.bottom = 'auto';
+                    fab.classList.add('mimi-dragging');
+                    vibrate(8);
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                };
+
+                const move = (ev) => {
+                    if(!dragging) return;
+                    const p = ev.touches ? ev.touches[0] : ev;
+                    const dx = p.clientX - sx;
+                    const dy = p.clientY - sy;
+                    if(Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+                    fab.style.left = (sl + dx) + 'px';
+                    fab.style.top = (st + dy) + 'px';
+                    clamp();
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                };
+
+                const end = () => {
+                    if(!dragging) return;
+                    dragging = false;
+                    fab.classList.remove('mimi-dragging');
+                    fab.dataset.dragMoved = moved ? '1' : '0';
+                    if(moved) vibrate(6);
+                    setTimeout(() => { fab.dataset.dragMoved = '0'; }, 260);
+                };
+
+                fab.addEventListener('pointerdown', start, {passive:false});
+                document.addEventListener('pointermove', move, {passive:false});
+                document.addEventListener('pointerup', end);
+                document.addEventListener('pointercancel', end);
+
+                fab.addEventListener('touchstart', start, {passive:false});
+                document.addEventListener('touchmove', move, {passive:false});
+                document.addEventListener('touchend', end);
+
+                window.addEventListener('resize', clamp);
+                setTimeout(clamp, 120);
+            }
+        };
+
         /* --- UI HELPERS --- */
         const UI = {
             openModals: 0,
@@ -502,19 +617,163 @@
             }
         };
 
-        /* --- BẬT/TẮT RADIO PLAYER CỬA SỔ NỔI --- */
+        /* --- BẬT/TẮT RADIO PLAYER CỬA SỔ NỔI - KEEPALIVE + TOUCH RESIZE FINAL --- */
         function toggleRadio() {
-            UI.vibrate();
+            try { if (window.UI && typeof UI.vibrate === 'function') UI.vibrate(18); } catch (e) {}
+
             const widget = document.getElementById('radioWindow');
             const iframe = document.getElementById('radioIframe');
-            if (widget.classList.contains('hidden')) {
-                // Tải iframe lần đầu tiên khi mở để không gây chậm web
-                if (!iframe.src || iframe.src === 'about:blank' || iframe.src !== iframe.getAttribute('data-src')) {
-                    iframe.src = iframe.getAttribute('data-src');
+            if (!widget || !iframe) return;
+
+            const pcIframeUrl = iframe.getAttribute('data-src') || 'https://www.nonstopplay.com/player/playerbbandmain.html';
+            const mobileIframeUrl = 'https://www.nonstopplay.com/player/playerbband.html';
+
+            const ua = navigator.userAgent || '';
+            const isRealMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+            const isNarrowScreen = (window.innerWidth || document.documentElement.clientWidth || 9999) <= 768;
+            const shouldUseMobileDirectIframe = isRealMobile || isNarrowScreen;
+            const targetUrl = shouldUseMobileDirectIframe ? mobileIframeUrl : pcIframeUrl;
+
+            function clampRadioWindow() {
+                try {
+                    const rect = widget.getBoundingClientRect();
+                    const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+                    const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+
+                    let left = rect.left;
+                    let top = rect.top;
+                    if (rect.right < 48) left = 8;
+                    if (rect.left > vw - 48) left = Math.max(8, vw - rect.width - 8);
+                    if (rect.bottom < 48) top = 8;
+                    if (rect.top > vh - 48) top = Math.max(8, vh - rect.height - 8);
+
+                    if (left !== rect.left || top !== rect.top) {
+                        widget.style.right = 'auto';
+                        widget.style.left = Math.max(8, left) + 'px';
+                        widget.style.top = Math.max(8, top) + 'px';
+                    }
+                } catch (e) {}
+            }
+
+            function ensureRadioControls() {
+                if (widget.dataset.keepaliveResizeReady === '1') return;
+                widget.dataset.keepaliveResizeReady = '1';
+
+                widget.style.minWidth = '300px';
+                widget.style.minHeight = '160px';
+                widget.style.maxWidth = 'calc(100vw - 12px)';
+                widget.style.maxHeight = 'calc(100vh - 12px)';
+                widget.style.overflow = 'hidden';
+
+                const header = document.getElementById('radioWindowHeader');
+                if (header) {
+                    header.title = 'Kéo để di chuyển. Bấm X chỉ ẩn cửa sổ, nhạc vẫn chạy.';
+                    header.style.touchAction = 'none';
                 }
+
+                const closeBtn = widget.querySelector('#radioWindowHeader button');
+                if (closeBtn) {
+                    closeBtn.title = 'Ẩn cửa sổ radio, không tắt nhạc';
+                    closeBtn.setAttribute('aria-label', 'Ẩn cửa sổ radio, không tắt nhạc');
+                }
+
+                let grip = document.getElementById('radioResizeGrip');
+                if (!grip) {
+                    grip = document.createElement('div');
+                    grip.id = 'radioResizeGrip';
+                    grip.title = 'Kéo để mở rộng / thu hẹp cửa sổ radio';
+                    grip.setAttribute('aria-label', 'Kéo để mở rộng hoặc thu hẹp cửa sổ radio');
+                    grip.style.cssText = [
+                        'position:absolute',
+                        'right:0',
+                        'bottom:0',
+                        'width:34px',
+                        'height:34px',
+                        'z-index:40',
+                        'cursor:nwse-resize',
+                        'touch-action:none',
+                        'background:linear-gradient(135deg, transparent 45%, rgba(255,255,255,.28) 45%, rgba(255,255,255,.28) 55%, transparent 55%), linear-gradient(135deg, transparent 62%, rgba(238,77,45,.95) 62%)',
+                        'border-bottom-right-radius:12px'
+                    ].join(';');
+                    widget.appendChild(grip);
+                }
+
+                let resizing = false;
+                let startX = 0, startY = 0, startW = 0, startH = 0;
+
+                const beginResize = (ev) => {
+                    try { if (window.UI && typeof UI.vibrate === 'function') UI.vibrate(12); } catch (e) {}
+                    resizing = true;
+                    const point = ev.touches ? ev.touches[0] : ev;
+                    startX = point.clientX;
+                    startY = point.clientY;
+                    const rect = widget.getBoundingClientRect();
+                    startW = rect.width;
+                    startH = rect.height;
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+                };
+
+                const doResize = (ev) => {
+                    if (!resizing) return;
+                    const point = ev.touches ? ev.touches[0] : ev;
+                    const dx = point.clientX - startX;
+                    const dy = point.clientY - startY;
+                    const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+                    const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+                    const minW = 300;
+                    const minH = 160;
+                    const maxW = Math.max(minW, vw - 12);
+                    const maxH = Math.max(minH, vh - 12);
+                    const newW = Math.max(minW, Math.min(startW + dx, maxW));
+                    const newH = Math.max(minH, Math.min(startH + dy, maxH));
+                    widget.style.width = newW + 'px';
+                    widget.style.height = newH + 'px';
+                    widget.style.right = 'auto';
+                    clampRadioWindow();
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+                };
+
+                const endResize = () => { resizing = false; };
+
+                grip.addEventListener('mousedown', beginResize, {passive:false});
+                document.addEventListener('mousemove', doResize, {passive:false});
+                document.addEventListener('mouseup', endResize);
+
+                grip.addEventListener('touchstart', beginResize, {passive:false});
+                document.addEventListener('touchmove', doResize, {passive:false});
+                document.addEventListener('touchend', endResize);
+
+                window.addEventListener('resize', clampRadioWindow);
+            }
+
+            ensureRadioControls();
+
+            if (widget.classList.contains('hidden')) {
+                if (shouldUseMobileDirectIframe && !widget.dataset.mobileDefaultSized) {
+                    widget.dataset.mobileDefaultSized = '1';
+                    widget.style.right = 'auto';
+                    widget.style.left = '8px';
+                    widget.style.top = 'calc(76px + var(--safe-top, 0px))';
+                    widget.style.width = 'min(520px, calc(100vw - 16px))';
+                    widget.style.height = '260px';
+                }
+
+                iframe.style.display = 'block';
+                iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media');
+                iframe.setAttribute('allowtransparency', 'true');
+
+                // Quan trọng: chỉ nạp iframe nếu chưa có hoặc đang about:blank.
+                // Khi ẩn popup, không reset src để nhạc vẫn tiếp tục chạy.
+                if (!iframe.src || iframe.src === 'about:blank') {
+                    iframe.src = targetUrl;
+                }
+
                 widget.classList.remove('hidden');
                 widget.classList.add('flex');
+                clampRadioWindow();
             } else {
+                // Chỉ ẩn popup. Không pause, không reset iframe.src.
+                // Muốn dừng nhạc thì dùng nút pause/play bên trong NonStopPlay player.
                 widget.classList.remove('flex');
                 widget.classList.add('hidden');
             }
@@ -526,7 +785,7 @@
             state: { isIOS: /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()), isAndroid: /android/.test(navigator.userAgent.toLowerCase()), isStandalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone },
             init: function() {
                 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-                this.updateStatusDot('init'); if (this.state.isStandalone) this.updateStatusDot('installed'); else { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this.deferredPrompt = e; this.showSmartFAB(); this.updateStatusDot('ready'); }); }
+                this.updateStatusDot('init'); this.showSmartFAB(); if (this.state.isStandalone) this.updateStatusDot('installed'); else { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this.deferredPrompt = e; this.showSmartFAB(); this.updateStatusDot('ready'); }); }
                 document.getElementById('btnGuide').onclick = () => { UI.vibrate(); this.showSmartGuide(); };
             },
             updateStatusDot: function(s) {
@@ -536,9 +795,20 @@
                 else if (s==='installed') { d.classList.add('dot-green'); l.innerText = "Đã cài"; }
             },
             showSmartFAB: function() {
-                if (this.state.isStandalone) return;
-                const fab = document.getElementById('btnInstall'); fab.style.display = 'flex';
-                fab.onclick = async () => { UI.vibrate(); if (this.deferredPrompt) { this.deferredPrompt.prompt(); const { outcome } = await this.deferredPrompt.userChoice; if (outcome === 'accepted') { this.deferredPrompt = null; fab.style.display = 'none'; } } };
+                const fab = document.getElementById('btnInstall');
+                if (!fab) return;
+                fab.style.display = 'flex';
+                fab.onclick = async (ev) => {
+                    if (fab.dataset.dragMoved === '1') { fab.dataset.dragMoved = '0'; return; }
+                    UI.vibrate();
+                    if (this.deferredPrompt && !this.state.isStandalone) {
+                        this.deferredPrompt.prompt();
+                        const { outcome } = await this.deferredPrompt.userChoice;
+                        if (outcome === 'accepted') { this.deferredPrompt = null; }
+                    } else {
+                        this.showSmartGuide();
+                    }
+                };
             },
             closeModal: function() { document.getElementById('pwaModal').classList.add('hidden'); document.getElementById('iosArrow').classList.add('hidden'); UI.unlockScroll(); },
             showSmartGuide: function() {
@@ -562,7 +832,7 @@
         let currentProduct = null; let selectedVariantIndex = 0; let cartItems = []; let currentTab = 'all'; let activeProductListener = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            logicCore.init(); auth.signInAnonymously().catch(()=>{}); db.enablePersistence().catch(()=>{});
+            logicCore.init(); try { PWAInstallFabDrag.init(); } catch(e) { console.warn('PWA FAB drag init error', e); } auth.signInAnonymously().catch(()=>{}); db.enablePersistence().catch(()=>{});
             
             // Kích hoạt chức năng kéo thả cửa sổ Radio
             DragManager.init('radioWindowHeader', 'radioWindow', 'radioDragOverlay');
@@ -1050,13 +1320,14 @@
 
         /* --- XIEMSANSANG AUDIO PLAYER EMBED: ĐỘC LẬP, KHÔNG ĐỤNG LUỒNG SHOP/RADIO --- */
         const XSAudioPlayer = {
-            keys: { songs:'xs_embed_songs_v1', idx:'xs_embed_idx_v1', shuffle:'xs_embed_shuffle_v1', repeat:'xs_embed_repeat_v1', theme:'xs_embed_theme_v1' },
+            keys: { songs:'xs_embed_songs_v3_direct_cdn', idx:'xs_embed_idx_v3_direct_cdn', shuffle:'xs_embed_shuffle_v1', repeat:'xs_embed_repeat_v1', theme:'xs_embed_theme_v1' },
             els: {}, playlist: [], filtered: [], visible: 80, currentIndex: 0, playing: false, userPaused: true,
             shuffle: false, repeat: 'all', themeIndex: 0, themes: ['rose','dark','mint'], timerId: null, timerEnd: 0,
             lastUi: 0, lastMedia: 0, prefetchDone: false, compact: false, wakeLock: null, fetching: false,
             init() {
                 this.els.win = document.getElementById('xsAudioWindow');
                 this.els.player = document.getElementById('xsNativePlayer');
+                try { if (this.els.player) { this.els.player.removeAttribute('crossorigin'); this.els.player.crossOrigin = null; } } catch(e) {}
                 this.els.anchor = document.getElementById('xsSilenceAnchor');
                 this.els.list = document.getElementById('xsAudioList');
                 this.els.status = document.getElementById('xsAudioStatus');
@@ -1131,7 +1402,21 @@
                 a.addEventListener('ended', () => this.onEnded());
                 a.addEventListener('play', () => { this.playing = true; this.renderControls(); });
                 a.addEventListener('pause', () => { this.playing = false; this.renderControls(); if (!this.userPaused && !a.ended && a.src) setTimeout(() => this.safePlay(), 900); });
-                ['stalled','waiting','abort','error'].forEach(evt => a.addEventListener(evt, () => { if (!this.userPaused && a.src) setTimeout(() => this.safePlay(true), 1100); }));
+                ['stalled','waiting'].forEach(evt => a.addEventListener(evt, () => {
+                    if (!this.userPaused && a.src) {
+                        this.setStatus(`${this.playlist.length} bài • đang đệm dữ liệu...`);
+                        setTimeout(() => { if(!this.userPaused && a.paused && a.readyState >= 2) this.safePlay(false); }, 900);
+                    }
+                }));
+                ['abort','error'].forEach(evt => a.addEventListener(evt, () => {
+                    if (!this.userPaused && a.src) {
+                        const code = a.error ? a.error.code : 'unknown';
+                        console.warn('[XIEMSANSANG Audio]', evt, 'media error code:', code, 'src:', a.currentSrc || a.src);
+                        this.setStatus('Nguồn nhạc lỗi hoặc bị trình duyệt chặn. Bấm Đồng bộ lại hoặc chuyển bài.');
+                    }
+                    this.playing = false;
+                    this.renderControls();
+                }));
                 a.addEventListener('suspend', () => { /* suspend là trạng thái bình thường của trình duyệt, không ép load/play để tránh vấp âm */ });
                 a.addEventListener('canplay', () => { if (!this.userPaused && a.src && a.paused) this.safePlay(false); });
                 a.addEventListener('playing', () => { this.playing = true; this.setStatus(`${this.playlist.length} bài • đang phát ổn định`); this.renderControls(); this.renderNow(); });
@@ -1146,16 +1431,24 @@
             async fetchSongs(force){
                 if (this.fetching) return;
                 if (!force && this.playlist.length) return;
-                this.fetching = true; this.setStatus('Đang đồng bộ danh sách nhạc...');
+                this.fetching = true; this.setStatus('Đang đồng bộ danh sách nhạc sạch...');
                 try{
-                    const query = 'identifier:(giai-toa-moi-thu) OR uploader:(xiemsansang) AND mediatype:(audio)';
-                    const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,creator&sort[]=publicdate+desc&rows=500&page=1&output=json`;
+                    const query = '(identifier:giai-toa-moi-thu OR uploader:xiemsansang) AND mediatype:audio';
+                    const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,creator&sort[]=publicdate+desc&rows=350&page=1&output=json`;
                     const res = await fetch(url, {cache:'no-store'});
-                    if(!res.ok) throw new Error('advancedsearch failed');
+                    if(!res.ok) throw new Error('advancedsearch failed: '+res.status);
                     const data = await res.json();
                     const docs = (data && data.response && data.response.docs) ? data.response.docs : [];
                     const all = [];
                     let cursor = 0;
+
+                    const encodePath = (name) => String(name || '').split('/').map(part => encodeURIComponent(part)).join('/');
+                    const cleanTitle = (raw, name) => String(raw || name || '')
+                        .replace(/\\.mp3$/i,'')
+                        .replace(/_/g,' ')
+                        .replace(/\\s+/g,' ')
+                        .trim() || 'Không tên';
+
                     const worker = async () => {
                         while(cursor < docs.length){
                             const d = docs[cursor++];
@@ -1163,37 +1456,66 @@
                                 const metaRes = await fetch(`https://archive.org/metadata/${d.identifier}`, {cache:'no-store'});
                                 if(!metaRes.ok) continue;
                                 const meta = await metaRes.json();
+                                const server = String(meta.server || '').trim();
+                                const dir = String(meta.dir || '').trim();
+                                const directBase = (server && dir) ? `https://${server}${dir}` : `https://archive.org/download/${d.identifier}`;
+                                const publicBase = `https://archive.org/download/${d.identifier}`;
+
                                 (meta.files || []).forEach(f => {
-                                    const format = String(f.format || '').toUpperCase();
                                     const name = String(f.name || '');
-                                    if(format.includes('MP3') || /\.mp3$/i.test(name)){
-                                        const rawTitle = (f.title && String(f.title).trim() && String(f.title).trim() !== String(d.title||'').trim()) ? f.title : name;
-                                        all.push({
-                                            id: `${d.identifier}/${name}`,
-                                            title: String(rawTitle).replace(/\.mp3$/i,'').replace(/_/g,' ').trim() || 'Không tên',
-                                            artist: d.creator || 'Xiemsansang',
-                                            stream_url: `https://archive.org/download/${d.identifier}/${encodeURIComponent(name)}`,
-                                            duration: parseFloat(f.length || 0) || 0
-                                        });
-                                    }
+                                    const format = String(f.format || '').toUpperCase();
+                                    const length = parseFloat(f.length || 0) || 0;
+                                    const size = parseInt(f.size || '0', 10) || 0;
+
+                                    if(!/\\.mp3$/i.test(name) && !format.includes('MP3')) return;
+                                    if(/(__ia_thumb|_spectrogram|_files\\.xml|_meta|_itemimage|\\.png|\\.jpg|\\.jpeg)/i.test(name)) return;
+                                    if(length && length < 20) return;
+                                    if(size && size < 50000) return;
+
+                                    const encodedName = encodePath(name);
+                                    const titleRaw = (f.title && String(f.title).trim() && String(f.title).trim() !== String(d.title||'').trim()) ? f.title : name;
+                                    const streamUrl = `${directBase}/${encodedName}`;
+                                    const downloadUrl = `${publicBase}/${encodedName}`;
+
+                                    all.push({
+                                        id: `${d.identifier}/${name}`,
+                                        title: cleanTitle(titleRaw, name),
+                                        artist: d.creator || 'Xiemsansang',
+                                        stream_url: streamUrl,
+                                        download_url: downloadUrl,
+                                        duration: length
+                                    });
                                 });
-                            }catch(e){}
+                            }catch(e){
+                                console.warn('[XIEMSANSANG] metadata skip:', d && d.identifier, e);
+                            }
                         }
                     };
-                    await Promise.all(Array.from({length: Math.min(6, Math.max(1, docs.length))}, worker));
-                    if(!all.length) throw new Error('empty');
-                    all.sort((a,b) => String(a.title).localeCompare(String(b.title), 'vi', {numeric:true, sensitivity:'base'}));
-                    this.playlist = all;
-                    this.save(this.keys.songs, all);
-                    this.setStatus(`${all.length} bài • nghe liên tục nền mobile`);
-                    if(this.currentIndex >= all.length) this.currentIndex = 0;
+
+                    await Promise.all(Array.from({length: Math.min(4, Math.max(1, docs.length))}, worker));
+                    if(!all.length) throw new Error('empty playlist');
+
+                    const seen = new Set();
+                    const unique = all.filter(s => {
+                        const k = String(s.stream_url || '');
+                        if(!k || seen.has(k)) return false;
+                        seen.add(k);
+                        return true;
+                    });
+
+                    unique.sort((a,b) => String(a.title).localeCompare(String(b.title), 'vi', {numeric:true, sensitivity:'base'}));
+                    this.playlist = unique;
+                    this.save(this.keys.songs, unique);
+                    this.setStatus(`${unique.length} bài • nguồn direct CDN sẵn sàng`);
+                    if(this.currentIndex >= unique.length) this.currentIndex = 0;
                     this.applyFilter(); this.renderNow();
                 }catch(e){
-                    if(this.playlist.length) this.setStatus(`${this.playlist.length} bài từ cache • mạng đang chậm`);
-                    else this.setStatus('Chưa lấy được danh sách nhạc. Bấm đồng bộ lại.');
+                    console.warn('[XIEMSANSANG] fetchSongs failed:', e);
+                    if(this.playlist.length) this.setStatus(`${this.playlist.length} bài từ cache mới • mạng đang chậm`);
+                    else this.setStatus('Chưa lấy được danh sách nhạc. Bấm Đồng bộ lại.');
                 }finally{ this.fetching = false; }
             },
-            applyFilter(){
+                        applyFilter(){
                 const q = (this.els.search?.value || '').trim().toLowerCase();
                 this.filtered = q ? this.playlist.filter(s => (s.title||'').toLowerCase().includes(q) || (s.artist||'').toLowerCase().includes(q)) : [...this.playlist];
                 this.renderList();
@@ -1229,40 +1551,63 @@
             escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); },
             escapeAttr(s){ return this.escapeHtml(s).replace(/'/g, '&#39;'); },
             ensureAnchor(){ const a=this.els.anchor; if(a && a.paused){ a.volume = 0; a.play().catch(()=>{}); } },
+            normalizeStreamUrl(s){
+                return (s && (s.stream_url || s.download_url)) ? String(s.stream_url || s.download_url) : '';
+            },
             async safePlay(withLoad){
                 const a=this.els.player; if(!a || !a.src) return;
-                try{ this.ensureAnchor(); if(withLoad && a.readyState < 2) a.load(); await a.play(); this.playing=true; this.userPaused=false; this.syncWakeLock(); this.updateMediaState('playing'); }
-                catch(e){ this.playing=false; this.updateMediaState('paused'); }
+                try{
+                    this.ensureAnchor();
+                    try { a.removeAttribute('crossorigin'); a.crossOrigin = null; } catch(e) {}
+                    if(withLoad && a.readyState === 0) { try { a.load(); } catch(e) {} }
+                    const playPromise = a.play();
+                    if(playPromise && typeof playPromise.then === 'function') await playPromise;
+                    this.playing=true; this.userPaused=false; this.syncWakeLock(); this.updateMediaState('playing');
+                    this.setStatus(`${this.playlist.length} bài • đang phát`);
+                }
+                catch(e){
+                    this.playing=false; this.updateMediaState('paused');
+                    const name = e && e.name ? e.name : 'PlayError';
+                    console.warn('[XIEMSANSANG] play rejected:', name, e, 'src=', a.currentSrc || a.src);
+                    this.setStatus(name === 'NotAllowedError' ? 'Trình duyệt cần bấm Play một lần trực tiếp.' : 'Chưa phát được nguồn này. Thử chuyển bài hoặc Đồng bộ lại.');
+                }
                 this.renderControls(); this.renderNow();
             },
             playIndex(idx, fromUser){
                 if(!this.playlist.length) { this.fetchSongs(true); return; }
                 idx = (idx + this.playlist.length) % this.playlist.length;
                 const s = this.playlist[idx]; if(!s) return;
+                const stream = this.normalizeStreamUrl(s);
+                if(!stream){ this.setStatus('Bài này thiếu link stream. Chuyển bài khác.'); return; }
+
                 this.vibrate(); this.currentIndex = idx; localStorage.setItem(this.keys.idx, String(idx));
                 this.prefetchDone = false; this.userPaused = false;
                 const a = this.els.player;
                 this.ensureAnchor();
                 this.setStatus(`${this.playlist.length} bài • đang nạp ${this.escapeHtml(s.title).slice(0, 36)}`);
-                if(a.src !== s.stream_url){
+
+                if(a.src !== stream){
                     try { a.pause(); } catch(e) {}
+                    try { a.removeAttribute('crossorigin'); a.crossOrigin = null; } catch(e) {}
                     a.preload = 'auto';
-                    a.src = s.stream_url;
-                    a.load();
+                    a.src = stream;
+                    try { a.load(); } catch(e) {}
                 }
+
                 if('mediaSession' in navigator){ try{ navigator.mediaSession.metadata = new MediaMetadata({ title:s.title, artist:s.artist, album:'XIEMSANSANG' }); }catch(e){} }
                 this.safePlay(false);
+
                 setTimeout(() => {
                     const aa = this.els.player;
-                    if(!this.userPaused && aa && aa.src === s.stream_url && aa.currentTime === 0 && aa.readyState < 3){
-                        try { aa.load(); } catch(e) {}
-                        this.safePlay(false);
+                    if(!this.userPaused && aa && aa.src === stream && aa.currentTime === 0 && aa.readyState === 0){
+                        this.setStatus('Nguồn đang chờ mạng. Nếu kẹt lâu, bấm bài kế tiếp hoặc Đồng bộ lại.');
                     }
-                }, 1800);
+                }, 2200);
+
                 this.renderNow(); this.renderList();
                 requestAnimationFrame(() => this.keepActiveSongComfortablyVisible());
             },
-            togglePlay(){
+                        togglePlay(){
                 this.vibrate();
                 const a=this.els.player;
                 if(!this.playlist.length){ this.fetchSongs(true); return; }
@@ -1283,7 +1628,7 @@
                 if(sec !== this.lastMedia){ this.updatePositionState(); this.lastMedia = sec; }
                 if(a.duration > 35 && a.currentTime >= a.duration - 45 && !this.prefetchDone){ this.prefetchDone = true; this.prefetch(this.nextIndex()); }
             },
-            prefetch(idx){ const s=this.playlist[idx]; if(s && s.stream_url) fetch(s.stream_url, {mode:'no-cors', cache:'force-cache'}).catch(()=>{}); },
+            prefetch(idx){ /* disabled: tránh tạo request mp3 bị hủy/cancel trong Network */ },
             renderNow(){
                 const s=this.playlist[this.currentIndex];
                 if(s){ this.els.title.textContent=s.title; this.els.sub.textContent=(this.playing?'Đang phát • ':'Sẵn sàng • ')+(s.artist||'Xiemsansang'); }
@@ -1300,7 +1645,7 @@
             },
             seekByClick(ev){ const a=this.els.player; if(!a || !isFinite(a.duration) || a.duration<=0) return; const r=this.els.progress.getBoundingClientRect(); const pct=(ev.clientX-r.left)/Math.max(1,r.width); a.currentTime = Math.max(0, Math.min(a.duration, a.duration*pct)); this.renderProgress(); this.updatePositionState(); },
             async shareTrack(s){ this.vibrate(); try{ if(navigator.share) await navigator.share({title:s.title, url:s.stream_url}); else { await navigator.clipboard.writeText(s.stream_url); if(window.showToast) showToast('Đã copy link!', s.title); else alert('Đã copy link'); } }catch(e){} },
-            downloadTrack(s){ this.vibrate(); const a=document.createElement('a'); a.href=s.stream_url; a.download=(s.title||'audio')+'.mp3'; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); },
+            downloadTrack(s){ this.vibrate(); const a=document.createElement('a'); a.href=s.download_url || s.stream_url; a.download=(s.title||'audio')+'.mp3'; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); },
             setTimer(min){
                 this.vibrate(); clearInterval(this.timerId); this.timerId=null; this.timerEnd=0; this.els.timerLeft.classList.add('xs-hidden');
                 if(!min) return;
@@ -1326,6 +1671,169 @@
             },
             updateMediaState(state){ if('mediaSession' in navigator){ try{ navigator.mediaSession.playbackState = state; }catch(e){} } },
             updatePositionState(){ const a=this.els.player; if('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && a && isFinite(a.duration) && a.duration>0){ try{ navigator.mediaSession.setPositionState({duration:a.duration, playbackRate:a.playbackRate||1, position:a.currentTime||0}); }catch(e){} } },
+            ensureWindowMobility(){
+                const win = document.getElementById('xsAudioWindow');
+                const header = document.getElementById('xsAudioWindowHeader');
+                if(!win || !header) return;
+
+                const vibrateSoft = (ms=12) => { try { if(navigator.vibrate) navigator.vibrate(ms); } catch(e){} };
+
+                const clamp = () => {
+                    try{
+                        const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+                        const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+                        let rect = win.getBoundingClientRect();
+                        let left = rect.left;
+                        let top = rect.top;
+                        const margin = 6;
+
+                        if(rect.width > vw - margin*2) win.style.width = Math.max(300, vw - margin*2) + 'px';
+                        if(rect.height > vh - margin*2) win.style.height = Math.max(160, vh - margin*2) + 'px';
+
+                        rect = win.getBoundingClientRect();
+                        if(rect.left < margin) left = margin;
+                        if(rect.top < margin) top = margin;
+                        if(rect.right > vw - margin) left = Math.max(margin, vw - rect.width - margin);
+                        if(rect.bottom > vh - margin) top = Math.max(margin, vh - rect.height - margin);
+
+                        win.style.right = 'auto';
+                        win.style.left = Math.round(left) + 'px';
+                        win.style.top = Math.round(top) + 'px';
+                    }catch(e){}
+                };
+                this.clampAudioWindow = clamp;
+
+                win.style.minWidth = '300px';
+                win.style.minHeight = '44px';
+                win.style.maxWidth = 'calc(100vw - 12px)';
+                win.style.maxHeight = 'calc(100vh - 12px)';
+                win.style.overflow = 'hidden';
+                header.style.touchAction = 'none';
+                header.style.cursor = 'move';
+                header.title = 'Kéo để di chuyển cửa sổ Audio';
+
+                if(!win.dataset.audioDragReady){
+                    win.dataset.audioDragReady = '1';
+                    let dragging = false;
+                    let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+                    let activePointer = null;
+
+                    const startDrag = (ev) => {
+                        if(ev.target && ev.target.closest && ev.target.closest('button,select,input,textarea,a')) return;
+                        dragging = true;
+                        const p = ev.touches ? ev.touches[0] : ev;
+                        activePointer = ev.pointerId || null;
+                        startX = p.clientX; startY = p.clientY;
+                        const rect = win.getBoundingClientRect();
+                        startLeft = rect.left; startTop = rect.top;
+                        win.style.right = 'auto';
+                        win.style.left = startLeft + 'px';
+                        win.style.top = startTop + 'px';
+                        try { if(ev.pointerId && header.setPointerCapture) header.setPointerCapture(ev.pointerId); } catch(e){}
+                        vibrateSoft(10);
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                    };
+
+                    const moveDrag = (ev) => {
+                        if(!dragging) return;
+                        const p = ev.touches ? ev.touches[0] : ev;
+                        const dx = p.clientX - startX;
+                        const dy = p.clientY - startY;
+                        win.style.left = (startLeft + dx) + 'px';
+                        win.style.top = (startTop + dy) + 'px';
+                        clamp();
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                    };
+
+                    const endDrag = (ev) => {
+                        if(!dragging) return;
+                        dragging = false;
+                        try { if(activePointer && header.releasePointerCapture) header.releasePointerCapture(activePointer); } catch(e){}
+                        activePointer = null;
+                        vibrateSoft(8);
+                    };
+
+                    header.addEventListener('pointerdown', startDrag, {passive:false});
+                    document.addEventListener('pointermove', moveDrag, {passive:false});
+                    document.addEventListener('pointerup', endDrag);
+                    document.addEventListener('pointercancel', endDrag);
+
+                    header.addEventListener('touchstart', startDrag, {passive:false});
+                    document.addEventListener('touchmove', moveDrag, {passive:false});
+                    document.addEventListener('touchend', endDrag);
+                }
+
+                let grip = document.getElementById('xsAudioResizeGrip');
+                if(!grip){
+                    grip = document.createElement('div');
+                    grip.id = 'xsAudioResizeGrip';
+                    grip.title = 'Kéo để co giãn cửa sổ Audio';
+                    grip.setAttribute('aria-label', 'Kéo để co giãn cửa sổ Audio');
+                    grip.style.cssText = [
+                        'position:absolute',
+                        'right:0',
+                        'bottom:0',
+                        'width:34px',
+                        'height:34px',
+                        'z-index:50',
+                        'cursor:nwse-resize',
+                        'touch-action:none',
+                        'background:linear-gradient(135deg, transparent 45%, rgba(255,255,255,.35) 45%, rgba(255,255,255,.35) 55%, transparent 55%), linear-gradient(135deg, transparent 62%, rgba(238,77,45,.95) 62%)',
+                        'border-bottom-right-radius:12px'
+                    ].join(';');
+                    win.appendChild(grip);
+                }
+
+                if(!grip.dataset.resizeReady){
+                    grip.dataset.resizeReady = '1';
+                    let resizing = false;
+                    let sx = 0, sy = 0, sw = 0, sh = 0;
+
+                    const startResize = (ev) => {
+                        resizing = true;
+                        const p = ev.touches ? ev.touches[0] : ev;
+                        sx = p.clientX; sy = p.clientY;
+                        const rect = win.getBoundingClientRect();
+                        sw = rect.width; sh = rect.height;
+                        vibrateSoft(12);
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                    };
+
+                    const moveResize = (ev) => {
+                        if(!resizing) return;
+                        const p = ev.touches ? ev.touches[0] : ev;
+                        const dx = p.clientX - sx;
+                        const dy = p.clientY - sy;
+                        const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+                        const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+                        const minW = 300, minH = 160;
+                        const maxW = Math.max(minW, vw - 12);
+                        const maxH = Math.max(minH, vh - 12);
+                        win.style.width = Math.max(minW, Math.min(sw + dx, maxW)) + 'px';
+                        win.style.height = Math.max(minH, Math.min(sh + dy, maxH)) + 'px';
+                        win.style.right = 'auto';
+                        clamp();
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                    };
+
+                    const endResize = () => {
+                        if(resizing) vibrateSoft(8);
+                        resizing = false;
+                    };
+
+                    grip.addEventListener('pointerdown', startResize, {passive:false});
+                    document.addEventListener('pointermove', moveResize, {passive:false});
+                    document.addEventListener('pointerup', endResize);
+                    document.addEventListener('pointercancel', endResize);
+
+                    grip.addEventListener('touchstart', startResize, {passive:false});
+                    document.addEventListener('touchmove', moveResize, {passive:false});
+                    document.addEventListener('touchend', endResize);
+                }
+
+                window.addEventListener('resize', clamp);
+                clamp();
+            },
             toggleCompact(){
                 this.vibrate(); this.compact = !this.compact;
                 const body=document.getElementById('xsAudioBody');
@@ -1341,6 +1849,7 @@
             if (widget.classList.contains('hidden')) {
                 widget.classList.remove('hidden');
                 widget.classList.add('flex');
+                try { XSAudioPlayer.ensureWindowMobility(); } catch(e) { console.warn('Audio mobility init error', e); }
                 if (!XSAudioPlayer.playlist.length) XSAudioPlayer.fetchSongs(false);
             } else {
                 widget.classList.remove('flex');
@@ -1351,6 +1860,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 XSAudioPlayer.init();
+                try { XSAudioPlayer.ensureWindowMobility(); } catch(e) { console.warn('Audio mobility init error', e); }
                 DragManager.init('xsAudioWindowHeader', 'xsAudioWindow', 'xsAudioDragOverlay');
             } catch(e) { console.error('XSAudio init error', e); }
         });
