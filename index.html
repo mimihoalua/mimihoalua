@@ -464,12 +464,12 @@
         ];
 
 
-        /* --- PHA 5: PWA INSTALL FAB DRAGGABLE - PC + MOBILE --- */
+        /* --- PHA 5D: PWA FAB DRAG SAFE - GIỮ CLICK GỐC --- */
         const PWAInstallFabDrag = {
             init(){
                 const fab = document.getElementById('btnInstall');
-                if(!fab || fab.dataset.dragReady === '1') return;
-                fab.dataset.dragReady = '1';
+                if(!fab || fab.dataset.dragReady === '5d') return;
+                fab.dataset.dragReady = '5d';
 
                 const vibrate = (ms=10) => { try { if(navigator.vibrate) navigator.vibrate(ms); } catch(e){} };
                 const clamp = () => {
@@ -489,54 +489,78 @@
                     fab.style.bottom = 'auto';
                 };
 
-                let dragging = false;
-                let sx = 0, sy = 0, sl = 0, st = 0;
+                let down = false;
                 let moved = false;
+                let sx = 0, sy = 0, sl = 0, st = 0;
+                const threshold = 10;
 
-                const start = (ev) => {
+                const begin = (ev) => {
+                    if(ev.button !== undefined && ev.button !== 0) return;
                     const p = ev.touches ? ev.touches[0] : ev;
                     const rect = fab.getBoundingClientRect();
-                    dragging = true; moved = false;
-                    sx = p.clientX; sy = p.clientY;
-                    sl = rect.left; st = rect.top;
+                    down = true;
+                    moved = false;
+                    sx = p.clientX;
+                    sy = p.clientY;
+                    sl = rect.left;
+                    st = rect.top;
                     fab.style.left = sl + 'px';
                     fab.style.top = st + 'px';
                     fab.style.right = 'auto';
                     fab.style.bottom = 'auto';
-                    fab.classList.add('mimi-dragging');
-                    vibrate(8);
-                    try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
+                    // Tuyệt đối không preventDefault/stopPropagation ở begin để click gốc còn nguyên.
                 };
 
                 const move = (ev) => {
-                    if(!dragging) return;
+                    if(!down) return;
                     const p = ev.touches ? ev.touches[0] : ev;
                     const dx = p.clientX - sx;
                     const dy = p.clientY - sy;
-                    if(Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+
+                    if(!moved && Math.hypot(dx, dy) > threshold) {
+                        moved = true;
+                        fab.classList.add('mimi-dragging');
+                        vibrate(8);
+                    }
+
+                    if(!moved) return;
+
                     fab.style.left = (sl + dx) + 'px';
                     fab.style.top = (st + dy) + 'px';
                     clamp();
+
+                    // Chỉ khi đã kéo thật mới chặn scroll/click.
                     try { ev.preventDefault(); ev.stopPropagation(); } catch(e){}
                 };
 
-                const end = () => {
-                    if(!dragging) return;
-                    dragging = false;
+                const end = (ev) => {
+                    if(!down) return;
+                    down = false;
                     fab.classList.remove('mimi-dragging');
-                    fab.dataset.dragMoved = moved ? '1' : '0';
-                    if(moved) vibrate(6);
-                    setTimeout(() => { fab.dataset.dragMoved = '0'; }, 260);
+
+                    if(moved) {
+                        fab.dataset.dragMoved = '1';
+                        vibrate(6);
+                        setTimeout(() => { fab.dataset.dragMoved = '0'; }, 320);
+                    } else {
+                        fab.dataset.dragMoved = '0';
+                        // Không tự gọi action ở đây. Để browser phát click thật -> fab.onclick gốc xử lý.
+                    }
                 };
 
-                fab.addEventListener('pointerdown', start, {passive:false});
+                fab.addEventListener('pointerdown', begin, {passive:true});
                 document.addEventListener('pointermove', move, {passive:false});
-                document.addEventListener('pointerup', end);
-                document.addEventListener('pointercancel', end);
+                document.addEventListener('pointerup', end, {passive:true});
+                document.addEventListener('pointercancel', end, {passive:true});
 
-                fab.addEventListener('touchstart', start, {passive:false});
-                document.addEventListener('touchmove', move, {passive:false});
-                document.addEventListener('touchend', end);
+                if(!window.PointerEvent) {
+                    fab.addEventListener('touchstart', begin, {passive:true});
+                    document.addEventListener('touchmove', move, {passive:false});
+                    document.addEventListener('touchend', end, {passive:true});
+                    fab.addEventListener('mousedown', begin);
+                    document.addEventListener('mousemove', move);
+                    document.addEventListener('mouseup', end);
+                }
 
                 window.addEventListener('resize', clamp);
                 setTimeout(clamp, 120);
@@ -798,8 +822,14 @@
                 const fab = document.getElementById('btnInstall');
                 if (!fab) return;
                 fab.style.display = 'flex';
+
+                // Giữ cơ chế click gốc: click thật của browser mới mở prompt/hướng dẫn.
                 fab.onclick = async (ev) => {
-                    if (fab.dataset.dragMoved === '1') { fab.dataset.dragMoved = '0'; return; }
+                    if (fab.dataset.dragMoved === '1') {
+                        fab.dataset.dragMoved = '0';
+                        return;
+                    }
+
                     UI.vibrate();
                     if (this.deferredPrompt && !this.state.isStandalone) {
                         this.deferredPrompt.prompt();
