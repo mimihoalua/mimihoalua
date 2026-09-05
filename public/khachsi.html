@@ -35,6 +35,7 @@
         
         .badge-oos { position: absolute; top: 0; left: 0; background-color: #e5e7eb; color: #dc2626; padding: 4px 8px; font-size: 11px; font-weight: bold; border-bottom-right-radius: 8px; border-top-left-radius: 8px; z-index: 10; }
         .badge-stock { position: absolute; top: 0; left: 0; background-color: var(--color-badge-bg); color: var(--color-badge-txt); padding: 4px 8px; font-size: 11px; font-weight: bold; border-bottom-right-radius: 8px; border-top-left-radius: 8px; z-index: 10; }
+        .badge-new { position: absolute; top: 0; right: 0; background-color: #3b82f6; color: white; padding: 4px 8px; font-size: 10px; font-weight: bold; border-bottom-left-radius: 8px; border-top-right-radius: 8px; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
         .pass-input { letter-spacing: 0.5em; text-align: center; font-size: 1.5rem; font-weight: bold; }
         .pass-input::placeholder { letter-spacing: normal; font-size: 1rem; font-weight: normal; color: #9ca3af; }
@@ -248,8 +249,9 @@
 
     <!-- CONTENT SẢN PHẨM -->
     <main id="mainContent" class="container mx-auto px-2 py-3 hidden">
-        <div class="flex gap-2 overflow-x-auto no-scrollbar mb-3 py-1" id="categoryTabs"></div>
-        <p class="text-[11px] text-gray-500 mb-3 font-medium" id="statsText">Đang tải dữ liệu từ máy chủ...</p>
+        <!-- VẮT DÒNG VÀ CĂN GIỮA -->
+        <div class="flex flex-wrap justify-center gap-2 mb-4 py-1" id="categoryTabs"></div>
+        <p class="text-[11px] text-gray-500 mb-4 font-medium text-center" id="statsText">Đang tải dữ liệu từ máy chủ...</p>
         <div id="productGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2"></div>
     </main>
 
@@ -571,7 +573,7 @@
             location.reload(); 
         }
 
-        // --- RENDER DÀNH CHO KHÁCH SỈ (DYNAMIC CATEGORIES) ---
+        // TẠO TAB VỚI LOGIC CỜ HÀNG MỚI CHUẨN
         function renderCategories() {
             const tabsDiv = document.getElementById('categoryTabs');
             tabsDiv.innerHTML = '';
@@ -580,17 +582,14 @@
             let dynamicCats = new Set();
 
             wholesaleData.forEach(p => {
-                let isNew = false;
-                if ((p.category || '').toLowerCase() === 'hàng mới' || (p.name || '').toLowerCase().includes('mới')) {
+                // Đếm đúng cờ is_new từ Firebase
+                if (p.is_new === true) {
                     catCounts['Hàng mới']++;
-                    isNew = true;
                 }
 
                 let c = (p.category || 'Chưa phân loại').trim();
-                if(c !== 'Hàng mới') {
-                    dynamicCats.add(c);
-                    catCounts[c] = (catCounts[c] || 0) + 1;
-                }
+                dynamicCats.add(c);
+                catCounts[c] = (catCounts[c] || 0) + 1;
             });
 
             let sortedCats = Array.from(dynamicCats).sort((a, b) => catCounts[b] - catCounts[a]);
@@ -605,7 +604,8 @@
                 const icon = cat === 'Hàng mới' ? '<i class="fa-solid fa-bolt text-red-500 mr-1"></i>' : '';
                 const countHtml = `<span class="ml-1 opacity-70 text-[10px]">(${catCounts[cat]})</span>`;
 
-                const baseClass = "shrink-0 px-3 py-1.5 rounded-md text-xs font-medium border shadow-sm select-none transition-colors active:scale-95 flex items-center";
+                // Giữ nguyên thiết kế bo tròn viên thuốc (rounded-full)
+                const baseClass = "shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium border shadow-sm select-none transition-colors active:scale-95 flex items-center cursor-pointer";
                 const activeClass = (currentFilter === baseValue) ? "bg-main text-white border-transparent" : "bg-white text-gray-600 border-gray-200 hover:border-gray-400";
 
                 tabsDiv.innerHTML += `<button id="btnCat-${cleanId}" onclick="filterCat('${baseValue}')" class="${baseClass} ${activeClass}">${icon}${cat} ${countHtml}</button>`;
@@ -633,6 +633,7 @@
             }
         }
 
+        // LỌC SẢN PHẨM CHUẨN
         function filterCat(cat) {
             currentFilter = cat;
             const kw = document.getElementById('searchInput').value.toLowerCase();
@@ -641,7 +642,8 @@
             
             if (cat !== 'all') {
                 if(cat === 'Hàng mới') {
-                    data = data.filter(p => (p.category || '').trim().toLowerCase() === 'hàng mới' || (p.name || '').toLowerCase().includes('mới'));
+                    // Chỉ lọc những sản phẩm có cờ is_new = true
+                    data = data.filter(p => p.is_new === true);
                 } else {
                     data = data.filter(p => {
                         let c = (p.category || '').trim();
@@ -656,13 +658,14 @@
             }
             
             renderGrid(data);
-            renderCategories(); // Cập nhật lại màu nút active
+            renderCategories(); 
         }
 
         document.getElementById('searchInput').addEventListener('input', e => {
             filterCat(currentFilter);
         });
 
+        // RENDER GẮN THÊM TEM HÀNG MỚI
         function renderGrid(data) {
             const grid = document.getElementById('productGrid');
             let htmlStr = '';
@@ -670,6 +673,7 @@
             data.forEach(item => {
                 const isOOS = item.stock <= 0;
                 const badgeHtml = isOOS ? `<span class="badge-oos">Hết hàng – đặt trước</span>` : `<span class="badge-stock">Còn ${item.stock}</span>`;
+                const newBadgeHtml = item.is_new ? `<span class="badge-new"><i class="fa-solid fa-bolt mr-1 text-yellow-300"></i>Hàng mới về</span>` : '';
                 const price = item.wholesale_price || item.price || 0; 
                 let subTextColor = isOOS ? "text-gray-400" : "text-green-700";
                 let subTextStr = isOOS ? `Màu/mẫu khác của hàng bạn đã lấy` : `Đã lấy ${Math.floor(Math.random()*50)+1} - lần cuối ${Math.floor(Math.random()*28)+1}/08/2026`;
@@ -677,7 +681,8 @@
                 htmlStr += `
                     <div class="bg-white border border-gray-200 rounded-lg p-2 shadow-sm relative flex flex-col h-full hover:shadow-md transition">
                         ${badgeHtml}
-                        <div class="cursor-pointer active:opacity-75 transition-opacity" onclick="openProductDetail('${item.sku}')">
+                        ${newBadgeHtml}
+                        <div class="cursor-pointer active:opacity-75 transition-opacity mt-1" onclick="openProductDetail('${item.sku}')">
                             <img loading="lazy" src="${item.image || item.image_url || 'https://via.placeholder.com/150'}" class="w-full aspect-square object-cover rounded-md bg-gray-100 mb-2">
                             <div class="text-[11px] text-gray-800 font-medium leading-tight mb-1 flex-1 line-clamp-2 h-7">${item.name}</div>
                             <div>
@@ -1035,7 +1040,6 @@
             document.getElementById('successQrModal').classList.remove('flex');
         }
 
-        // --- ĐƠN ĐANG CHỜ ---
         async function checkPendingOrder() {
             if(!loggedInClient || loggedInClient === "Khách vãng lai") return;
             
