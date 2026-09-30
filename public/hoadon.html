@@ -1,1 +1,1070 @@
-a
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hóa đơn sỉ - MiMi Shop Hoa Lụa</title>
+<style>
+  :root {
+    --bg: #f6f1e8; --surface: #fffdf8; --surface-2: #f3ebdf; --ink: #1c1915;
+    --muted: #6f655c; --primary: #7c3527; --primary-fg: #fff8f3; --line: #e4d5c3;
+    --gold: #a68456; --ok: #1f7a4d; --ok-bg: #e7f6ee; --warn: #9a5416; --warn-bg: #fff4e8;
+    --danger: #9b2c2c; --danger-bg: #fdecec;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 15px/1.45 "Be Vietnam Pro", "Segoe UI", sans-serif; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--primary); outline-offset: 2px;
+  }
+  .app { max-width: 1100px; margin: 0 auto; padding: 16px 16px 88px; }
+  header.top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
+  h1 { font-size: 24px; line-height: 1.2; margin: 0; }
+  .sub { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+  .links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .links a { color: var(--primary); font-size: 13px; font-weight: 650; text-decoration: none; }
+  .status { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
+  .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--muted); }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.bad { background: var(--danger-bg); color: var(--danger); }
+  .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; }
+  .tabs button { height: 44px; border: 0; border-radius: 12px; background: transparent; padding: 0 14px; font-weight: 650; color: var(--muted); white-space: nowrap; }
+  .tabs button.on { background: var(--primary); color: var(--primary-fg); }
+  .grid { display: grid; gap: 12px; }
+  .grid > *, .row > div { min-width: 0; }
+  .sel { max-width: 100%; }
+  @media (min-width: 900px) {
+    .sell { grid-template-columns: minmax(0,1fr) 340px; align-items: start; }
+    .sell > aside.card { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow: auto; }
+  }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+  .pad { padding: 12px; }
+  .field, .area, .sel {
+    width: 100%; height: 44px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--surface); padding: 0 12px;
+  }
+  .area { height: auto; min-height: 52px; padding: 8px 12px; }
+  label.lbl { display: block; font-size: 13px; color: var(--muted); font-weight: 650; margin: 8px 0 4px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row > .field, .row > .sel { flex: 1 1 140px; width: auto; min-width: 0; }
+  .name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn { height: 44px; border: 0; border-radius: 12px; padding: 0 14px; font-weight: 700; background: var(--primary); color: var(--primary-fg); }
+  .btn.soft { background: var(--surface-2); color: var(--ink); }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn.bad { background: var(--danger); color: var(--primary-fg); }
+  .list { max-height: 68vh; overflow: auto; }
+  .item, .order { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 10px 12px; }
+  .item img, .ph { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; background: var(--surface-2); flex: none; }
+  .grow { min-width: 0; flex: 1; }
+  .name { font-weight: 700; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .right { text-align: right; }
+  .cart-line { background: var(--surface-2); border-radius: 12px; padding: 10px; margin-top: 8px; }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 12px; }
+  @media (min-width: 800px) { .stats { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--primary); border-radius: 14px; padding: 12px; }
+  .stat b { display: block; font-size: 18px; margin-top: 2px; }
+  .hidden { display: none !important; }
+  .overlay { position: fixed; inset: 0; background: rgba(28,25,21,.45); z-index: 30; overflow: auto; padding: 12px; }
+  .sheet { max-width: 860px; margin: 0 auto; background: var(--surface); border-radius: 16px; padding: 14px; }
+  .toast { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--primary-fg); border-radius: 12px; padding: 10px 14px; z-index: 50; max-width: 90vw; }
+  .invoice-paper { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 8px auto; }
+  .invoice-paper[data-paper="a4"] { width: min(190mm, 100%); }
+  .invoice-paper[data-paper="a6"] { width: min(105mm, 100%); font-size: 11px; padding: 8px; }
+  .invoice-paper[data-paper="a7"] { width: min(74mm, 100%); font-size: 9px; padding: 6px; }
+  .invoice-paper h2 { text-align: center; color: var(--primary); letter-spacing: .04em; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); padding: 8px 0; margin: 10px 0; }
+  .invoice-paper table { width: 100%; border-collapse: collapse; }
+  .invoice-paper th, .invoice-paper td { border: 1px solid var(--line); padding: 4px 6px; vertical-align: top; }
+  .invoice-paper th { background: var(--surface-2); }
+  .num { text-align: right; }
+  .mark { width: 58px; height: 58px; border-radius: 999px; border: 1px solid var(--primary); color: var(--primary); display: grid; place-items: center; text-align: center; font-size: 12px; flex: none; }
+  .headrow { display: flex; gap: 10px; align-items: center; }
+  .headrow h3 { margin: 0; color: var(--primary); }
+  .headrow p { margin: 0; color: var(--muted); }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+  .pay p { display: flex; justify-content: space-between; margin: 2px 0; }
+  .qr { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .qr img { width: 92px; height: 92px; object-fit: contain; background: white; }
+  .dock { display: none; }
+  .zalo-shot { width: min(100%, 420px); height: auto; border-radius: 12px; background: white; box-shadow: 0 8px 28px rgba(28,25,21,.12); }
+  @media (max-width: 899px) {
+    .list { max-height: calc(100vh - 250px); }
+    .dock.show { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 8px; align-items: center; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+    .sell > aside.card { display: none; }
+    .sell > aside.card.open { display: block; position: fixed; z-index: 25; left: 8px; right: 8px; top: 64px; bottom: 76px; overflow: auto; }
+  }
+  @media print {
+    body * { visibility: hidden; }
+    #printSheet, #printSheet * { visibility: visible; }
+    #printSheet { position: absolute; inset: 0; background: white; }
+    .no-print { display: none !important; }
+    .invoice-paper { border: 0; width: auto; }
+    tr, .qr { break-inside: avoid; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="sub">Số 3, ngõ Văn Chi 1, thôn Phù Mã, xã Sóc Sơn · 034.821.1187</div>
+      <h1>Hóa đơn sỉ</h1>
+    </div>
+    <div class="links">
+      <a href="./admin.html">Quản lý</a>
+      <a href="./khachsi.html">Bảng hàng sỉ</a>
+      <a href="./admin_products_giasi.html">Kho sỉ</a>
+      <a href="./">Cửa hàng</a>
+    </div>
+  </header>
+  <div class="status">
+    <span class="pill" id="cloudPill">Đang nối Firebase…</span>
+    <span class="pill" id="countPill"></span>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+</div>
+<div id="toast" class="toast hidden"></div>
+<div id="modal" class="overlay hidden"></div>
+<div id="printSheet" class="overlay hidden"></div>
+<div id="dock" class="dock"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDT0IEKhjAJZ_ZiMVwVCvO-fuj0ByReoE8",
+  authDomain: "esomar-vnn.firebaseapp.com",
+  projectId: "esomar-vnn",
+  storageBucket: "esomar-vnn.firebasestorage.app",
+  messagingSenderId: "1023271897973",
+  appId: "1:1023271897973:web:c7207b0e8321fc271fe13c",
+  measurementId: "G-L078YGNJ3J"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const SHOP = {
+  name: "MiMi Shop Hoa Lụa",
+  address: "Số 3, ngõ Văn Chi 1, thôn Phù Mã, xã Sóc Sơn, TP Hà Nội",
+  phone: "034.821.1187",
+  web: "https://mimihoalua.github.io/mimihoalua/",
+  cashier: "MiMi Shop",
+  bank: "TECHCOMBANK",
+  account: "19037189711011",
+  owner: "NGUYEN THI THAM",
+  note: "MIMI KHACH"
+};
+
+let products = [];
+let orders = [];
+let codes = [];
+let tab = "sell";
+let cart = {};
+let qSell = "";
+let qOrder = "";
+let qProd = "";
+let filter = "all";
+let cloud = "Đang nối Firebase…";
+let cloudOk = false;
+let sellReady = false;
+let draft = { clientName: "", pay: "Tiền mặt", ship: "0", vat: false, note: "" };
+let saving = false;
+
+const $ = (id) => document.getElementById(id);
+const money = (n) => Math.round(Number(n) || 0).toLocaleString("vi-VN");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fold = (s) => String(s || "").normalize("NFD").replace(/\p{M}/gu, "").replace(/đ/g, "d").toLowerCase();
+const hit = (blob, q) => { const f = fold(q).trim(); if (!f) return true; const b = fold(blob); return f.split(/\s+/).every((w) => b.includes(w)); };
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.add("hidden"), 2800);
+}
+function vnParts(d) {
+  const bag = {};
+  new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d).forEach((part) => { bag[part.type] = part.value; });
+  if (bag.hour === "24") bag.hour = "00";
+  return bag;
+}
+function when(v) {
+  if (!v) return "";
+  const d = v.toDate ? v.toDate() : v.seconds ? new Date(v.seconds * 1000) : new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  const b = vnParts(d);
+  return `${b.day}/${b.month}/${b.year} ${b.hour}:${b.minute}`;
+}
+function todayKey() {
+  const b = vnParts(new Date());
+  return `${b.year}${b.month}${b.day}`;
+}
+function nextCode() {
+  const prefix = "HD" + todayKey();
+  let max = 0;
+  orders.forEach((o) => {
+    const id = String(o.orderId || "");
+    if (!id.startsWith(prefix)) return;
+    const n = parseInt(id.slice(prefix.length), 10);
+    if (n > max) max = n;
+  });
+  return prefix + String(max + 1).padStart(4, "0");
+}
+function priceOf(p) { return Number(p.wholesale_price || p.price || 0); }
+function imgOf(p) { return p.image || p.image_url || ""; }
+
+function watch() {
+  db.collection("wholesale_products").onSnapshot((snap) => {
+    products = snap.docs.map((d) => ({ ...d.data(), docId: d.id })).sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi"));
+    cloudOk = true;
+    cloud = "Firebase esomar-vnn";
+    paint();
+  }, (err) => { cloudOk = false; cloud = "Không đọc được hàng: " + err.message; paint(); });
+
+  const applyOrders = (snap) => {
+    orders = snap.docs.map((d) => ({ ...d.data(), docId: d.id, orderId: d.data().orderId || d.id }));
+    orders.sort((a, b) => (b.localTimestamp || 0) - (a.localTimestamp || 0) || String(b.orderId).localeCompare(String(a.orderId)));
+    paint();
+  };
+  db.collection("wholesale_orders").orderBy("createdAt", "desc").limit(400).onSnapshot(applyOrders, () => {
+    db.collection("wholesale_orders").limit(400).onSnapshot(applyOrders, (err) => toast(err.message));
+  });
+  db.collection("access_codes").onSnapshot((snap) => {
+    codes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    codes.sort((a, b) => String(a.clientName || "").localeCompare(String(b.clientName || ""), "vi"));
+    if (tab === "codes" || tab === "sell") paint();
+  }, (err) => toast("Mã khách: " + err.message));
+}
+
+function paint() {
+  $("cloudPill").textContent = cloud;
+  $("cloudPill").className = "pill " + (cloudOk ? "ok" : "warn");
+  const open = orders.filter((o) => o.status === "new").length;
+  $("countPill").textContent = `${products.length} hàng · ${orders.length} đơn · ${open} chờ chốt`;
+  const tabs = [["sell", "Bán"], ["orders", "Hóa đơn"], ["goods", "Hàng"], ["codes", "Mã khách"], ["txt", "Nhập TXT"]];
+  $("tabs").innerHTML = tabs.map(([id, label]) => `<button type="button" class="${tab === id ? "on" : ""}" data-tab="${id}">${label}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach((b) => b.onclick = () => { tab = b.dataset.tab; sellReady = false; paint(); });
+  syncDock();
+  if (tab === "sell" && sellReady && $("productList")) {
+    fillProducts();
+    fillCodes();
+    renderCart();
+    if (window.__updateTotals) window.__updateTotals();
+    syncDock();
+    return;
+  }
+  if (tab === "sell") renderSell();
+  else if (tab === "orders" && $("modal").classList.contains("hidden")) renderOrders();
+  else if (tab === "orders") { /* giữ phiếu đang mở */ }
+  else if (tab === "goods" && $("modal").classList.contains("hidden")) renderGoods();
+  else if (tab === "codes" && $("modal").classList.contains("hidden")) renderCodes();
+  else if (tab === "txt" && !$("txt")) renderTxt();
+}
+
+function renderSell() {
+  const root = $("view");
+  root.innerHTML = `
+    <div class="grid sell">
+      <section class="card">
+        <div class="pad"><input class="field" id="qSell" placeholder="Tìm tên hoặc mã hàng" value="${esc(qSell)}"></div>
+        <div class="list" id="productList"></div>
+      </section>
+      <aside class="card pad">
+        <strong>Giỏ hóa đơn</strong>
+        <div id="cartBox"></div>
+        <label class="lbl">Khách</label>
+        <input class="field" id="clientName" list="codeList" placeholder="Tên khách hoặc chọn mã" value="${esc(draft.clientName)}">
+        <datalist id="codeList"></datalist>
+        <div class="row">
+          <div style="flex:1"><label class="lbl">Ship</label><input class="field" id="ship" value="${esc(draft.ship)}"></div>
+          <div style="flex:1"><label class="lbl">Thanh toán</label>
+            <select class="sel" id="pay">
+              <option ${draft.pay === "Tiền mặt" ? "selected" : ""}>Tiền mặt</option>
+              <option ${draft.pay === "Chuyển khoản" ? "selected" : ""}>Chuyển khoản</option>
+              <option ${draft.pay === "qr" ? "selected" : ""}>qr</option>
+            </select>
+          </div>
+        </div>
+        <label class="row" style="margin-top:8px"><input type="checkbox" id="vat" ${draft.vat ? "checked" : ""}> Tính VAT 8%</label>
+        <label class="lbl">Ghi chú</label>
+        <textarea class="area" id="note">${esc(draft.note)}</textarea>
+        <div class="row" style="justify-content:space-between;margin-top:8px"><span>Tiền hàng</span><b id="subLab"></b></div>
+        <div class="row" style="justify-content:space-between"><span>Cần thu</span><b id="totalLab"></b></div>
+        <p class="meta">Lưu đơn chờ không trừ tồn. Chốt và in sẽ trừ tồn.</p>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="saveNew" type="button">Lưu đơn chờ</button>
+          <button class="btn soft" id="saveDone" type="button">Chốt và in</button>
+          <button class="btn ghost" id="previewBill" type="button">Xem phiếu</button>
+          <button class="btn" id="zaloDraft" type="button">Ảnh Zalo</button>
+        </div>
+      </aside>
+    </div>`;
+  $("qSell").oninput = (e) => { qSell = e.target.value; fillProducts(); };
+  $("clientName").oninput = (e) => { draft.clientName = e.target.value; };
+  $("ship").oninput = () => { draft.ship = $("ship").value; updateTotals(); };
+  $("pay").onchange = () => { draft.pay = $("pay").value; };
+  $("vat").onchange = () => { draft.vat = $("vat").checked; updateTotals(); };
+  $("note").oninput = () => { draft.note = $("note").value; };
+  $("saveNew").onclick = () => saveOrder("new", false);
+  $("saveDone").onclick = () => saveOrder("completed", true);
+  $("previewBill").onclick = () => {
+    if (!Object.keys(cart).length) return toast("Chưa có hàng.");
+    openPrint(draftOrder(), "a4");
+  };
+  $("zaloDraft").onclick = () => {
+    if (!Object.keys(cart).length) return toast("Chưa có hàng.");
+    showZalo(draftOrder());
+  };
+  sellReady = true;
+  fillCodes();
+  fillProducts();
+  renderCart();
+  updateTotals();
+  function updateTotals() {
+    const subNow = Object.values(cart).reduce((s, l) => s + l.qty * l.price, 0);
+    const ship = Math.max(0, parseInt(String($("ship").value).replace(/\D/g, ""), 10) || 0);
+    const vat = $("vat").checked ? Math.round(subNow * 0.08) : 0;
+    $("subLab").textContent = money(subNow) + " đ";
+    $("totalLab").textContent = money(subNow + ship + vat) + " đ";
+    syncDock();
+  }
+  window.__updateTotals = updateTotals;
+}
+
+function fillCodes() {
+  const list = $("codeList");
+  if (!list) return;
+  list.innerHTML = codes.map((c) => `<option value="${esc(c.clientName || c.id)}">${esc(c.id)} · ${esc(c.clientName || "")}</option>`).join("");
+}
+
+function fillProducts() {
+  const box = $("productList");
+  if (!box) return;
+  const rows = products.filter((p) => p.isActive !== false && hit(`${p.name} ${p.sku} ${p.category}`, qSell)).slice(0, 80);
+  if (!rows.length) {
+    const msg = !cloudOk ? "Đang tải hàng từ Firebase…" : (qSell ? "Không thấy hàng." : "Kho chưa có hàng.");
+    box.innerHTML = `<div class="pad meta">${msg}</div>`;
+    return;
+  }
+  box.innerHTML = rows.map((p) => `
+    <button type="button" class="item" data-add="${esc(p.docId)}">
+      ${imgOf(p) ? `<img alt="" src="${esc(imgOf(p))}">` : `<span class="ph"></span>`}
+      <span class="grow"><span class="name">${esc(p.name)}</span><span class="meta">${esc(p.sku || "")} · tồn ${esc(p.stock ?? 0)}</span></span>
+      <span class="right"><span class="meta">Gợi ý</span><b>${money(priceOf(p))}</b></span>
+    </button>`).join("");
+  box.querySelectorAll("[data-add]").forEach((btn) => btn.onclick = () => addCart(btn.dataset.add));
+}
+function addCart(docId) {
+  const p = products.find((x) => x.docId === docId);
+  if (!p) return;
+  if (cart[p.docId]) {
+    cart[p.docId].qty += 1;
+    renderCart();
+    if (window.__updateTotals) window.__updateTotals();
+    toast("Đã tăng số lượng. Giá giữ như đã nhập.");
+    return;
+  }
+  openPriceSheet(p);
+}
+function openPriceSheet(p) {
+  const suggest = priceOf(p);
+  $("modal").classList.remove("hidden");
+  $("modal").innerHTML = `<div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(p.name)}</h2><button class="btn ghost" id="xPrice" type="button">Đóng</button></div>
+    <p class="meta">${esc(p.sku || "")} · tồn ${esc(p.stock ?? 0)}</p>
+    <p>Gợi ý giá shop: <b>${money(suggest)} đ</b></p>
+    <label class="lbl">Giá bán (tự nhập)</label>
+    <input class="field" id="askPrice" inputmode="numeric" placeholder="Nhập giá bán" autocomplete="off">
+    <button class="btn soft" id="useSuggest" type="button" style="margin-top:8px">Điền gợi ý ${money(suggest)}</button>
+    <label class="lbl">Số lượng</label>
+    <input class="field" id="askQty" inputmode="numeric" value="1">
+    <button class="btn" id="confirmAdd" type="button" style="margin-top:12px;width:100%">Thêm vào hóa đơn</button>
+  </div>`;
+  $("xPrice").onclick = () => $("modal").classList.add("hidden");
+  $("askPrice").focus();
+  $("useSuggest").onclick = () => { $("askPrice").value = money(suggest); $("askPrice").focus(); };
+  $("confirmAdd").onclick = () => {
+    const price = parseInt($("askPrice").value.replace(/\D/g, ""), 10) || 0;
+    if (!price) return toast("Nhập giá bán. Gợi ý shop chỉ để tham khảo.");
+    const qty = Math.max(1, parseInt($("askQty").value, 10) || 1);
+    cart[p.docId] = { key: p.docId, sku: p.sku || "", name: p.name, price, suggest, qty, img: imgOf(p), docId: p.docId };
+    $("modal").classList.add("hidden");
+    renderCart();
+    if (window.__updateTotals) window.__updateTotals();
+    const aside = document.querySelector(".sell > aside.card");
+    if (aside && window.matchMedia("(max-width: 899px)").matches) aside.classList.add("open");
+    toast("Đã thêm " + p.name);
+  };
+}
+function renderCart() {
+  const box = $("cartBox");
+  if (!box) return;
+  if (document.activeElement && document.activeElement.dataset && document.activeElement.dataset.price) return;
+  const lines = Object.values(cart);
+  box.innerHTML = lines.length ? lines.map((l) => `
+    <div class="cart-line">
+      <div class="row" style="justify-content:space-between"><b>${esc(l.name)}</b><button class="btn ghost" type="button" data-del="${esc(l.key)}">Xóa</button></div>
+      <div class="meta">Gợi ý shop: ${money(l.suggest || 0)} đ</div>
+      <div class="row" style="margin-top:6px">
+        <button class="btn soft" type="button" data-dec="${esc(l.key)}">−</button>
+        <b>${l.qty}</b>
+        <button class="btn soft" type="button" data-inc="${esc(l.key)}">+</button>
+        <input class="field" inputmode="numeric" style="width:140px;margin-left:auto" data-price="${esc(l.key)}" value="${money(l.price)}" aria-label="Giá bán">
+      </div>
+      <div class="right meta">Thành tiền ${money(l.qty * l.price)} đ</div>
+    </div>`).join("") : `<p class="meta">Chưa chọn hàng. Giá shop chỉ là gợi ý, giá bán tự nhập.</p>`;
+  box.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => { delete cart[b.dataset.del]; renderCart(); window.__updateTotals?.(); });
+  box.querySelectorAll("[data-dec]").forEach((b) => b.onclick = () => { const l = cart[b.dataset.dec]; if (!l) return; l.qty -= 1; if (l.qty <= 0) delete cart[b.dataset.dec]; renderCart(); window.__updateTotals?.(); });
+  box.querySelectorAll("[data-inc]").forEach((b) => b.onclick = () => { cart[b.dataset.inc].qty += 1; renderCart(); window.__updateTotals?.(); });
+  box.querySelectorAll("[data-price]").forEach((inp) => inp.onchange = () => {
+    cart[inp.dataset.price].price = parseInt(inp.value.replace(/\D/g, ""), 10) || 0;
+    renderCart(); window.__updateTotals?.();
+  });
+}
+function syncDock() {
+  const dock = $("dock");
+  if (!dock) return;
+  const lines = Object.values(cart);
+  const n = lines.reduce((s, l) => s + l.qty, 0);
+  const sub = lines.reduce((s, l) => s + l.qty * l.price, 0);
+  dock.classList.toggle("show", tab === "sell");
+  dock.innerHTML = `<div class="grow"><b>${n} món</b><div class="meta">${money(sub)} đ</div></div><button class="btn" id="openCart" type="button">Mở giỏ</button>`;
+  const btn = $("openCart");
+  if (btn) btn.onclick = () => {
+    const aside = document.querySelector(".sell > aside.card");
+    if (aside) aside.classList.toggle("open");
+  };
+}
+
+function draftOrder() {
+  const lines = Object.values(cart);
+  const subTotal = lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const shippingFee = Math.max(0, parseInt(String($("ship").value).replace(/\D/g, ""), 10) || 0);
+  const vatFee = $("vat").checked ? Math.round(subTotal * 0.08) : 0;
+  return {
+    orderId: nextCode(),
+    clientName: ($("clientName").value || "").trim() || "Khách lẻ",
+    items: lines.map((l) => ({ sku: l.sku, name: l.name, quantity: l.qty, price: l.price, img: l.img || "", docId: l.docId || "" })),
+    subTotal, shippingFee, vatFee, finalTotal: subTotal + shippingFee + vatFee,
+    paymentMethod: $("pay").value,
+    note: $("note").value.trim(),
+    status: "preview",
+    createdAt: { seconds: Math.floor(Date.now() / 1000) }
+  };
+}
+async function saveOrder(status, printAfter) {
+  const lines = Object.values(cart);
+  if (!lines.length) return toast("Chưa có hàng.");
+  if (saving) return;
+  saving = true;
+  const clientName = ($("clientName").value || "").trim() || "Khách lẻ";
+  const subTotal = lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const shippingFee = Math.max(0, parseInt(String($("ship").value).replace(/\D/g, ""), 10) || 0);
+  const vatFee = $("vat").checked ? Math.round(subTotal * 0.08) : 0;
+  const finalTotal = subTotal + shippingFee + vatFee;
+  const orderId = nextCode();
+  const order = {
+    orderId,
+    clientName,
+    items: lines.map((l) => ({ sku: l.sku, name: l.name, quantity: l.qty, price: l.price, img: l.img || "", docId: l.docId || "" })),
+    subTotal, shippingFee, vatFee, finalTotal,
+    paymentMethod: $("pay").value,
+    note: $("note").value.trim(),
+    status,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    localTimestamp: Date.now(),
+    source: "hoadon.html"
+  };
+  try {
+    await db.collection("wholesale_orders").doc(orderId).set(order);
+    if (status === "completed") await deductStock(lines);
+    cart = {};
+    draft.note = "";
+    renderCart();
+    if (window.__updateTotals) window.__updateTotals();
+    const msg = status === "new" ? "Đã lưu đơn chờ " + orderId : "Đã chốt " + orderId;
+    if (printAfter) openPrint({ ...order, createdAt: { seconds: Math.floor(Date.now() / 1000) } }, "a4");
+    toast(msg);
+  } catch (err) { toast(err.message); }
+  finally { saving = false; }
+}
+async function adjustStock(lines, sign) {
+  const byDoc = {};
+  for (const line of lines) {
+    const qty = Number(line.qty ?? line.quantity) || 0;
+    if (!qty) continue;
+    const p = products.find((x) => (line.docId && x.docId === line.docId) || (line.sku && x.sku === line.sku));
+    if (!p) continue;
+    if (!byDoc[p.docId]) byDoc[p.docId] = { docId: p.docId, stock: parseInt(p.stock, 10) || 0, qty: 0 };
+    byDoc[p.docId].qty += qty;
+  }
+  for (const row of Object.values(byDoc)) {
+    const stock = Math.max(0, row.stock + sign * row.qty);
+    await db.collection("wholesale_products").doc(row.docId).set({ stock, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    const live = products.find((x) => x.docId === row.docId);
+    if (live) live.stock = stock;
+  }
+}
+function deductStock(lines) { return adjustStock(lines, -1); }
+function restoreStock(lines) { return adjustStock(lines, 1); }
+
+function renderOrders() {
+  const rows = orders.filter((o) => {
+    if (filter === "new" && o.status !== "new") return false;
+    if (filter === "done" && o.status !== "completed") return false;
+    const blob = fold(`${o.orderId} ${o.clientName} ${(o.items || []).map((i) => i.name).join(" ")} ${o.note || ""}`);
+    return hit(blob, qOrder);
+  });
+  const month = new Date().toISOString().slice(0, 7);
+  const done = orders.filter((o) => o.status === "completed");
+  const monthSum = done.filter((o) => when(o.createdAt).includes("/" + month.slice(5) + "/" + month.slice(0, 4)) || String(o.orderId || "").includes(month.replace("-", ""))).reduce((s, o) => s + Number(o.finalTotal || o.subTotal || 0), 0);
+  const allSum = done.reduce((s, o) => s + Number(o.finalTotal || o.subTotal || 0), 0);
+  $("view").innerHTML = `
+    <div class="stats">
+      <div class="stat"><span class="meta">Đơn chờ</span><b>${orders.filter((o) => o.status === "new").length}</b></div>
+      <div class="stat"><span class="meta">Đã chốt</span><b>${done.length}</b></div>
+      <div class="stat"><span class="meta">Tiền đã chốt</span><b>${money(allSum)}</b></div>
+      <div class="stat"><span class="meta">Trong tháng</span><b>${money(monthSum)}</b></div>
+    </div>
+    <div class="card">
+      <div class="pad row">
+        <input class="field" id="qOrder" placeholder="Tìm số đơn, khách, hàng" value="${esc(qOrder)}">
+        <button class="btn ${filter === "all" ? "" : "soft"}" data-f="all" type="button">Tất cả</button>
+        <button class="btn ${filter === "new" ? "" : "soft"}" data-f="new" type="button">Chờ</button>
+        <button class="btn ${filter === "done" ? "" : "soft"}" data-f="done" type="button">Đã chốt</button>
+      </div>
+      <div class="list">${rows.map(orderRow).join("") || `<div class="pad meta">Chưa có hóa đơn.</div>`}</div>
+    </div>`;
+  $("qOrder").oninput = (e) => { qOrder = e.target.value; renderOrders(); };
+  $("view").querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { filter = b.dataset.f; renderOrders(); });
+  $("view").querySelectorAll("[data-open]").forEach((b) => b.onclick = () => openOrder(b.dataset.open));
+}
+function orderRow(o) {
+  const st = o.status === "new" ? `<span class="pill warn">Chờ chốt</span>` : o.status === "completed" ? `<span class="pill ok">Đã chốt</span>` : `<span class="pill">${esc(o.status || "")}</span>`;
+  return `<button type="button" class="order" data-open="${esc(o.orderId)}">
+    <span class="grow"><span class="name">${esc(o.orderId)}</span><span class="meta">${esc(o.clientName || "")} · ${esc(when(o.createdAt))}</span></span>
+    <span class="right"><b>${money(o.finalTotal || o.subTotal || 0)}</b><br>${st}</span>
+  </button>`;
+}
+function openOrder(id) {
+  const o = orders.find((x) => x.orderId === id);
+  if (!o) return;
+  const items = o.items || [];
+  $("modal").classList.remove("hidden");
+  $("modal").innerHTML = `<div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(o.orderId)}</h2><button class="btn ghost" id="closeModal" type="button">Đóng</button></div>
+    <p class="meta">${esc(o.clientName || "")} · ${esc(when(o.createdAt))} · ${esc(o.paymentMethod || "")}</p>
+    <div class="list">${items.map((it) => `<div class="item"><span class="grow"><b>${esc(it.name)}</b><div class="meta">${esc(it.sku || "")}</div></span><span>${it.quantity} × ${money(it.price)}</span></div>`).join("")}</div>
+    <div class="row">
+      <div style="flex:1"><label class="lbl">Ship</label><input class="field" id="eShip" value="${money(o.shippingFee || 0)}"></div>
+      <div style="flex:1"><label class="lbl">VAT</label><input class="field" id="eVat" value="${money(o.vatFee || 0)}"></div>
+    </div>
+    <label class="lbl">Ghi chú</label><textarea class="area" id="eNote">${esc(o.note || "")}</textarea>
+    <p><b>Tổng: <span id="eTotal">${money(o.finalTotal || o.subTotal || 0)}</span> đ</b></p>
+    <div class="row" style="flex-wrap:wrap">
+      <button class="btn soft" data-paper="a4" type="button">In A4</button>
+      <button class="btn soft" data-paper="a6" type="button">In A6</button>
+      <button class="btn soft" data-paper="a7" type="button">In A7</button>
+      <button class="btn" id="zaloOrder" type="button">Ảnh Zalo</button>
+      <button class="btn" id="saveEdit" type="button">Lưu</button>
+      ${o.status === "new" ? `<button class="btn" id="complete" type="button">Chốt đơn</button>` : ""}
+      <button class="btn bad" id="delOrder" type="button">Xóa</button>
+    </div>
+  </div>`;
+  const recalc = () => {
+    const ship = parseInt($("eShip").value.replace(/\D/g, ""), 10) || 0;
+    const vat = parseInt($("eVat").value.replace(/\D/g, ""), 10) || 0;
+    $("eTotal").textContent = money(Number(o.subTotal || 0) + ship + vat);
+  };
+  $("eShip").oninput = recalc; $("eVat").oninput = recalc;
+  $("closeModal").onclick = () => $("modal").classList.add("hidden");
+  $("zaloOrder").onclick = () => showZalo(currentEdit(o));
+  $("modal").querySelectorAll("[data-paper]").forEach((b) => b.onclick = () => openPrint(currentEdit(o), b.dataset.paper));
+  $("saveEdit").onclick = () => patchOrder(o, false);
+  const done = $("complete"); if (done) done.onclick = () => patchOrder(o, true);
+  $("delOrder").onclick = async () => {
+    if (!confirm("Xóa " + o.orderId + "?")) return;
+    try {
+      if (o.status === "completed") await restoreStock((o.items || []).map((it) => ({ sku: it.sku, docId: it.docId, qty: Number(it.quantity) || 0 })));
+      await db.collection("wholesale_orders").doc(o.docId || o.orderId).delete();
+      $("modal").classList.add("hidden");
+      toast("Đã xóa");
+    } catch (err) { toast(err.message); }
+  };
+}
+function currentEdit(o) {
+  const shippingFee = parseInt($("eShip").value.replace(/\D/g, ""), 10) || 0;
+  const vatFee = parseInt($("eVat").value.replace(/\D/g, ""), 10) || 0;
+  return { ...o, shippingFee, vatFee, note: $("eNote").value, finalTotal: Number(o.subTotal || 0) + shippingFee + vatFee };
+}
+async function patchOrder(o, complete) {
+  const next = currentEdit(o);
+  const data = {
+    note: next.note, shippingFee: next.shippingFee, vatFee: next.vatFee, finalTotal: next.finalTotal,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    if (complete) {
+      data.status = "completed";
+      data.processedAt = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    await db.collection("wholesale_orders").doc(o.docId || o.orderId).update(data);
+    if (complete) await deductStock((o.items || []).map((it) => ({ sku: it.sku, docId: it.docId, qty: Number(it.quantity) || 0 })));
+    $("modal").classList.add("hidden");
+    toast(complete ? "Đã chốt đơn, đã trừ tồn" : "Đã lưu");
+  } catch (err) { toast(err.message); }
+}
+
+function openPrint(o, paper) {
+  const items = o.items || [];
+  const qty = items.reduce((s, it) => s + Number(it.quantity || 0), 0);
+  const amount = Number(o.finalTotal || o.subTotal || 0);
+  const qr = `https://img.vietqr.io/image/TCB-${SHOP.account}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(SHOP.note + " " + o.orderId)}&accountName=${encodeURIComponent(SHOP.owner)}`;
+  $("printSheet").classList.remove("hidden");
+  $("printSheet").innerHTML = `
+    <div class="no-print sheet" style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ${paper === "a4" ? "" : "soft"}" data-paper="a4" type="button">A4</button>
+      <button class="btn ${paper === "a6" ? "" : "soft"}" data-paper="a6" type="button">A6</button>
+      <button class="btn ${paper === "a7" ? "" : "soft"}" data-paper="a7" type="button">A7</button>
+      <button class="btn" id="doZalo" type="button">Ảnh Zalo</button>
+      <button class="btn" id="doPrint" type="button">In</button>
+      <button class="btn ghost" id="closePrint" type="button">Đóng</button>
+    </div>
+    <article class="invoice-paper" data-paper="${paper}">
+      <div class="headrow">
+        <div class="mark"><b>MiMi<br>Hoa Lụa</b></div>
+        <div><h3>${esc(SHOP.name)}</h3><p>${esc(SHOP.address)}</p><p>Hotline: ${esc(SHOP.phone)}</p>${paper === "a4" ? `<p>${esc(SHOP.web)}</p>` : ""}</div>
+      </div>
+      <h2>HÓA ĐƠN BÁN HÀNG</h2>
+      <div class="split">
+        <div><b>Số hóa đơn:</b> ${esc(o.orderId)}</div>
+        <div><b>Ngày:</b> ${esc(when(o.createdAt) || when({ seconds: Math.floor(Date.now() / 1000) }))}</div>
+        <div><b>Khách hàng:</b> ${esc(o.clientName || "")}</div>
+        <div><b>Thu ngân:</b> ${esc(SHOP.cashier)}</div>
+      </div>
+      <table>
+        <thead><tr><th>STT</th><th>Tên hàng</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+        <tbody>${items.map((it, i) => `<tr><td>${i + 1}</td><td>${esc(it.name)}</td><td class="num">${esc(it.quantity)}</td><td class="num">${money(it.price)}</td><td class="num">${money(Number(it.quantity) * Number(it.price))}</td></tr>`).join("")}</tbody>
+      </table>
+      <div class="split" style="margin-top:8px">
+        <div><b>Tổng SL:</b> ${qty}${o.note ? `<div><b>Ghi chú:</b> ${esc(o.note)}</div>` : ""}${o.status === "new" ? `<div class="pill warn">Đơn chờ</div>` : ""}</div>
+        <div class="pay">
+          <p><span>Tiền hàng</span><b>${money(o.subTotal || 0)}</b></p>
+          <p><span>Ship</span><b>${money(o.shippingFee || 0)}</b></p>
+          <p><span>VAT</span><b>${money(o.vatFee || 0)}</b></p>
+          <p><span>Tổng thanh toán</span><b>${money(amount)}</b></p>
+          <p><span>${esc(o.paymentMethod || "")}</span></p>
+        </div>
+      </div>
+      ${paper === "a7" ? "" : `<div class="qr"><img alt="QR chuyển khoản" src="${esc(qr)}"><div><b>QR thanh toán</b><div>Ngân hàng: ${SHOP.bank}</div><div>STK: ${SHOP.account}</div><div>Chủ TK: ${SHOP.owner}</div><div>Nội dung: ${esc(SHOP.note)} ${esc(o.orderId)}</div></div></div>`}
+      <p class="meta" style="text-align:center">Xin cảm ơn Quý khách đã mua hàng tại ${esc(SHOP.name)}!</p>
+    </article>
+    <style>@media print { @page { size: ${paper === "a4" ? "A4 portrait" : paper === "a6" ? "105mm 148mm" : "74mm 105mm"}; margin: 4mm; } }</style>`;
+  $("closePrint").onclick = () => $("printSheet").classList.add("hidden");
+  $("doPrint").onclick = () => window.print();
+  $("doZalo").onclick = () => showZalo(o);
+  $("printSheet").querySelectorAll("[data-paper]").forEach((b) => b.onclick = () => openPrint(o, b.dataset.paper));
+}
+
+function qrUrl(orderId, amount) {
+  const q = new URLSearchParams({
+    amount: String(Math.max(0, Math.round(Number(amount) || 0))),
+    addInfo: SHOP.note + " " + (orderId || ""),
+    accountName: SHOP.owner
+  });
+  return "https://img.vietqr.io/image/TCB-" + SHOP.account + "-compact2.png?" + q.toString();
+}
+function loadImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+function wrapLines(ctx, text, maxW) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = "";
+  for (const word of words) {
+    const next = cur ? cur + " " + word : word;
+    if (ctx.measureText(next).width > maxW && cur) { lines.push(cur); cur = word; }
+    else cur = next;
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [""];
+}
+async function invoiceBlob(o) {
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  const W = 1080;
+  const items = o.items || [];
+  const amount = Number(o.finalTotal || o.subTotal || 0);
+  const measure = document.createElement("canvas").getContext("2d");
+  measure.font = "600 30px 'Be Vietnam Pro', sans-serif";
+  const nameLines = items.map((it) => wrapLines(measure, it.name, 500));
+  const rowHeights = nameLines.map((lines) => Math.max(84, lines.length * 38 + 36));
+  const rowsH = rowHeights.reduce((s, h) => s + h, 0);
+  const noteLines = o.note ? wrapLines(measure, "Ghi chú: " + o.note, 960) : [];
+  const H = 460 + rowsH + 250 + noteLines.length * 34 + 430;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fffdf8";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#7c3527";
+  ctx.fillRect(0, 0, W, 20);
+  ctx.fillRect(0, H - 20, W, 20);
+  ctx.strokeStyle = "#a68456";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(110, 132, 54, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = "#7c3527";
+  ctx.textAlign = "center";
+  ctx.font = "700 22px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText("MiMi", 110, 126);
+  ctx.fillText("Hoa", 110, 152);
+  ctx.textAlign = "left";
+  ctx.font = "700 46px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText(SHOP.name, 186, 118);
+  ctx.fillStyle = "#6f655c";
+  ctx.font = "400 26px 'Be Vietnam Pro', sans-serif";
+  const addr = wrapLines(ctx, SHOP.address, 820);
+  let y = 160;
+  addr.forEach((line) => { ctx.fillText(line, 186, y); y += 34; });
+  ctx.fillText("Hotline: " + SHOP.phone, 186, y);
+  y = Math.max(y + 36, 270);
+  ctx.strokeStyle = "#a68456";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(48, y); ctx.lineTo(W - 48, y); ctx.stroke();
+  y += 62;
+  ctx.fillStyle = "#7c3527";
+  ctx.font = "700 44px 'Be Vietnam Pro', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("HÓA ĐƠN BÁN HÀNG", W / 2, y);
+  ctx.textAlign = "left";
+  y += 22;
+  ctx.beginPath(); ctx.moveTo(48, y); ctx.lineTo(W - 48, y); ctx.stroke();
+  y += 50;
+  ctx.fillStyle = "#1c1915";
+  ctx.font = "600 28px 'Be Vietnam Pro', sans-serif";
+  const date = when(o.createdAt) || when({ seconds: Math.floor(Date.now() / 1000) });
+  ctx.fillText("Số: " + (o.orderId || ""), 56, y);
+  ctx.fillText("Ngày: " + date, 560, y);
+  y += 44;
+  ctx.fillText("Khách: " + (o.clientName || "Khách lẻ"), 56, y);
+  ctx.fillText("Thu ngân: " + SHOP.cashier, 560, y);
+  y += 28;
+  ctx.fillStyle = "#f3ebdf";
+  ctx.fillRect(48, y, W - 96, 54);
+  ctx.fillStyle = "#7c3527";
+  ctx.font = "700 24px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText("Hàng", 64, y + 36);
+  ctx.textAlign = "right";
+  ctx.fillText("SL", 690, y + 36);
+  ctx.fillText("Giá", 860, y + 36);
+  ctx.fillText("Tiền", W - 56, y + 36);
+  ctx.textAlign = "left";
+  y += 54;
+  items.forEach((it, i) => {
+    const lines = nameLines[i];
+    const h = rowHeights[i];
+    if (i % 2 === 0) { ctx.fillStyle = "#fbf7f1"; ctx.fillRect(48, y, W - 96, h); }
+    ctx.fillStyle = "#1c1915";
+    ctx.font = "600 28px 'Be Vietnam Pro', sans-serif";
+    lines.forEach((line, li) => ctx.fillText((li === 0 ? (i + 1) + ". " : "") + line, 64, y + 40 + li * 38));
+    ctx.font = "600 26px 'Be Vietnam Pro', sans-serif";
+    ctx.textAlign = "right";
+    const mid = y + 40;
+    ctx.fillText(String(it.quantity), 690, mid);
+    ctx.fillText(money(it.price), 860, mid);
+    ctx.fillText(money(Number(it.quantity) * Number(it.price)), W - 56, mid);
+    ctx.textAlign = "left";
+    y += h;
+  });
+  y += 36;
+  ctx.font = "500 28px 'Be Vietnam Pro', sans-serif";
+  ctx.fillStyle = "#1c1915";
+  [["Tiền hàng", o.subTotal || 0], ["Ship", o.shippingFee || 0], ["VAT", o.vatFee || 0]].forEach(([label, value]) => {
+    ctx.textAlign = "left";
+    ctx.fillText(label, 560, y);
+    ctx.textAlign = "right";
+    ctx.fillText(money(value), W - 56, y);
+    y += 42;
+  });
+  ctx.fillStyle = "#7c3527";
+  ctx.font = "700 36px 'Be Vietnam Pro', sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Tổng thanh toán", 430, y + 6);
+  ctx.textAlign = "right";
+  ctx.fillText(money(amount) + " đ", W - 56, y + 6);
+  ctx.textAlign = "left";
+  y += 52;
+  ctx.fillStyle = "#6f655c";
+  ctx.font = "500 26px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText(o.paymentMethod || "", 560, y);
+  y += 40;
+  noteLines.forEach((line) => { ctx.fillText(line, 56, y); y += 34; });
+  y += 12;
+  const qr = await loadImage(qrUrl(o.orderId, amount));
+  if (qr) ctx.drawImage(qr, 56, y, 280, 280);
+  else { ctx.strokeStyle = "#e4d5c3"; ctx.strokeRect(56, y, 280, 280); }
+  ctx.fillStyle = "#1c1915";
+  ctx.font = "700 30px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText("Chuyển khoản", 360, y + 48);
+  ctx.font = "500 28px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText(SHOP.bank, 360, y + 96);
+  ctx.fillText("STK: " + SHOP.account, 360, y + 140);
+  ctx.fillText(SHOP.owner, 360, y + 184);
+  const memo = wrapLines(ctx, "Nội dung: " + SHOP.note + " " + (o.orderId || ""), 640);
+  memo.forEach((line, i) => ctx.fillText(line, 360, y + 232 + i * 34));
+  y += 340;
+  ctx.fillStyle = "#7c3527";
+  ctx.font = "600 28px 'Be Vietnam Pro', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Xin cảm ơn Quý khách đã mua hàng", W / 2, Math.min(y, H - 70));
+  ctx.fillStyle = "#6f655c";
+  ctx.font = "500 24px 'Be Vietnam Pro', sans-serif";
+  ctx.fillText(SHOP.name, W / 2, Math.min(y + 38, H - 32));
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+async function showZalo(o) {
+  if (!(o.items || []).length) return toast("Chưa có hàng.");
+  $("modal").classList.remove("hidden");
+  $("modal").innerHTML = `<div class="sheet" style="text-align:center"><p>Đang tạo ảnh gửi Zalo…</p></div>`;
+  try {
+    const blob = await invoiceBlob(o);
+    if (!blob) throw new Error("Không tạo được ảnh");
+    const url = URL.createObjectURL(blob);
+    const file = new File([blob], "HoaDon-" + (o.orderId || "mimi") + ".png", { type: "image/png" });
+    $("modal").innerHTML = `<div class="sheet" style="text-align:center">
+      <div class="row" style="justify-content:space-between"><strong>Ảnh gửi khách</strong><button class="btn ghost" id="xZalo" type="button">Đóng</button></div>
+      <p class="meta">Bấm Gửi Zalo để chọn Zalo. Hoặc nhấn giữ ảnh để lưu.</p>
+      <img class="zalo-shot" alt="Hóa đơn" src="${url}">
+      <div class="row" style="margin-top:12px;justify-content:center">
+        <button class="btn" id="shareZalo" type="button">Gửi Zalo</button>
+        <button class="btn soft" id="saveZalo" type="button">Tải ảnh</button>
+      </div>
+    </div>`;
+    $("xZalo").onclick = () => { URL.revokeObjectURL(url); $("modal").classList.add("hidden"); };
+    $("saveZalo").onclick = () => { const a = document.createElement("a"); a.href = url; a.download = file.name; a.click(); };
+    $("shareZalo").onclick = async () => {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: "Hóa đơn " + (o.orderId || ""), text: SHOP.name + " - " + (o.clientName || "") }); }
+        catch (err) { if (err.name !== "AbortError") toast(err.message); }
+      } else {
+        $("saveZalo").click();
+        toast("Đã tải ảnh. Mở Zalo và gửi file này.");
+      }
+    };
+  } catch (err) {
+    $("modal").classList.add("hidden");
+    toast(err.message || "Không tạo được ảnh");
+  }
+}
+
+function renderGoods() {
+  const rows = products.filter((p) => hit(`${p.name} ${p.sku} ${p.category}`, qProd)).slice(0, 100);
+  $("view").innerHTML = `
+    <div class="row" style="margin-bottom:8px">
+      <input class="field" id="qProd" placeholder="Tìm hàng trong Firebase" value="${esc(qProd)}">
+      <button class="btn" id="addP" type="button">Thêm hàng</button>
+    </div>
+    <div class="card list">${rows.map((p) => `
+      <div class="item">
+        ${imgOf(p) ? `<img src="${esc(imgOf(p))}" alt="">` : `<span class="ph"></span>`}
+        <span class="grow"><span class="name">${esc(p.name)}</span><span class="meta">${esc(p.sku || p.docId)} · ${esc(p.category || "")}</span></span>
+        <span class="right"><b>${money(priceOf(p))}</b><div class="meta">tồn ${esc(p.stock ?? 0)}</div></span>
+        <button class="btn soft" type="button" data-edit="${esc(p.docId)}">Sửa</button>
+      </div>`).join("")}</div>`;
+  $("qProd").oninput = (e) => { qProd = e.target.value; renderGoods(); };
+  $("addP").onclick = () => editProduct(null);
+  $("view").querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => editProduct(products.find((p) => p.docId === b.dataset.edit)));
+}
+function editProduct(p) {
+  $("modal").classList.remove("hidden");
+  const v = p || { name: "", sku: "", category: "Hoa lụa", price: 0, stock: 0, image: "", color: "", weight: "", description: "" };
+  $("modal").innerHTML = `<div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${p ? "Sửa hàng" : "Thêm hàng"}</h2><button class="btn ghost" id="x" type="button">Đóng</button></div>
+    <label class="lbl">Tên</label><input class="field" id="mName" value="${esc(v.name)}">
+    <div class="row"><div style="flex:1"><label class="lbl">SKU</label><input class="field" id="mSku" value="${esc(v.sku || "")}"></div><div style="flex:1"><label class="lbl">Nhóm</label><input class="field" id="mCat" value="${esc(v.category || "")}"></div></div>
+    <div class="row"><div style="flex:1"><label class="lbl">Giá sỉ</label><input class="field" id="mPrice" value="${money(priceOf(v))}"></div><div style="flex:1"><label class="lbl">Tồn</label><input class="field" id="mStock" value="${esc(v.stock ?? 0)}"></div></div>
+    <label class="lbl">Ảnh</label><input class="field" id="mImg" value="${esc(imgOf(v))}">
+    <label class="lbl">Màu / khối lượng</label><div class="row"><input class="field" id="mColor" value="${esc(v.color || "")}"><input class="field" id="mWeight" value="${esc(v.weight || "")}"></div>
+    <label class="lbl">Mô tả</label><textarea class="area" id="mDesc">${esc(v.description || "")}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" id="saveP" type="button">Lưu</button>${p ? `<button class="btn bad" id="delP" type="button">Xóa</button>` : ""}</div>
+  </div>`;
+  $("x").onclick = () => $("modal").classList.add("hidden");
+  $("saveP").onclick = async () => {
+    const name = $("mName").value.trim();
+    if (!name) return toast("Cần tên hàng");
+    const price = parseInt($("mPrice").value.replace(/\D/g, ""), 10) || 0;
+    const data = {
+      name, sku: $("mSku").value.trim(), category: $("mCat").value.trim() || "Hoa lụa",
+      price, wholesale_price: price, stock: parseInt($("mStock").value, 10) || 0,
+      image: $("mImg").value.trim(), image_url: $("mImg").value.trim(),
+      color: $("mColor").value.trim(), weight: $("mWeight").value.trim(),
+      description: $("mDesc").value.trim(), isActive: true,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    try {
+      if (p) await db.collection("wholesale_products").doc(p.docId).set(data, { merge: true });
+      else {
+        data.is_new = true;
+        await db.collection("wholesale_products").add(data);
+      }
+    } catch (err) { return toast(err.message); }
+    $("modal").classList.add("hidden");
+    toast("Đã lưu hàng");
+  };
+  const del = $("delP");
+  if (del) del.onclick = async () => {
+    if (!confirm("Xóa hàng này trên Firebase?")) return;
+    await db.collection("wholesale_products").doc(p.docId).delete();
+    $("modal").classList.add("hidden");
+  };
+}
+
+function renderCodes() {
+  $("view").innerHTML = `
+    <div class="card pad">
+      <strong>Mã khách sỉ</strong>
+      <p class="meta">Khách nhập mã này ở bảng hàng. Hóa đơn lấy tên khách từ đây.</p>
+      <div class="row">
+        <input class="field" id="newCode" placeholder="Mã, ví dụ 123456">
+        <input class="field" id="newClient" placeholder="Tên khách">
+        <button class="btn" id="addCode" type="button">Tạo</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:8px">${codes.map((c) => `
+      <div class="item"><span class="grow"><b>${esc(c.clientName || "Chưa đặt tên")}</b><div class="meta">Mã ${esc(c.id)} · hết hạn ${esc(when(c.expiresAt) || "không ghi")}</div></span>
+      <button class="btn bad" type="button" data-code="${esc(c.id)}">Xóa</button></div>`).join("") || `<div class="pad meta">Chưa có mã.</div>`}
+    </div>`;
+  $("addCode").onclick = async () => {
+    const id = $("newCode").value.trim();
+    const clientName = $("newClient").value.trim();
+    if (!id || !clientName) return toast("Cần mã và tên khách");
+    const expires = new Date(); expires.setDate(expires.getDate() + 30);
+    await db.collection("access_codes").doc(id).set({
+      clientName,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      expiresAt: firebase.firestore.Timestamp.fromDate(expires)
+    });
+    toast("Đã tạo mã");
+  };
+  $("view").querySelectorAll("[data-code]").forEach((b) => b.onclick = async () => {
+    if (!confirm("Xóa mã " + b.dataset.code + "?")) return;
+    await db.collection("access_codes").doc(b.dataset.code).delete();
+  });
+}
+
+function renderTxt() {
+  $("view").innerHTML = `
+    <div class="card pad">
+      <strong>Nhập TXT vào sổ sỉ</strong>
+      <p class="meta">Đơn giá trong TXT là nghìn đồng (56 = 56.000đ). Không tự thêm ship, VAT, chiết khấu. Đơn nhập được ghi trạng thái đã chốt, không trừ tồn.</p>
+      <textarea class="area" id="txt" style="min-height:180px" placeholder="Hóa đơn 1 - Tên khách&#10;Sản phẩm  Số lượng  Đơn giá  Thành tiền&#10;bó tuy líp  30  56  1.680&#10;Tổng hóa đơn: 1.680"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" id="readTxt" type="button">Đọc</button><button class="btn" id="commitTxt" type="button" disabled>Ghi Firebase</button></div>
+      <div id="txtOut"></div>
+    </div>`;
+  let parsed = [];
+  $("readTxt").onclick = () => {
+    parsed = parseTxt($("txt").value);
+    const ok = parsed.length && parsed.every((inv) => inv.ok);
+    $("commitTxt").disabled = !ok;
+    $("txtOut").innerHTML = parsed.length ? parsed.map((inv) => `
+      <div class="card pad" style="margin-top:8px">
+        <b>${esc(inv.title)}</b> <span class="pill ${inv.ok ? "ok" : "bad"}">${inv.ok ? "Khớp số" : "Lệch số"}</span>
+        <div class="meta">Khách: ${esc(inv.customer)} · tổng ${money(inv.sum)}</div>
+        ${inv.lines.map((l) => `<div class="row" style="justify-content:space-between"><span>${esc(l.name)} · ${l.qty} × ${money(l.price)}</span><b>${money(l.total)}</b></div>`).join("")}
+      </div>`).join("") : `<p class="meta">Không tách được hóa đơn.</p>`;
+  };
+  $("commitTxt").onclick = async () => {
+    $("commitTxt").disabled = true;
+    for (const inv of parsed) {
+      const orderId = nextCode();
+      const items = inv.lines.map((l) => {
+        const found = products.find((p) => fold(p.name) === fold(l.name));
+        return { sku: found?.sku || "", name: l.name, quantity: l.qty, price: l.price, img: found ? imgOf(found) : "", docId: found?.docId || "" };
+      });
+      const order = {
+        orderId, clientName: inv.customer || "Khách lẻ", items,
+        subTotal: inv.sum, shippingFee: 0, vatFee: 0, finalTotal: inv.sum,
+        paymentMethod: "Tiền mặt",
+        note: `${inv.title} | Nhập TXT`,
+        status: "completed",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        localTimestamp: Date.now(),
+        source: "txt"
+      };
+      await db.collection("wholesale_orders").doc(orderId).set(order);
+      orders.push(order);
+    }
+    toast("Đã ghi " + parsed.length + " hóa đơn");
+    tab = "orders";
+    paint();
+  };
+}
+function parseThousand(text) {
+  const digits = String(text).replace(/[^\d]/g, "");
+  return digits ? parseInt(digits, 10) * 1000 : 0;
+}
+function parseTxt(text) {
+  const invoices = [];
+  let cur = null;
+  let auto = 1;
+  const push = () => {
+    if (!cur || !cur.lines.length) { cur = null; return; }
+    const sum = cur.lines.reduce((s, l) => s + l.total, 0);
+    const ok = cur.lines.every((l) => l.qty * l.price === l.total) && (!cur.expected || cur.expected === sum);
+    invoices.push({ ...cur, sum, ok });
+    cur = null;
+  };
+  for (const raw of text.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+    const line = raw.replace(/\s+/g, " ").trim();
+    const head = line.match(/^(?:Hóa đơn|Hoa don)\s*(.*)$/i);
+    if (head) {
+      push();
+      const tail = (head[1] || "").trim();
+      let no = auto, customer = "Khách lẻ";
+      const numbered = tail.match(/^(\d+)(?:\s*[-:–—]?\s*(.*))?$/);
+      if (numbered) { no = parseInt(numbered[1], 10); customer = (numbered[2] || "").trim() || "Khách lẻ"; }
+      else if (tail) customer = tail.replace(/^(?:gửi|gui|khách|khach|cho)\s+/i, "").trim();
+      auto = Math.max(auto + 1, no + 1);
+      cur = { no, title: "Hóa đơn " + no, customer, lines: [], expected: 0 };
+      continue;
+    }
+    if (!cur) continue;
+    const total = line.match(/^(?:Tổng hóa đơn|Tong hoa don)(?:\s+\d+)?\s*:\s*([\d.,]+)/i);
+    if (total) { cur.expected = parseThousand(total[1]); continue; }
+    if (!line || /^sản phẩm|^san pham/i.test(line)) continue;
+    const tokens = line.split(" ");
+    const nums = tokens.map((t, i) => /^\d+(?:[.,]\d+)?$/.test(t) ? i : -1).filter((i) => i >= 0);
+    if (nums.length >= 3) {
+      const iQty = nums[nums.length - 3];
+      const name = tokens.slice(0, iQty).join(" ").trim();
+      if (!name) continue;
+      const qty = parseFloat(tokens[iQty].replace(",", ".")) || 0;
+      const price = parseThousand(tokens[nums[nums.length - 2]]);
+      const lineTotal = parseThousand(tokens[nums[nums.length - 1]]);
+      cur.lines.push({ name, qty, price, total: lineTotal });
+    }
+  }
+  push();
+  return invoices;
+}
+
+$("modal").addEventListener("click", (e) => { if (e.target.id === "modal") $("modal").classList.add("hidden"); });
+paint();
+watch();
+</script>
+</body>
+</html>
