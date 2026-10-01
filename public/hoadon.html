@@ -70,7 +70,8 @@
   .stat b { display: block; font-size: 18px; margin-top: 2px; }
   .hidden { display: none !important; }
   .overlay { position: fixed; inset: 0; background: rgba(28,25,21,.45); z-index: 30; overflow: auto; padding: 12px; }
-  .sheet { max-width: 860px; margin: 0 auto; background: var(--surface); border-radius: 16px; padding: 14px; }
+  .sheet { max-width: 860px; margin: 0 auto; background: var(--surface); border-radius: 16px; padding: 14px; max-height: calc(100vh - 24px); overflow: auto; }
+  .hits { max-height: 200px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 6px; background: var(--surface); }
   .toast { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--primary-fg); border-radius: 12px; padding: 10px 14px; z-index: 50; max-width: 90vw; }
   .invoice-paper { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 8px auto; }
   .invoice-paper[data-paper="a4"] { width: min(190mm, 100%); }
@@ -552,72 +553,241 @@ function orderRow(o) {
     <span class="right"><b>${money(o.finalTotal || o.subTotal || 0)}</b><br>${st}</span>
   </button>`;
 }
+let editDraft = null;
+let editBaseItems = [];
+
 function openOrder(id) {
   const o = orders.find((x) => x.orderId === id);
   if (!o) return;
-  const items = o.items || [];
+  editBaseItems = (o.items || []).map((it) => ({ ...it, quantity: Number(it.quantity) || 0, price: Number(it.price) || 0 }));
+  editDraft = {
+    orderId: o.orderId,
+    docId: o.docId || o.orderId,
+    status: o.status || "new",
+    createdAt: o.createdAt,
+    clientName: o.clientName || "",
+    paymentMethod: o.paymentMethod || "Tiền mặt",
+    note: o.note || "",
+    shippingFee: Number(o.shippingFee) || 0,
+    vatFee: Number(o.vatFee) || 0,
+    items: editBaseItems.map((it) => ({ ...it }))
+  };
   $("modal").classList.remove("hidden");
+  drawEditor();
+}
+function readEditor() {
+  if (!editDraft || !$("eClient")) return;
+  editDraft.clientName = $("eClient").value;
+  editDraft.paymentMethod = $("ePay").value;
+  editDraft.note = $("eNote").value;
+  editDraft.shippingFee = parseInt(String($("eShip").value).replace(/\D/g, ""), 10) || 0;
+  editDraft.vatFee = parseInt(String($("eVat").value).replace(/\D/g, ""), 10) || 0;
+  editDraft.items.forEach((it, i) => {
+    const row = document.querySelector('[data-line="' + i + '"]');
+    if (!row) return;
+    it.name = row.querySelector("[data-name]").value.trim();
+    it.quantity = Math.max(0, parseInt(row.querySelector("[data-qty]").value, 10) || 0);
+    it.price = parseInt(row.querySelector("[data-price]").value.replace(/\D/g, ""), 10) || 0;
+  });
+}
+function editorMoney() {
+  const sub = editDraft.items.reduce((s, it) => s + (Number(it.quantity) || 0) * (Number(it.price) || 0), 0);
+  return { sub, ship: editDraft.shippingFee, vat: editDraft.vatFee, final: sub + editDraft.shippingFee + editDraft.vatFee };
+}
+function snapshotEdit() {
+  readEditor();
+  const t = editorMoney();
+  const saved = orders.find((x) => x.orderId === editDraft.orderId) || {};
+  return {
+    ...saved,
+    orderId: editDraft.orderId,
+    docId: editDraft.docId,
+    status: editDraft.status,
+    createdAt: editDraft.createdAt,
+    clientName: (editDraft.clientName || "").trim() || "Khách lẻ",
+    paymentMethod: editDraft.paymentMethod,
+    note: editDraft.note,
+    items: editDraft.items.filter((it) => it.name && it.quantity > 0).map((it) => ({
+      sku: it.sku || "",
+      name: it.name,
+      quantity: Number(it.quantity) || 0,
+      price: Number(it.price) || 0,
+      img: it.img || "",
+      docId: it.docId || ""
+    })),
+    subTotal: t.sub,
+    shippingFee: t.ship,
+    vatFee: t.vat,
+    finalTotal: t.final
+  };
+}
+function drawEditor() {
+  const d = editDraft;
+  const t = editorMoney();
+  const lines = d.items.map((it, i) => `
+    <div class="cart-line" data-line="${i}">
+      <div class="row" style="justify-content:space-between">
+        <input class="field" data-name value="${esc(it.name)}" aria-label="Tên hàng" style="flex:1">
+        <button class="btn ghost" type="button" data-rm="${i}">Xóa</button>
+      </div>
+      <div class="meta">${esc(it.sku || "Dòng tay")}${it.suggest ? " · gợi ý " + money(it.suggest) + " đ" : ""}</div>
+      <div class="row" style="margin-top:6px">
+        <button class="btn soft" type="button" data-dec="${i}">−</button>
+        <input class="field" data-qty inputmode="numeric" value="${it.quantity}" aria-label="Số lượng" style="width:72px;text-align:center">
+        <button class="btn soft" type="button" data-inc="${i}">+</button>
+        <input class="field" data-price inputmode="numeric" value="${it.price ? money(it.price) : ""}" placeholder="${it.suggest ? "Gợi ý " + money(it.suggest) : "Nhập giá"}" aria-label="Giá bán" style="width:150px;margin-left:auto">
+      </div>
+      <div class="right meta">Thành tiền ${money((Number(it.quantity) || 0) * (Number(it.price) || 0))} đ</div>
+    </div>`).join("");
   $("modal").innerHTML = `<div class="sheet">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(o.orderId)}</h2><button class="btn ghost" id="closeModal" type="button">Đóng</button></div>
-    <p class="meta">${esc(o.clientName || "")} · ${esc(when(o.createdAt))} · ${esc(o.paymentMethod || "")}</p>
-    <div class="list">${items.map((it) => `<div class="item"><span class="grow"><b>${esc(it.name)}</b><div class="meta">${esc(it.sku || "")}</div></span><span>${it.quantity} × ${money(it.price)}</span></div>`).join("")}</div>
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(d.orderId)}</h2><button class="btn ghost" id="closeModal" type="button">Đóng</button></div>
+    <p class="meta">${esc(when(d.createdAt))} · ${d.status === "completed" ? "Đã chốt, sửa số lượng sẽ cộng trừ tồn" : "Đơn chờ, chưa trừ tồn"}</p>
+    <label class="lbl">Khách</label>
+    <input class="field" id="eClient" list="editClients" value="${esc(d.clientName)}">
+    <datalist id="editClients">${codes.map((c) => `<option value="${esc(c.clientName || c.id)}"></option>`).join("")}</datalist>
+    <label class="lbl">Thanh toán</label>
+    <select class="sel" id="ePay">
+      ${["Tiền mặt", "Chuyển khoản", "qr"].map((p) => `<option ${d.paymentMethod === p ? "selected" : ""}>${p}</option>`).join("")}
+    </select>
+    <div style="margin-top:10px"><strong>Hàng trong đơn</strong></div>
+    <div id="editLines">${lines || `<p class="meta">Chưa có dòng nào.</p>`}</div>
+    <label class="lbl">Thêm hàng từ shop</label>
+    <input class="field" id="eFind" placeholder="Tìm tên hoặc mã, giá vẫn tự nhập">
+    <div id="eHits" class="hits hidden"></div>
     <div class="row">
-      <div style="flex:1"><label class="lbl">Ship</label><input class="field" id="eShip" value="${money(o.shippingFee || 0)}"></div>
-      <div style="flex:1"><label class="lbl">VAT</label><input class="field" id="eVat" value="${money(o.vatFee || 0)}"></div>
+      <div style="flex:1"><label class="lbl">Ship</label><input class="field" id="eShip" inputmode="numeric" value="${money(d.shippingFee)}"></div>
+      <div style="flex:1"><label class="lbl">VAT</label><input class="field" id="eVat" inputmode="numeric" value="${money(d.vatFee)}"></div>
     </div>
-    <label class="lbl">Ghi chú</label><textarea class="area" id="eNote">${esc(o.note || "")}</textarea>
-    <p><b>Tổng: <span id="eTotal">${money(o.finalTotal || o.subTotal || 0)}</span> đ</b></p>
-    <div class="row" style="flex-wrap:wrap">
+    <label class="lbl">Ghi chú</label>
+    <textarea class="area" id="eNote">${esc(d.note)}</textarea>
+    <p><b>Tiền hàng <span id="eSub">${money(t.sub)}</span> · Tổng <span id="eTotal">${money(t.final)}</span> đ</b></p>
+    <div class="row">
       <button class="btn soft" data-paper="a4" type="button">In A4</button>
       <button class="btn soft" data-paper="a6" type="button">In A6</button>
       <button class="btn soft" data-paper="a7" type="button">In A7</button>
       <button class="btn" id="zaloOrder" type="button">Ảnh Zalo</button>
-      <button class="btn" id="saveEdit" type="button">Lưu</button>
-      ${o.status === "new" ? `<button class="btn" id="complete" type="button">Chốt đơn</button>` : ""}
-      <button class="btn bad" id="delOrder" type="button">Xóa</button>
+      <button class="btn" id="saveEdit" type="button">Lưu sửa</button>
+      ${d.status === "new" ? `<button class="btn" id="complete" type="button">Chốt đơn</button>` : ""}
+      <button class="btn bad" id="delOrder" type="button">Xóa đơn</button>
     </div>
   </div>`;
-  const recalc = () => {
-    const ship = parseInt($("eShip").value.replace(/\D/g, ""), 10) || 0;
-    const vat = parseInt($("eVat").value.replace(/\D/g, ""), 10) || 0;
-    $("eTotal").textContent = money(Number(o.subTotal || 0) + ship + vat);
+  const refreshTotals = () => {
+    readEditor();
+    const now = editorMoney();
+    if ($("eSub")) $("eSub").textContent = money(now.sub);
+    if ($("eTotal")) $("eTotal").textContent = money(now.final);
   };
-  $("eShip").oninput = recalc; $("eVat").oninput = recalc;
-  $("closeModal").onclick = () => $("modal").classList.add("hidden");
-  $("zaloOrder").onclick = () => showZalo(currentEdit(o));
-  $("modal").querySelectorAll("[data-paper]").forEach((b) => b.onclick = () => openPrint(currentEdit(o), b.dataset.paper));
-  $("saveEdit").onclick = () => patchOrder(o, false);
-  const done = $("complete"); if (done) done.onclick = () => patchOrder(o, true);
+  ["eClient", "ePay", "eShip", "eVat", "eNote"].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    el.oninput = refreshTotals;
+    el.onchange = refreshTotals;
+  });
+  $("modal").querySelectorAll("[data-name],[data-qty],[data-price]").forEach((el) => { el.oninput = refreshTotals; });
+  $("modal").querySelectorAll("[data-dec]").forEach((b) => b.onclick = () => {
+    readEditor();
+    const i = Number(b.dataset.dec);
+    editDraft.items[i].quantity = Math.max(0, (Number(editDraft.items[i].quantity) || 0) - 1);
+    if (editDraft.items[i].quantity <= 0) editDraft.items.splice(i, 1);
+    drawEditor();
+  });
+  $("modal").querySelectorAll("[data-inc]").forEach((b) => b.onclick = () => {
+    readEditor();
+    const i = Number(b.dataset.inc);
+    editDraft.items[i].quantity = (Number(editDraft.items[i].quantity) || 0) + 1;
+    drawEditor();
+  });
+  $("modal").querySelectorAll("[data-rm]").forEach((b) => b.onclick = () => {
+    readEditor();
+    editDraft.items.splice(Number(b.dataset.rm), 1);
+    drawEditor();
+  });
+  $("eFind").oninput = () => {
+    const q = $("eFind").value;
+    const hits = products.filter((p) => p.isActive !== false && hit(`${p.name} ${p.sku}`, q)).slice(0, 12);
+    const box = $("eHits");
+    if (!q.trim()) { box.classList.add("hidden"); box.innerHTML = ""; return; }
+    box.classList.remove("hidden");
+    box.innerHTML = hits.map((p) => `<button type="button" class="item" data-pick="${esc(p.docId)}"><span class="grow"><b>${esc(p.name)}</b><span class="meta">${esc(p.sku || "")}</span></span><span class="right meta">Gợi ý<br>${money(priceOf(p))}</span></button>`).join("") || `<div class="pad meta">Không thấy hàng.</div>`;
+    box.querySelectorAll("[data-pick]").forEach((btn) => btn.onclick = () => {
+      const p = products.find((x) => x.docId === btn.dataset.pick);
+      if (!p) return;
+      readEditor();
+      editDraft.items.push({ sku: p.sku || "", name: p.name, quantity: 1, price: 0, suggest: priceOf(p), img: imgOf(p), docId: p.docId });
+      drawEditor();
+      toast("Đã thêm dòng. Nhập giá bán.");
+    });
+  };
+  $("closeModal").onclick = () => { editDraft = null; $("modal").classList.add("hidden"); };
+  $("zaloOrder").onclick = () => showZalo(snapshotEdit());
+  $("modal").querySelectorAll("[data-paper]").forEach((b) => b.onclick = () => openPrint(snapshotEdit(), b.dataset.paper));
+  $("saveEdit").onclick = () => patchOrder(false);
+  const done = $("complete");
+  if (done) done.onclick = () => patchOrder(true);
   $("delOrder").onclick = async () => {
-    if (!confirm("Xóa " + o.orderId + "?")) return;
+    if (!confirm("Xóa " + editDraft.orderId + "?")) return;
     try {
-      if (o.status === "completed") await restoreStock((o.items || []).map((it) => ({ sku: it.sku, docId: it.docId, qty: Number(it.quantity) || 0 })));
-      await db.collection("wholesale_orders").doc(o.docId || o.orderId).delete();
+      if (editDraft.status === "completed") await restoreStock(editBaseItems.map((it) => ({ sku: it.sku, docId: it.docId, qty: Number(it.quantity) || 0 })));
+      await db.collection("wholesale_orders").doc(editDraft.docId).delete();
+      editDraft = null;
       $("modal").classList.add("hidden");
-      toast("Đã xóa");
+      toast("Đã xóa đơn");
     } catch (err) { toast(err.message); }
   };
 }
-function currentEdit(o) {
-  const shippingFee = parseInt($("eShip").value.replace(/\D/g, ""), 10) || 0;
-  const vatFee = parseInt($("eVat").value.replace(/\D/g, ""), 10) || 0;
-  return { ...o, shippingFee, vatFee, note: $("eNote").value, finalTotal: Number(o.subTotal || 0) + shippingFee + vatFee };
+async function syncStockEdit(before, after) {
+  const net = {};
+  const take = (it, sign) => {
+    const qty = Number(it.quantity) || 0;
+    if (!qty) return;
+    const key = it.docId || it.sku || "";
+    if (!key) return;
+    if (!net[key]) net[key] = { docId: it.docId || "", sku: it.sku || "", qty: 0 };
+    net[key].qty += sign * qty;
+  };
+  before.forEach((it) => take(it, -1));
+  after.forEach((it) => take(it, 1));
+  const deduct = [];
+  const restore = [];
+  Object.values(net).forEach((row) => {
+    if (row.qty > 0) deduct.push(row);
+    else if (row.qty < 0) restore.push({ ...row, qty: -row.qty });
+  });
+  if (restore.length) await restoreStock(restore);
+  if (deduct.length) await deductStock(deduct);
 }
-async function patchOrder(o, complete) {
-  const next = currentEdit(o);
+async function patchOrder(complete) {
+  const next = snapshotEdit();
+  if (!next.items.length) return toast("Đơn cần ít nhất một dòng có số lượng.");
+  if (next.items.some((it) => !it.price)) return toast("Còn dòng chưa nhập giá bán.");
   const data = {
-    note: next.note, shippingFee: next.shippingFee, vatFee: next.vatFee, finalTotal: next.finalTotal,
+    clientName: next.clientName,
+    paymentMethod: next.paymentMethod,
+    note: next.note,
+    items: next.items,
+    subTotal: next.subTotal,
+    shippingFee: next.shippingFee,
+    vatFee: next.vatFee,
+    finalTotal: next.finalTotal,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try {
-    if (complete) {
+    if (complete && editDraft.status !== "completed") {
       data.status = "completed";
       data.processedAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection("wholesale_orders").doc(editDraft.docId).update(data);
+      await deductStock(next.items);
+      toast("Đã chốt đơn, đã trừ tồn");
+    } else if (editDraft.status === "completed") {
+      await syncStockEdit(editBaseItems, next.items);
+      await db.collection("wholesale_orders").doc(editDraft.docId).update(data);
+      toast("Đã lưu. Tồn đã chỉnh theo số lượng mới");
+    } else {
+      await db.collection("wholesale_orders").doc(editDraft.docId).update(data);
+      toast("Đã lưu sửa đơn");
     }
-    await db.collection("wholesale_orders").doc(o.docId || o.orderId).update(data);
-    if (complete) await deductStock((o.items || []).map((it) => ({ sku: it.sku, docId: it.docId, qty: Number(it.quantity) || 0 })));
+    editDraft = null;
     $("modal").classList.add("hidden");
-    toast(complete ? "Đã chốt đơn, đã trừ tồn" : "Đã lưu");
   } catch (err) { toast(err.message); }
 }
 
@@ -838,14 +1008,15 @@ async function invoiceBlob(o) {
 }
 async function showZalo(o) {
   if (!(o.items || []).length) return toast("Chưa có hàng.");
-  $("modal").classList.remove("hidden");
-  $("modal").innerHTML = `<div class="sheet" style="text-align:center"><p>Đang tạo ảnh gửi Zalo…</p></div>`;
+  const host = $("printSheet");
+  host.classList.remove("hidden");
+  host.innerHTML = `<div class="sheet" style="text-align:center"><p>Đang tạo ảnh gửi Zalo…</p></div>`;
   try {
     const blob = await invoiceBlob(o);
     if (!blob) throw new Error("Không tạo được ảnh");
     const url = URL.createObjectURL(blob);
     const file = new File([blob], "HoaDon-" + (o.orderId || "mimi") + ".png", { type: "image/png" });
-    $("modal").innerHTML = `<div class="sheet" style="text-align:center">
+    host.innerHTML = `<div class="sheet" style="text-align:center">
       <div class="row" style="justify-content:space-between"><strong>Ảnh gửi khách</strong><button class="btn ghost" id="xZalo" type="button">Đóng</button></div>
       <p class="meta">Bấm Gửi Zalo để chọn Zalo. Hoặc nhấn giữ ảnh để lưu.</p>
       <img class="zalo-shot" alt="Hóa đơn" src="${url}">
@@ -854,7 +1025,7 @@ async function showZalo(o) {
         <button class="btn soft" id="saveZalo" type="button">Tải ảnh</button>
       </div>
     </div>`;
-    $("xZalo").onclick = () => { URL.revokeObjectURL(url); $("modal").classList.add("hidden"); };
+    $("xZalo").onclick = () => { URL.revokeObjectURL(url); host.classList.add("hidden"); };
     $("saveZalo").onclick = () => { const a = document.createElement("a"); a.href = url; a.download = file.name; a.click(); };
     $("shareZalo").onclick = async () => {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -866,7 +1037,7 @@ async function showZalo(o) {
       }
     };
   } catch (err) {
-    $("modal").classList.add("hidden");
+    host.classList.add("hidden");
     toast(err.message || "Không tạo được ảnh");
   }
 }

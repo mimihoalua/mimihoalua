@@ -138,7 +138,8 @@
                     </div>
                     <button onclick="openProductModal()" class="bg-[#ee4d2d] text-white px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/30 hover:bg-[#d73211] text-sm font-bold flex items-center gap-2 transition transform active:scale-95"><i class="fa-solid fa-plus"></i> <span class="hidden md:inline">Thêm Mới</span></button>
                 </div>
-                <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                <input id="pSearch" oninput="setProductQuery(this.value)" class="w-full mb-3 border border-slate-200 bg-white p-3 rounded-xl text-sm outline-none focus:border-[#ee4d2d]" placeholder="Tìm tên sản phẩm hoặc biến thể">
+                <div id="productList" class="flex flex-col gap-2"></div>
             </div>
         </div>
     </div>
@@ -262,43 +263,169 @@
         function exportOrder() { const d = currentOrderData; let text = `\uFEFFĐƠN HÀNG #${d.id.slice(-6).toUpperCase()}\r\n----------------\r\nKH: ${d.customer.name}\r\nSĐT: ${d.customer.phone}\r\nĐC: ${d.customer.fullAddress}\r\n----------------\r\n`; d.items.forEach(i => { text += `- ${i.name} (${i.variant}) x${i.qty} = ${formatMoney(i.price*i.qty)}\r\n`; }); text += `----------------\r\nTỔNG: ${formatMoney(d.total)}`; const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type: "text/plain;charset=utf-8"})); a.download = `Don_${d.customer.name}.txt`; a.click(); }
         function shareOrder(platform) { const d = currentOrderData; let text = `Đơn mới: ${d.customer.name} - ${d.customer.phone}\nĐC: ${d.customer.fullAddress}\nHàng:\n`; d.items.forEach(i => { text += `- ${i.name} (${i.variant}) x${i.qty}\n`; }); text += `Tổng: ${formatMoney(d.total)}`; navigator.clipboard.writeText(text).then(() => { alert("Đã copy nội dung! Đang mở Zalo..."); window.open('https://chat.zalo.me/', '_blank'); }); }
 
-        function loadProducts() {
-            const grid = document.getElementById('productList');
-            grid.innerHTML = '<div class="loader mx-auto col-span-full"></div>';
-            db.collection("products").orderBy("createdAt", "desc").get().then(snap => {
-                let html = '';
-                snap.forEach(doc => {
-                    const p = doc.data();
-                    let matrixHtml = ''; let totalStock = 0;
-                    if (p.variants && p.variants.length > 0) {
-                        p.variants.forEach((v, index) => {
-                            const stock = parseInt(v.stock) || 0; totalStock += stock;
-                            const typeIcon = v.originalImage ? '<i class="fa-solid fa-camera"></i>' : '<i class="fa-solid fa-font"></i>';
-                            const colorClass = stock > 0 ? 'bg-dot-green' : 'bg-dot-gray';
-                            matrixHtml += `<span class="matrix-badge hover:border-[#ee4d2d] transition-all cursor-pointer" onclick="event.stopPropagation(); editProduct('${doc.id}', this, ${index})" title="${v.name} - Kho: ${stock}"><span class="dot-stock ${colorClass}"></span>${typeIcon}</span>`;
-                        });
-                        if (p.variants.length > 10) { matrixHtml += `<span class="matrix-badge bg-slate-50 text-slate-500 font-bold hover:bg-slate-100 cursor-pointer" onclick="event.stopPropagation(); editProduct('${doc.id}', this)">+${p.variants.length-10}</span>`; }
-                    } else { matrixHtml = '<span class="text-[10px] text-slate-400">Cơ bản</span>'; totalStock = 999; }
-                    const isOutOfStock = (p.variants && p.variants.length > 0 && totalStock === 0);
-                    const opacityClass = isOutOfStock ? 'card-out-of-stock' : '';
-                    const statusLabel = isOutOfStock ? '<div class="absolute top-2 left-2 bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">HẾT HÀNG</div>' : '';
+        let productCache = [];
+        let openProductId = null;
+        let productQuery = "";
 
-                    html += `
-                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition relative group flex flex-col h-full ${opacityClass}">
-                        ${statusLabel}
-                        <div class="absolute top-2 right-2 z-20">
-                            <button onclick="deleteProduct('${doc.id}')" class="bg-white text-red-500 w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition transform active:scale-90 border border-gray-100" title="Xóa"><i class="fa-solid fa-trash text-xs"></i></button>
-                        </div>
-                        <div class="aspect-square bg-gray-100 relative"><img src="${p.images?.[0] || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover" loading="lazy"></div>
-                        <div class="p-3 flex-1 flex flex-col">
-                            <h3 class="font-bold text-slate-800 line-clamp-1 text-sm mb-1">${p.name}</h3>
-                            <div class="flex justify-between items-center mb-2"><span class="text-[#ee4d2d] font-bold text-sm">${formatMoney(p.basePrice)}</span><span class="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded font-mono">Kho: ${totalStock}</span></div>
-                            <div class="flex flex-wrap gap-1 mb-3 h-6 overflow-hidden content-start">${matrixHtml}</div>
-                            <button onclick="editProduct('${doc.id}', this)" class="mt-auto w-full bg-blue-50 text-blue-600 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-100 transition flex items-center justify-center gap-2"><i class="fa-solid fa-pen"></i> Chỉnh Sửa</button>
-                        </div>
-                    </div>`;
-                }); grid.innerHTML = html;
-            });
+        function escAdmin(s) {
+          return String(s ?? "").replace(/[&<>"']/g, (c) => {
+            if (c === "&") return "&" + "amp;";
+            if (c === "<") return "&" + "lt;";
+            if (c === ">") return "&" + "gt;";
+            if (c === '"') return "&" + "quot;";
+            return "&" + "#39;";
+          });
+        }
+        function priceLabel(p) {
+          const prices = (p.variants || []).map((v) => Number(v.price)).filter((n) => Number.isFinite(n) && n > 0);
+          const base = Number(p.basePrice);
+          if (prices.length) {
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            return min === max ? formatMoney(min) : ("từ " + formatMoney(min));
+          }
+          return formatMoney(Number.isFinite(base) ? base : 0);
+        }
+        function stockOf(p) {
+          if (p.variants && p.variants.length) return p.variants.reduce((s, v) => s + (parseInt(v.stock, 10) || 0), 0);
+          const n = parseInt(p.stock, 10);
+          return Number.isFinite(n) ? n : 0;
+        }
+        function harvestOpenVariants() {
+          if (!openProductId) return;
+          const box = document.getElementById("vbox-" + openProductId);
+          if (!box) return;
+          const p = productCache.find((x) => x.id === openProductId);
+          if (!p) return;
+          p.variants = [...box.querySelectorAll(".vrow")].map((r) => ({
+            name: r.querySelector(".vn").value,
+            price: parseInt(r.querySelector(".vp").value, 10) || 0,
+            stock: parseInt(r.querySelector(".vs").value, 10) || 0,
+            originalImage: r.querySelector(".vi").value.trim()
+          }));
+        }
+        function loadProducts() {
+          const list = document.getElementById("productList");
+          list.innerHTML = '<div class="text-center text-slate-400 py-8">Đang tải sản phẩm...</div>';
+          const draw = (snap) => {
+            productCache = [];
+            snap.forEach((doc) => productCache.push({ id: doc.id, ...doc.data() }));
+            productCache.sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi"));
+            renderProductRows();
+          };
+          db.collection("products").get().then(draw).catch((err) => {
+            list.innerHTML = '<div class="text-center text-red-500 py-8">' + escAdmin(err.message) + "</div>";
+          });
+        }
+        function setProductQuery(value) {
+          productQuery = value || "";
+          renderProductRows();
+        }
+        function renderProductRows(skipHarvest) {
+          if (!skipHarvest) harvestOpenVariants();
+          const list = document.getElementById("productList");
+          const q = (productQuery || "").toLowerCase().trim();
+          const rows = productCache.filter((p) => {
+            if (!q) return true;
+            const blob = [p.name, p.category, ...(p.variants || []).map((v) => v.name)].join(" ").toLowerCase();
+            return blob.includes(q);
+          });
+          if (!rows.length) {
+            list.innerHTML = '<div class="text-center text-slate-400 py-8">Không thấy sản phẩm.</div>';
+            return;
+          }
+          list.innerHTML = rows.map((p) => {
+            const open = openProductId === p.id;
+            const stock = stockOf(p);
+            const img = (p.images && p.images[0]) || "";
+            const variants = p.variants || [];
+            const body = open ? `
+              <div class="border-t border-slate-100 p-3 bg-slate-50" id="vbox-${p.id}">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="text-xs font-bold uppercase text-slate-500">Biến thể · ${variants.length}</div>
+                  <button type="button" onclick="addVariantInline('${p.id}')" class="text-xs bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg font-bold">+ Thêm biến thể</button>
+                </div>
+                ${variants.length ? variants.map((v, i) => `
+                  <div class="vrow bg-white border border-slate-200 rounded-xl p-2 mb-2" data-i="${i}">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                      <input class="vn md:col-span-4 border border-slate-200 rounded-lg p-2 text-sm" value="${escAdmin(v.name || "")}" placeholder="Tên biến thể">
+                      <input class="vp md:col-span-3 border border-slate-200 rounded-lg p-2 text-sm" type="number" value="${Number(v.price) || 0}" placeholder="Giá">
+                      <div class="md:col-span-3 flex items-center gap-1">
+                        <button type="button" class="w-9 h-9 rounded-lg bg-slate-100 font-bold" onclick="bumpStock('${p.id}', ${i}, -1)">−</button>
+                        <input class="vs w-full border border-slate-200 rounded-lg p-2 text-sm text-center font-bold" type="number" value="${parseInt(v.stock, 10) || 0}">
+                        <button type="button" class="w-9 h-9 rounded-lg bg-slate-100 font-bold" onclick="bumpStock('${p.id}', ${i}, 1)">+</button>
+                      </div>
+                      <button type="button" class="md:col-span-2 text-red-500 text-sm font-bold" onclick="removeVariantInline('${p.id}', ${i})">Xóa</button>
+                    </div>
+                    <input class="vi mt-2 w-full border border-slate-200 rounded-lg p-2 text-xs" value="${escAdmin(v.originalImage || "")}" placeholder="Link ảnh riêng, để trống nếu dùng ảnh chính">
+                  </div>`).join("") : '<p class="text-xs text-slate-400 mb-2">Chưa có biến thể. Bấm thêm, hoặc để trống để bán theo giá cơ bản.</p>'}
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <button type="button" onclick="saveVariantBlock('${p.id}')" class="bg-[#ee4d2d] text-white px-4 py-2 rounded-lg text-sm font-bold">Lưu biến thể</button>
+                  <button type="button" onclick="editProduct('${p.id}', this)" class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold">Sửa đầy đủ</button>
+                  <button type="button" onclick="deleteProduct('${p.id}')" class="text-red-500 px-3 py-2 text-sm font-bold">Xóa sản phẩm</button>
+                </div>
+              </div>` : "";
+            return `
+              <article class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <button type="button" class="w-full flex items-center gap-3 p-3 text-left" onclick="toggleProduct('${p.id}')">
+                  <img src="${escAdmin(img || "https://via.placeholder.com/80")}" alt="" class="w-14 h-14 rounded-lg object-cover bg-slate-100 shrink-0">
+                  <div class="min-w-0 flex-1">
+                    <div class="font-bold text-slate-800 text-sm truncate">${escAdmin(p.name || "Chưa đặt tên")}</div>
+                    <div class="text-xs text-slate-500 truncate">${escAdmin(p.category || "Chưa phân loại")} · ${variants.length} biến thể${stock === 0 ? " · hết hàng" : ""}</div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="font-bold text-[#ee4d2d] text-sm">${priceLabel(p)}</div>
+                    <div class="text-[11px] text-slate-500">Kho ${stock}</div>
+                  </div>
+                  <i class="fa-solid ${open ? "fa-chevron-up" : "fa-chevron-down"} text-slate-400"></i>
+                </button>
+                ${body}
+              </article>`;
+          }).join("");
+        }
+        function toggleProduct(id) {
+          harvestOpenVariants();
+          openProductId = openProductId === id ? null : id;
+          renderProductRows(true);
+        }
+        function bumpStock(id, index, delta) {
+          const input = document.querySelector('#vbox-' + id + ' .vrow[data-i="' + index + '"] .vs');
+          if (!input) return;
+          input.value = Math.max(0, (parseInt(input.value, 10) || 0) + delta);
+        }
+        function addVariantInline(id) {
+          harvestOpenVariants();
+          const p = productCache.find((x) => x.id === id);
+          if (!p) return;
+          if (!Array.isArray(p.variants)) p.variants = [];
+          p.variants.push({ name: "", price: Number(p.basePrice) || 0, stock: 0, originalImage: "" });
+          openProductId = id;
+          renderProductRows(true);
+        }
+        function removeVariantInline(id, index) {
+          harvestOpenVariants();
+          const p = productCache.find((x) => x.id === id);
+          if (!p || !p.variants) return;
+          p.variants.splice(index, 1);
+          openProductId = id;
+          renderProductRows(true);
+        }
+        function saveVariantBlock(id) {
+          harvestOpenVariants();
+          const p = productCache.find((x) => x.id === id);
+          if (!p) return;
+          const variants = (p.variants || []).filter((v) => String(v.name || "").trim()).map((v) => ({
+            name: String(v.name).trim(),
+            price: parseInt(v.price, 10) || 0,
+            stock: parseInt(v.stock, 10) || 0,
+            originalImage: v.originalImage || ""
+          }));
+          db.collection("products").doc(id).update({ variants }).then(() => {
+            p.variants = variants;
+            openProductId = id;
+            renderProductRows();
+            alert("Đã lưu biến thể");
+          }).catch((err) => alert("Firebase từ chối: " + err.message));
         }
 
         async function editProduct(id, btn, targetIndex = -1) {
