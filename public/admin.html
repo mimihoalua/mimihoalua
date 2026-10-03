@@ -153,6 +153,7 @@
                     <div class="min-w-0">
                         <h2 class="text-xl sm:text-2xl font-bold text-slate-800">Sản Phẩm & Kho</h2>
                         <p id="productCount" class="text-xs text-slate-400 mt-1"></p>
+                        <div id="productCatStats" class="flex flex-wrap gap-2 mt-2"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center shrink-0">
                         <button type="button" onclick="exportProductsJson()" id="btnExportJson" class="bg-white text-slate-700 border border-slate-200 px-3 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:border-[#ee4d2d] hover:text-[#ee4d2d] transition"><i class="fa-solid fa-file-arrow-down"></i> <span class="md:hidden">JSON</span><span class="hidden md:inline">Xuất JSON</span></button>
@@ -350,6 +351,29 @@
           const n = parseInt(p.stock, 10);
           return Number.isFinite(n) ? n : 0;
         }
+        function variantIsOut(v) {
+          const n = parseInt(v && v.stock, 10);
+          const qty = Number.isFinite(n) ? n : 0;
+          if (qty > 0) return false;
+          if (v && v.stockKnown === false) return false;
+          if (v && v.status === "IN_STOCK" && v.stockKnown !== true) return false;
+          return true;
+        }
+        function productIsOut(p) {
+          if (p && p.variants && p.variants.length) return p.variants.every(variantIsOut);
+          if (!p || p.stock === undefined || p.stock === null || p.stock === "") return false;
+          return variantIsOut({ stock: p.stock, status: p.status, stockKnown: p.stockKnown });
+        }
+        function saleCounts(list) {
+          let sell = 0, out = 0;
+          (list || []).forEach((p) => { if (productIsOut(p)) out++; else sell++; });
+          return { sell, out, total: (list || []).length };
+        }
+        function filterCategory(name) {
+          const input = document.getElementById("pSearch");
+          if (input) input.value = name;
+          setProductQuery(name);
+        }
         function harvestOpenVariants() {
           if (!openProductId) return;
           const box = document.getElementById("vbox-" + openProductId);
@@ -452,7 +476,25 @@
             return blob.includes(q);
           });
           const countEl = document.getElementById("productCount");
-          if (countEl) countEl.textContent = q ? (rows.length + " / " + productCache.length + " sản phẩm") : (productCache.length + " sản phẩm");
+          const shop = saleCounts(productCache);
+          const view = saleCounts(rows);
+          if (countEl) {
+            const head = q ? (view.total + " / " + shop.total + " đang lọc · ") : "";
+            countEl.textContent = head + shop.total + " sản phẩm · " + shop.sell + " đang bán · " + shop.out + " hết hàng";
+          }
+          const catHost = document.getElementById("productCatStats");
+          if (catHost) {
+            const by = new Map();
+            productCache.forEach((p) => {
+              const name = p.category || "Chưa phân loại";
+              if (!by.has(name)) by.set(name, []);
+              by.get(name).push(p);
+            });
+            catHost.innerHTML = [...by.entries()].sort((a, b) => b[1].length - a[1].length).map(([name, list]) => {
+              const c = saleCounts(list);
+              return `<button type="button" data-cat="${escAdmin(name)}" onclick="filterCategory(this.dataset.cat)" class="text-left bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] leading-snug hover:border-[#ee4d2d]"><b class="text-slate-800">${escAdmin(name)}</b><br><span class="text-slate-500">${c.total} món · </span><span class="text-emerald-600 font-bold">${c.sell} bán</span> · <span class="text-rose-500 font-bold">${c.out} hết</span></button>`;
+            }).join("");
+          }
           if (!rows.length) {
             list.innerHTML = '<div class="text-center text-slate-400 py-8">Không thấy sản phẩm.</div>';
             return;
@@ -494,12 +536,12 @@
                   <img src="${escAdmin(img || "https://via.placeholder.com/80")}" alt="" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover bg-slate-100 shrink-0">
                   <div class="min-w-0 flex-1">
                     <div class="font-bold text-slate-800 text-sm leading-snug line-clamp-2">${escAdmin(p.name || "Chưa đặt tên")}</div>
-                    <div class="text-xs text-slate-500 mt-0.5">${escAdmin(p.category || "Chưa phân loại")} · ${variants.length} biến thể${stock === 0 ? " · hết hàng" : ""}</div>
-                    <div class="mt-1 font-bold text-[#ee4d2d] text-sm md:hidden">${priceLabel(p)} <span class="text-slate-400 font-normal">· kho ${stock}</span></div>
+                    <div class="text-xs text-slate-500 mt-0.5">${escAdmin(p.category || "Chưa phân loại")} · ${variants.length} biến thể${productIsOut(p) ? " · hết hàng" : ((p.variants || []).some((v) => v.stockKnown === false) ? " · đang bán, chưa rõ số" : "")}</div>
+                    <div class="mt-1 font-bold text-[#ee4d2d] text-sm md:hidden">${priceLabel(p)} <span class="text-slate-400 font-normal">· ${productIsOut(p) ? "hết hàng" : ((p.variants || []).some((v) => v.stockKnown === false) ? "đang bán" : ("kho " + stock))}</span></div>
                   </div>
                   <div class="text-right shrink-0 hidden md:block">
                     <div class="font-bold text-[#ee4d2d] text-sm">${priceLabel(p)}</div>
-                    <div class="text-[11px] text-slate-500">Kho ${stock}</div>
+                    <div class="text-[11px] text-slate-500">${productIsOut(p) ? "Hết hàng" : ((p.variants || []).some((v) => v.stockKnown === false) ? "Đang bán" : ("Kho " + stock))}</div>
                   </div>
                   <i class="fa-solid ${open ? "fa-chevron-up" : "fa-chevron-down"} text-slate-400 mt-1"></i>
                 </button>
