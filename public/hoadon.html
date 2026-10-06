@@ -38,8 +38,8 @@
   .grid > *, .row > div { min-width: 0; }
   .sel { max-width: 100%; }
   @media (min-width: 900px) {
-    .sell { grid-template-columns: minmax(0,1fr) 340px; align-items: start; }
-    .sell > aside.card { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow: auto; }
+    .sell, .quote { grid-template-columns: minmax(0,1fr) 340px; align-items: start; }
+    .sell > aside.card, .quote > aside.card { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow: auto; }
   }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
   .pad { padding: 12px; }
@@ -98,6 +98,21 @@
   .qr { display: flex; gap: 10px; align-items: center; margin-top: 10px; border: 1px solid #e4d3c0; border-radius: 14px; padding: 8px; background: #fff; }
   .qr img { width: 112px; height: 112px; object-fit: contain; background: white; border: 1px solid #efe4d6; }
   .thanks { text-align: center; color: #6f655c; font-size: 13px; margin: 14px 0 2px; line-height: 1.55; }
+  .quote-paper { width: min(190mm, 100%); margin: 0 auto; background: #fbf8f3; color: #1c1915; border-radius: 22px; padding: 22px 22px 18px; position: relative; box-shadow: 0 10px 30px rgba(124,53,39,.08); }
+  .quote-paper:before { content: ""; position: absolute; inset: 8px; border: 1px solid #e4c994; border-radius: 16px; pointer-events: none; }
+  .quote-band { height: 8px; border-radius: 99px; background: linear-gradient(90deg, #7c3527, #a68456 55%, #f3e2c4); margin-bottom: 16px; }
+  .quote-kicker { letter-spacing: .28em; color: #a68456; font-size: 12px; font-weight: 700; text-align: center; }
+  .quote-paper h2 { text-align: center; color: #7c3527; letter-spacing: .18em; font-size: 32px; margin: 4px 0 0; }
+  .quote-lead { text-align: center; color: #6f655c; margin: 6px 0 14px; }
+  .quote-who { background: #fff; border: 1px solid #eadfce; border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+  .quote-paper table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  .quote-paper th { background: #7c3527; color: #fff8f3; font-size: 12px; letter-spacing: .04em; padding: 8px; }
+  .quote-paper td { border-bottom: 1px solid #eadfce; padding: 8px; background: #fff; }
+  .quote-sum { margin-top: 14px; margin-left: auto; width: min(280px, 100%); background: #fff; border: 1px solid #eadfce; border-radius: 14px; overflow: hidden; }
+  .quote-sum div { display: flex; justify-content: space-between; padding: 8px 12px; }
+  .quote-sum .vat { background: #fff6ea; color: #7c3527; font-weight: 700; }
+  .quote-sum .grand { background: #7c3527; color: #fff8f3; font-weight: 800; font-size: 16px; }
+  .quote-note { margin-top: 14px; color: #6f655c; font-size: 13px; line-height: 1.55; }
   .invoice-paper[data-paper="a6"] .inv-logo { width: 64px; height: 64px; }
   .invoice-paper[data-paper="a6"] .inv-shop h3, .invoice-paper[data-paper="a7"] .inv-shop h3 { font-size: 16px; }
   .invoice-paper[data-paper="a6"] .inv-web, .invoice-paper[data-paper="a7"] .inv-web { display: none; }
@@ -113,8 +128,8 @@
   @media (max-width: 899px) {
     .list { max-height: calc(100vh - 250px); }
     .dock.show { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: 8px; align-items: center; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
-    .sell > aside.card { display: none; }
-    .sell > aside.card.open { display: block; position: fixed; z-index: 25; left: 8px; right: 8px; top: 64px; bottom: 76px; overflow: auto; }
+    .sell > aside.card, .quote > aside.card { display: none; }
+    .sell > aside.card.open, .quote > aside.card.open { display: block; position: fixed; z-index: 25; left: 8px; right: 8px; top: 64px; bottom: 76px; overflow: auto; }
   }
   @media print {
     body * { visibility: hidden; }
@@ -188,14 +203,18 @@ let orders = [];
 let codes = [];
 let tab = "sell";
 let cart = {};
+let quoteCart = {};
 let qSell = "";
+let qQuote = "";
 let qOrder = "";
 let qProd = "";
 let filter = "all";
 let cloud = "Đang nối Firebase…";
 let cloudOk = false;
 let sellReady = false;
+let quoteReady = false;
 let draft = { clientName: "", clientPhone: "", clientAddress: "", pay: "Tiền mặt", ship: "0", discount: "0", vat: false, note: "", paidCash: "", paidCard: "" };
+let quoteDraft = { clientName: "", clientPhone: "", clientAddress: "", vat: true, note: "", validDays: "7" };
 let saving = false;
 
 const $ = (id) => document.getElementById(id);
@@ -260,7 +279,7 @@ function watch() {
   db.collection("access_codes").onSnapshot((snap) => {
     codes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     codes.sort((a, b) => String(a.clientName || "").localeCompare(String(b.clientName || ""), "vi"));
-    if (tab === "codes" || tab === "sell") paint();
+    if (tab === "codes" || tab === "sell" || tab === "quote") paint();
   }, (err) => toast("Mã khách: " + err.message));
 }
 
@@ -269,9 +288,16 @@ function paint() {
   $("cloudPill").className = "pill " + (cloudOk ? "ok" : "warn");
   const open = orders.filter((o) => o.status === "new").length;
   $("countPill").textContent = `${products.length} hàng · ${orders.length} đơn · ${open} chờ chốt`;
-  const tabs = [["sell", "Bán"], ["orders", "Hóa đơn"], ["goods", "Hàng"], ["codes", "Mã khách"], ["txt", "Nhập TXT"]];
+  const tabs = [["sell", "Bán"], ["quote", "Báo giá"], ["orders", "Hóa đơn"], ["goods", "Hàng"], ["codes", "Mã khách"], ["txt", "Nhập TXT"]];
   $("tabs").innerHTML = tabs.map(([id, label]) => `<button type="button" class="${tab === id ? "on" : ""}" data-tab="${id}">${label}</button>`).join("");
-  $("tabs").querySelectorAll("button").forEach((b) => b.onclick = () => { tab = b.dataset.tab; sellReady = false; paint(); });
+  $("tabs").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    if (tab === "sell") pullDraft();
+    if (tab === "quote") pullQuote();
+    tab = b.dataset.tab;
+    sellReady = false;
+    quoteReady = false;
+    paint();
+  });
   syncDock();
   if (tab === "sell" && sellReady && $("productList")) {
     fillProducts();
@@ -281,7 +307,16 @@ function paint() {
     syncDock();
     return;
   }
+  if (tab === "quote" && quoteReady && $("quoteList")) {
+    fillQuoteProducts();
+    fillQuoteCodes();
+    renderQuoteCart();
+    if (window.__updateQuoteTotals) window.__updateQuoteTotals();
+    syncDock();
+    return;
+  }
   if (tab === "sell") renderSell();
+  else if (tab === "quote") renderQuote();
   else if (tab === "orders" && $("modal").classList.contains("hidden")) renderOrders();
   else if (tab === "orders") { /* giữ phiếu đang mở */ }
   else if (tab === "goods" && $("modal").classList.contains("hidden")) renderGoods();
@@ -466,14 +501,15 @@ function renderCart() {
 function syncDock() {
   const dock = $("dock");
   if (!dock) return;
-  const lines = Object.values(cart);
+  const quoteMode = tab === "quote";
+  const lines = Object.values(quoteMode ? quoteCart : cart);
   const n = lines.reduce((s, l) => s + l.qty, 0);
   const sub = lines.reduce((s, l) => s + l.qty * l.price, 0);
-  dock.classList.toggle("show", tab === "sell");
-  dock.innerHTML = `<div class="grow"><b>${n} món</b><div class="meta">${money(sub)} đ</div></div><button class="btn" id="openCart" type="button">Mở giỏ</button>`;
+  dock.classList.toggle("show", tab === "sell" || tab === "quote");
+  dock.innerHTML = `<div class="grow"><b>${n} món</b><div class="meta">${money(sub)} đ</div></div><button class="btn" id="openCart" type="button">${quoteMode ? "Mở báo giá" : "Mở giỏ"}</button>`;
   const btn = $("openCart");
   if (btn) btn.onclick = () => {
-    const aside = document.querySelector(".sell > aside.card");
+    const aside = document.querySelector(quoteMode ? ".quote > aside.card" : ".sell > aside.card");
     if (aside) aside.classList.toggle("open");
   };
 }
@@ -1252,6 +1288,454 @@ async function showZalo(o) {
         catch (err) { if (err.name !== "AbortError") toast(err.message); }
       } else {
         $("saveZalo").click();
+        toast("Đã tải ảnh. Mở Zalo và gửi file này.");
+      }
+    };
+  } catch (err) {
+    host.classList.add("hidden");
+    toast(err.message || "Không tạo được ảnh");
+  }
+}
+
+function pullQuote() {
+  if (!$("qClient")) return;
+  quoteDraft.clientName = $("qClient").value;
+  quoteDraft.clientPhone = $("qPhone").value;
+  quoteDraft.clientAddress = $("qAddress").value;
+  quoteDraft.note = $("qNote").value;
+  quoteDraft.validDays = $("qDays").value || "7";
+  quoteDraft.vat = $("qVat").checked;
+}
+function quoteCode() {
+  const b = vnParts(new Date());
+  return "BG" + b.year + b.month + b.day + b.hour + b.minute;
+}
+function quoteUntil(days) {
+  const n = Math.max(1, parseInt(days, 10) || 7);
+  const b = vnParts(new Date(Date.now() + n * 86400000));
+  return `${b.day}/${b.month}/${b.year}`;
+}
+function quoteMoney(lines, vatOn) {
+  const sub = lines.reduce((s, l) => s + Number(l.qty ?? l.quantity) * Number(l.price), 0);
+  const vat = vatOn ? Math.round(sub * 0.08) : 0;
+  return { sub, vat, total: sub + vat };
+}
+function buildQuote() {
+  pullQuote();
+  const lines = Object.values(quoteCart);
+  const moneyPart = quoteMoney(lines, quoteDraft.vat);
+  const days = String(quoteDraft.validDays || "7");
+  return {
+    kind: "quote",
+    orderId: quoteCode(),
+    clientName: (quoteDraft.clientName || "").trim() || "Quý khách",
+    clientPhone: (quoteDraft.clientPhone || "").trim(),
+    clientAddress: (quoteDraft.clientAddress || "").trim(),
+    items: lines.map((l) => ({ sku: l.sku, name: l.name, unit: l.unit || "cây", quantity: l.qty, price: l.price, img: l.img || "" })),
+    subTotal: moneyPart.sub,
+    vatFee: moneyPart.vat,
+    vatOn: !!quoteDraft.vat,
+    finalTotal: moneyPart.total,
+    validDays: days,
+    validUntil: quoteUntil(days),
+    note: (quoteDraft.note || "").trim(),
+    createdAt: { seconds: Math.floor(Date.now() / 1000) }
+  };
+}
+function renderQuote() {
+  const root = $("view");
+  root.innerHTML = `
+    <div class="grid quote">
+      <section class="card">
+        <div class="pad row">
+          <input class="field" id="qQuote" placeholder="Tìm tên hoặc mã hàng" value="${esc(qQuote)}">
+          <button class="btn soft" id="addFree" type="button">Dòng tay</button>
+        </div>
+        <div class="list" id="quoteList"></div>
+      </section>
+      <aside class="card pad">
+        <strong>Báo giá gửi khách</strong>
+        <p class="meta">Chọn hàng như lúc bán. Giá tự nhập. Không trừ tồn, không vào sổ hóa đơn.</p>
+        <div id="quoteBox"></div>
+        <label class="lbl">Kính gửi</label>
+        <input class="field" id="qClient" list="quoteCodes" placeholder="Tên khách" value="${esc(quoteDraft.clientName)}">
+        <datalist id="quoteCodes"></datalist>
+        <label class="lbl">SĐT</label>
+        <input class="field" id="qPhone" inputmode="tel" value="${esc(quoteDraft.clientPhone)}">
+        <label class="lbl">Địa chỉ</label>
+        <textarea class="area" id="qAddress">${esc(quoteDraft.clientAddress)}</textarea>
+        <label class="lbl">Hiệu lực (ngày)</label>
+        <input class="field" id="qDays" inputmode="numeric" value="${esc(quoteDraft.validDays)}">
+        <label class="row" style="margin-top:8px"><input type="checkbox" id="qVat" ${quoteDraft.vat ? "checked" : ""}> Thêm dòng VAT 8%</label>
+        <label class="lbl">Ghi chú thêm</label>
+        <textarea class="area" id="qNote" placeholder="Ví dụ: đã gồm chậu xi măng size 30cm">${esc(quoteDraft.note)}</textarea>
+        <div class="row" style="justify-content:space-between;margin-top:8px"><span>Tiền hàng</span><b id="qSub"></b></div>
+        <div class="row" style="justify-content:space-between"><span>VAT 8%</span><b id="qVatLab"></b></div>
+        <div class="row" style="justify-content:space-between"><span>Tổng báo giá</span><b id="qTotal"></b></div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="seeQuote" type="button">Xem báo giá</button>
+          <button class="btn soft" id="fileQuote" type="button">Ảnh gửi Zalo</button>
+        </div>
+      </aside>
+    </div>`;
+  $("qQuote").oninput = (e) => { qQuote = e.target.value; fillQuoteProducts(); };
+  $("addFree").onclick = openFreeQuoteLine;
+  ["qClient", "qPhone", "qAddress", "qDays", "qNote"].forEach((id) => { $(id).oninput = () => pullQuote(); });
+  $("qClient").onchange = () => { pullQuote(); fillQuoteClient(); };
+  $("qVat").onchange = () => { pullQuote(); updateQuoteTotals(); };
+  $("seeQuote").onclick = () => {
+    if (!Object.keys(quoteCart).length) return toast("Chưa chọn hàng.");
+    openQuotePreview(buildQuote());
+  };
+  $("fileQuote").onclick = () => {
+    if (!Object.keys(quoteCart).length) return toast("Chưa chọn hàng.");
+    showQuoteFile(buildQuote());
+  };
+  quoteReady = true;
+  fillQuoteCodes();
+  fillQuoteProducts();
+  renderQuoteCart();
+  updateQuoteTotals();
+  function updateQuoteTotals() {
+    const part = quoteMoney(Object.values(quoteCart), $("qVat").checked);
+    $("qSub").textContent = money(part.sub) + " đ";
+    $("qVatLab").textContent = money(part.vat) + " đ";
+    $("qTotal").textContent = money(part.total) + " đ";
+    syncDock();
+  }
+  window.__updateQuoteTotals = updateQuoteTotals;
+}
+function fillQuoteCodes() {
+  const list = $("quoteCodes");
+  if (!list) return;
+  list.innerHTML = codes.map((c) => `<option value="${esc(c.clientName || c.id)}">${esc(c.id)} · ${esc(c.clientName || "")}</option>`).join("");
+}
+function fillQuoteClient() {
+  const name = ($("qClient").value || "").trim();
+  const c = codes.find((x) => (x.clientName || "") === name || x.id === name);
+  if (!c) return;
+  if ((c.phone || c.clientPhone || c.sdt) && !$("qPhone").value) $("qPhone").value = c.phone || c.clientPhone || c.sdt;
+  if ((c.address || c.clientAddress || c.diaChi) && !$("qAddress").value) $("qAddress").value = c.address || c.clientAddress || c.diaChi;
+  pullQuote();
+}
+function fillQuoteProducts() {
+  const box = $("quoteList");
+  if (!box) return;
+  const rows = products.filter((p) => p.isActive !== false && hit(`${p.name} ${p.sku} ${p.category}`, qQuote)).slice(0, 80);
+  if (!rows.length) {
+    box.innerHTML = `<div class="pad meta">${!cloudOk ? "Đang tải hàng từ Firebase…" : (qQuote ? "Không thấy hàng." : "Kho chưa có hàng.")}</div>`;
+    return;
+  }
+  box.innerHTML = rows.map((p) => `
+    <button type="button" class="item" data-qadd="${esc(p.docId)}">
+      ${imgOf(p) ? `<img alt="" src="${esc(imgOf(p))}">` : `<span class="ph"></span>`}
+      <span class="grow"><span class="name">${esc(p.name)}</span><span class="meta">${esc(p.sku || "")} · tồn ${esc(p.stock ?? 0)}</span></span>
+      <span class="right"><span class="meta">Gợi ý</span><b>${money(priceOf(p))}</b></span>
+    </button>`).join("");
+  box.querySelectorAll("[data-qadd]").forEach((btn) => btn.onclick = () => addQuote(btn.dataset.qadd));
+}
+function addQuote(docId) {
+  const p = products.find((x) => x.docId === docId);
+  if (!p) return;
+  if (quoteCart[p.docId]) {
+    quoteCart[p.docId].qty += 1;
+    renderQuoteCart();
+    window.__updateQuoteTotals?.();
+    toast("Đã tăng số lượng.");
+    return;
+  }
+  openQuotePrice(p);
+}
+function openQuotePrice(p) {
+  const suggest = priceOf(p);
+  $("modal").classList.remove("hidden");
+  $("modal").innerHTML = `<div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Thêm vào báo giá</h2><button class="btn ghost" id="xQ" type="button">Đóng</button></div>
+    <label class="lbl">Tên in trên báo giá</label>
+    <input class="field" id="qName" value="${esc(p.name)}">
+    <p class="meta">Gợi ý giá shop: <b>${money(suggest)} đ</b>. Giá báo khách tự nhập.</p>
+    <label class="lbl">Đơn giá</label>
+    <input class="field" id="qPrice" inputmode="numeric" placeholder="Ví dụ 970.000" autocomplete="off">
+    <button class="btn soft" id="qSuggest" type="button" style="margin-top:8px">Điền gợi ý ${money(suggest)}</button>
+    <label class="lbl">Số lượng</label>
+    <input class="field" id="qQty" inputmode="numeric" value="1">
+    <button class="btn" id="qOk" type="button" style="margin-top:12px;width:100%">Thêm vào báo giá</button>
+  </div>`;
+  $("xQ").onclick = () => $("modal").classList.add("hidden");
+  $("qPrice").focus();
+  $("qSuggest").onclick = () => { $("qPrice").value = money(suggest); $("qPrice").focus(); };
+  $("qOk").onclick = () => {
+    const price = parseInt($("qPrice").value.replace(/\D/g, ""), 10) || 0;
+    if (!price) return toast("Nhập đơn giá báo khách.");
+    const qty = Math.max(1, parseInt($("qQty").value, 10) || 1);
+    const name = ($("qName").value || "").trim() || p.name;
+    quoteCart[p.docId] = { key: p.docId, sku: p.sku || "", name, unit: p.unit || p.dvt || "cây", price, qty, img: imgOf(p) };
+    $("modal").classList.add("hidden");
+    renderQuoteCart();
+    window.__updateQuoteTotals?.();
+    const aside = document.querySelector(".quote > aside.card");
+    if (aside && window.matchMedia("(max-width: 899px)").matches) aside.classList.add("open");
+    toast("Đã thêm vào báo giá");
+  };
+}
+function openFreeQuoteLine() {
+  $("modal").classList.remove("hidden");
+  $("modal").innerHTML = `<div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Dòng tự viết</h2><button class="btn ghost" id="xFree" type="button">Đóng</button></div>
+    <p class="meta">Dùng khi tên gửi khách khác tên trong kho. Ví dụ: Cây bàng 1,6met + chậu xi măng size 30cm.</p>
+    <label class="lbl">Tên hàng</label>
+    <input class="field" id="freeName" placeholder="Tên in trên báo giá">
+    <label class="lbl">Đơn giá</label>
+    <input class="field" id="freePrice" inputmode="numeric" placeholder="970000">
+    <label class="lbl">Số lượng</label>
+    <input class="field" id="freeQty" inputmode="numeric" value="1">
+    <button class="btn" id="freeOk" type="button" style="margin-top:12px;width:100%">Thêm dòng</button>
+  </div>`;
+  $("xFree").onclick = () => $("modal").classList.add("hidden");
+  $("freeName").focus();
+  $("freeOk").onclick = () => {
+    const name = ($("freeName").value || "").trim();
+    const price = parseInt($("freePrice").value.replace(/\D/g, ""), 10) || 0;
+    if (!name || !price) return toast("Cần tên và đơn giá.");
+    const qty = Math.max(1, parseInt($("freeQty").value, 10) || 1);
+    const key = "free-" + Date.now();
+    quoteCart[key] = { key, sku: "", name, unit: "cái", price, qty, img: "" };
+    $("modal").classList.add("hidden");
+    renderQuoteCart();
+    window.__updateQuoteTotals?.();
+    toast("Đã thêm dòng");
+  };
+}
+function renderQuoteCart() {
+  const box = $("quoteBox");
+  if (!box) return;
+  const lines = Object.values(quoteCart);
+  box.innerHTML = lines.length ? lines.map((l) => `
+    <div class="cart-line">
+      <div class="row" style="justify-content:space-between"><b>${esc(l.name)}</b><button class="btn ghost" type="button" data-qdel="${esc(l.key)}">Xóa</button></div>
+      <input class="field" data-qname="${esc(l.key)}" value="${esc(l.name)}" aria-label="Tên dòng" style="margin-top:6px">
+      <div class="row" style="margin-top:6px">
+        <button class="btn soft" type="button" data-qdec="${esc(l.key)}">−</button>
+        <b>${l.qty}</b>
+        <button class="btn soft" type="button" data-qinc="${esc(l.key)}">+</button>
+        <input class="field" inputmode="numeric" style="width:120px;margin-left:auto" data-qprice="${esc(l.key)}" value="${money(l.price)}" aria-label="Đơn giá">
+      </div>
+      <div class="right meta">Thành tiền ${money(l.qty * l.price)} đ</div>
+    </div>`).join("") : `<p class="meta">Chưa chọn hàng. Bấm một món bên trái, hoặc Dòng tay.</p>`;
+  box.querySelectorAll("[data-qdel]").forEach((b) => b.onclick = () => { delete quoteCart[b.dataset.qdel]; renderQuoteCart(); window.__updateQuoteTotals?.(); });
+  box.querySelectorAll("[data-qdec]").forEach((b) => b.onclick = () => { const l = quoteCart[b.dataset.qdec]; if (!l) return; l.qty -= 1; if (l.qty <= 0) delete quoteCart[b.dataset.qdec]; renderQuoteCart(); window.__updateQuoteTotals?.(); });
+  box.querySelectorAll("[data-qinc]").forEach((b) => b.onclick = () => { quoteCart[b.dataset.qinc].qty += 1; renderQuoteCart(); window.__updateQuoteTotals?.(); });
+  box.querySelectorAll("[data-qprice]").forEach((inp) => inp.onchange = () => {
+    quoteCart[inp.dataset.qprice].price = parseInt(inp.value.replace(/\D/g, ""), 10) || 0;
+    renderQuoteCart(); window.__updateQuoteTotals?.();
+  });
+  box.querySelectorAll("[data-qname]").forEach((inp) => inp.onchange = () => {
+    const name = inp.value.trim();
+    if (name) quoteCart[inp.dataset.qname].name = name;
+  });
+}
+function quoteSheet(q) {
+  const items = q.items || [];
+  return `
+    <article class="quote-paper">
+      <div class="quote-band"></div>
+      <div class="headrow">
+        <img class="inv-logo" alt="" src="${LOGO}">
+        <div class="inv-shop">
+          <div class="quote-kicker">HOA LỤA TRANG TRÍ</div>
+          <h3>${esc(SHOP.name)}</h3>
+          <p>${esc(SHOP.address)}</p>
+          <p>Hotline ${esc(SHOP.phone)}</p>
+        </div>
+      </div>
+      <h2>BÁO GIÁ</h2>
+      <p class="quote-lead">Kính gửi Quý khách. Giá bên dưới là giá sỉ tại shop.</p>
+      <div class="quote-who">
+        <div><b>Kính gửi:</b> ${esc(q.clientName || "Quý khách")}</div>
+        <div><b>Số:</b> ${esc(q.orderId || "")}</div>
+        <div><b>SĐT:</b> ${esc(q.clientPhone || "—")}</div>
+        <div><b>Ngày:</b> ${esc(when(q.createdAt))}</div>
+        <div><b>Địa chỉ:</b> ${esc(q.clientAddress || "—")}</div>
+        <div><b>Hiệu lực đến:</b> ${esc(q.validUntil || "")}</div>
+      </div>
+      <table>
+        <thead><tr><th>Hàng hóa</th><th style="width:54px">SL</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
+        <tbody>${items.map((it) => `<tr>
+          <td>${esc(it.name)}</td>
+          <td class="ctr">${esc(it.quantity)}</td>
+          <td class="num">${money(it.price)}</td>
+          <td class="num">${money(Number(it.quantity) * Number(it.price))}</td>
+        </tr>`).join("")}</tbody>
+      </table>
+      <div class="quote-sum">
+        <div><span>Tiền hàng</span><b>${money(q.subTotal)} đ</b></div>
+        <div class="vat"><span>VAT 8%</span><b>${money(q.vatFee)} đ</b></div>
+        <div class="grand"><span>Tổng cộng</span><b>${money(q.finalTotal)} đ</b></div>
+      </div>
+      <div class="quote-note">
+        ${q.note ? esc(q.note) + "<br>" : ""}
+        ${q.vatOn ? "Đơn giá chưa gồm VAT. Dòng VAT 8% được cộng riêng." : "Báo giá này chưa tính VAT."}
+        <br>Có hiệu lực đến ${esc(q.validUntil || "")}.
+        <br>Chuyển khoản: ${esc(SHOP.bank)} · ${esc(SHOP.account)} · ${esc(SHOP.owner)} · Nội dung: ${esc(SHOP.note)}
+      </div>
+    </article>`;
+}
+function openQuotePreview(q) {
+  $("printSheet").classList.remove("hidden");
+  $("printSheet").innerHTML = `
+    <div class="no-print sheet" style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="quoteFile" type="button">Ảnh gửi Zalo</button>
+      <button class="btn soft" id="quotePrint" type="button">In</button>
+      <button class="btn ghost" id="quoteClose" type="button">Đóng</button>
+    </div>
+    ${quoteSheet(q)}`;
+  $("quoteClose").onclick = () => $("printSheet").classList.add("hidden");
+  $("quotePrint").onclick = () => window.print();
+  $("quoteFile").onclick = () => showQuoteFile(q);
+}
+async function quoteBlob(q) {
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  const logo = await loadImage(LOGO);
+  const W = 1080;
+  const items = q.items || [];
+  const font = (weight, size) => weight + " " + size + "px 'Be Vietnam Pro', sans-serif";
+  const measure = document.createElement("canvas").getContext("2d");
+  measure.font = font(600, 28);
+  const nameLines = items.map((it) => wrapLines(measure, it.name || "", 560));
+  const rowHs = nameLines.map((lines) => Math.max(64, lines.length * 36 + 24));
+  const tableH = 56 + rowHs.reduce((s, h) => s + h, 0);
+  const note = (q.note || "").trim();
+  measure.font = font(500, 24);
+  const noteLines = note ? wrapLines(measure, note, 900) : [];
+  const H = 520 + tableH + 280 + noteLines.length * 34;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fbf8f3";
+  ctx.fillRect(0, 0, W, H);
+  const band = ctx.createLinearGradient(0, 0, W, 0);
+  band.addColorStop(0, "#7c3527");
+  band.addColorStop(0.55, "#a68456");
+  band.addColorStop(1, "#f3e2c4");
+  ctx.fillStyle = band;
+  ctx.fillRect(0, 0, W, 18);
+  ctx.strokeStyle = "#e4c994";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(28, 40, W - 56, H - 68);
+  if (logo) ctx.drawImage(logo, 64, 64, 120, 120);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#a68456";
+  ctx.font = font(700, 18);
+  ctx.fillText("HOA LỤA TRANG TRÍ", 640, 86);
+  ctx.fillStyle = "#7c3527";
+  ctx.font = font(700, 40);
+  ctx.fillText(SHOP.name, 640, 132);
+  ctx.fillStyle = "#6f655c";
+  ctx.font = font(500, 22);
+  let shopY = 168;
+  wrapLines(ctx, SHOP.address, 700).forEach((line) => { ctx.fillText(line, 640, shopY); shopY += 28; });
+  ctx.fillText("Hotline " + SHOP.phone, 640, shopY);
+  ctx.fillStyle = "#7c3527";
+  ctx.font = font(700, 54);
+  ctx.fillText("BÁO GIÁ", W / 2, 300);
+  ctx.font = font(500, 22);
+  ctx.fillStyle = "#6f655c";
+  ctx.fillText("Kính gửi Quý khách. Giá sỉ tại shop.", W / 2, 338);
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(52, 364, W - 104, 110);
+  ctx.strokeStyle = "#eadfce";
+  ctx.strokeRect(52, 364, W - 104, 110);
+  ctx.fillStyle = "#1c1915";
+  ctx.font = font(600, 24);
+  ctx.fillText("Kính gửi: " + (q.clientName || "Quý khách"), 72, 404);
+  ctx.fillText("Số: " + (q.orderId || ""), 620, 404);
+  ctx.fillText("Ngày: " + (when(q.createdAt) || ""), 72, 446);
+  ctx.fillText("Hiệu lực đến: " + (q.validUntil || ""), 620, 446);
+  let y = 500;
+  const cols = [620, 90, 150, 168];
+  const x0 = 52;
+  const tableW = cols.reduce((s, n) => s + n, 0);
+  const colX = (i) => { let x = x0; for (let k = 0; k < i; k++) x += cols[k]; return x; };
+  ctx.fillStyle = "#7c3527";
+  ctx.fillRect(x0, y, tableW, 52);
+  ctx.fillStyle = "#fff8f3";
+  ctx.font = font(700, 22);
+  ctx.textAlign = "center";
+  ["Hàng hóa", "SL", "Đơn giá", "Thành tiền"].forEach((label, i) => ctx.fillText(label, colX(i) + cols[i] / 2, y + 33));
+  y += 52;
+  items.forEach((it, i) => {
+    const h = rowHs[i];
+    ctx.fillStyle = i % 2 ? "#fff" : "#fbf8f3";
+    ctx.fillRect(x0, y, tableW, h);
+    ctx.strokeStyle = "#eadfce";
+    ctx.strokeRect(x0, y, tableW, h);
+    ctx.fillStyle = "#1c1915";
+    ctx.font = font(600, 26);
+    ctx.textAlign = "left";
+    nameLines[i].forEach((line, li) => ctx.fillText(line, colX(0) + 16, y + 36 + li * 34));
+    ctx.textAlign = "center";
+    ctx.fillText(String(it.quantity), colX(1) + cols[1] / 2, y + 36);
+    ctx.textAlign = "right";
+    ctx.fillText(money(it.price), colX(2) + cols[2] - 16, y + 36);
+    ctx.fillText(money(Number(it.quantity) * Number(it.price)), colX(3) + cols[3] - 16, y + 36);
+    y += h;
+  });
+  y += 28;
+  const boxW = 460;
+  const boxX = W - 52 - boxW;
+  const rows = [
+    ["Tiền hàng", money(q.subTotal) + " đ", "#fff"],
+    ["VAT 8%", money(q.vatFee) + " đ", "#fff6ea"],
+    ["Tổng cộng", money(q.finalTotal) + " đ", "#7c3527"]
+  ];
+  rows.forEach((row, i) => {
+    ctx.fillStyle = row[2];
+    ctx.fillRect(boxX, y + i * 58, boxW, 58);
+    ctx.fillStyle = i === 2 ? "#fff8f3" : "#7c3527";
+    ctx.font = font(700, i === 2 ? 28 : 24);
+    ctx.textAlign = "left";
+    ctx.fillText(row[0], boxX + 18, y + i * 58 + 37);
+    ctx.textAlign = "right";
+    ctx.fillText(row[1], boxX + boxW - 18, y + i * 58 + 37);
+  });
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#6f655c";
+  ctx.font = font(500, 22);
+  let ny = y + 24;
+  noteLines.forEach((line) => { ctx.fillText(line, 64, ny); ny += 32; });
+  ctx.fillText(q.vatOn ? "Đơn giá chưa gồm VAT. VAT 8% cộng riêng." : "Báo giá này chưa tính VAT.", 64, ny + 8);
+  ctx.fillText(SHOP.bank + "  " + SHOP.account, 64, H - 78);
+  ctx.fillText(SHOP.owner + "  ·  " + SHOP.note, 64, H - 46);
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+async function showQuoteFile(q) {
+  const host = $("printSheet");
+  host.classList.remove("hidden");
+  host.innerHTML = `<div class="sheet" style="text-align:center"><p>Đang tạo file báo giá…</p></div>`;
+  try {
+    const blob = await quoteBlob(q);
+    if (!blob) throw new Error("Không tạo được ảnh");
+    const url = URL.createObjectURL(blob);
+    const file = new File([blob], "BaoGia-" + (q.orderId || "mimi") + ".png", { type: "image/png" });
+    host.innerHTML = `<div class="sheet" style="text-align:center">
+      <div class="row" style="justify-content:space-between"><strong>File báo giá</strong><button class="btn ghost" id="xQuoteFile" type="button">Đóng</button></div>
+      <p class="meta">Gửi Zalo hoặc tải ảnh. Không lưu vào sổ hóa đơn.</p>
+      <img class="zalo-shot" alt="Báo giá" src="${url}">
+      <div class="row" style="margin-top:12px;justify-content:center">
+        <button class="btn" id="shareQuote" type="button">Gửi Zalo</button>
+        <button class="btn soft" id="saveQuote" type="button">Tải ảnh</button>
+      </div>
+    </div>`;
+    $("xQuoteFile").onclick = () => { URL.revokeObjectURL(url); host.classList.add("hidden"); };
+    $("saveQuote").onclick = () => { const a = document.createElement("a"); a.href = url; a.download = file.name; a.click(); };
+    $("shareQuote").onclick = async () => {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: "Báo giá " + (q.orderId || ""), text: SHOP.name + " - " + (q.clientName || "") }); }
+        catch (err) { if (err.name !== "AbortError") toast(err.message); }
+      } else {
+        $("saveQuote").click();
         toast("Đã tải ảnh. Mở Zalo và gửi file này.");
       }
     };
