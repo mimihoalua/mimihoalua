@@ -26,6 +26,11 @@
   .sub { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
   .links { display: flex; gap: 8px; flex-wrap: wrap; }
   .links a { color: var(--primary); font-size: 13px; font-weight: 650; text-decoration: none; }
+  .brand-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--primary); }
+  .brand-switch input { appearance: none; width: 42px; height: 24px; border-radius: 999px; background: #7a2e24; position: relative; cursor: pointer; }
+  .brand-switch input:before { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+  .brand-switch input:checked:before { left: 21px; }
+  .brand-switch input:checked { background: #b08d57; }
   .status { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
   .pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--muted); }
   .pill.ok { background: var(--ok-bg); color: var(--ok); }
@@ -136,7 +141,7 @@
     #printSheet, #printSheet * { visibility: visible; }
     #printSheet { position: absolute; inset: 0; background: white; }
     .no-print { display: none !important; }
-    .invoice-paper { border: 1px solid #7c3527; width: auto !important; border-radius: 0; }
+    .invoice-paper[data-paper="a4"], .quote-paper { width: 210mm !important; min-height: 297mm; box-sizing: border-box; border-radius: 0; box-shadow: none; }
     .inv-frame { border: 0; padding: 0; }
     tr, .qr { break-inside: avoid; }
   }
@@ -145,6 +150,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="./jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script src="./vv-doc.js"></script>
 </head>
 <body>
 <div class="app">
@@ -154,6 +162,11 @@
       <h1>Hóa đơn sỉ</h1>
     </div>
     <div class="links">
+      <label class="brand-switch" title="Gạt trái là Mimi, gạt phải là Vân Vượng">
+        <span>Mimi</span>
+        <input type="checkbox" id="brand-van" aria-label="Đổi sang Vân Vượng">
+        <span>Vân Vượng</span>
+      </label>
       <a href="./admin.html">Quản lý</a>
       <a href="./chamcong.html">Chấm công</a>
       <a href="./khachsi.html">Bảng hàng sỉ</a>
@@ -185,6 +198,51 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const BRAND_KEY = "mimi-paper-brand";
+const BRANDS = {
+  mimi: { kicker: "MIMI SHOP HOA LỤA", name: "MIMI SHOP HOA LỤA", tax: "", addr: "Số 3, ngõ Văn Chi 1, thôn Phù Mã, xã Sóc Sơn, TP Hà Nội", phone: "034.821.1187", logo: true },
+  van: { kicker: "HOA LỤA TRANG TRÍ", name: "CÔNG TY TNHH HOA LỤA VÂN VƯỢNG", tax: "0110660048", addr: "Số 472 Thụy Khuê, Phường Tây Hồ, Thành phố Hà Nội, Việt Nam", phone: "0376 570 953", logo: false }
+};
+async function paintLogo(model) {
+  if (!model.logo) return model;
+  try {
+    const res = await fetch("./logo-mimi.png");
+    const blob = await res.blob();
+    model.logoSrc = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.readAsDataURL(blob);
+    });
+  } catch (_) {}
+  return model;
+}
+function paperHead() {
+  const b = brandInfo();
+  const logo = b.logo ? `<p style="text-align:center;margin:0 0 6px"><img alt="Logo MiMi Shop Hoa Lụa" src="./logo-mimi.png" width="84" height="84" style="object-fit:contain"></p>` : "";
+  const meta = (b.tax ? "MST: " + esc(b.tax) + " · " : "") + "Điện thoại: " + esc(b.phone);
+  return `${logo}<p class="quote-kicker">${esc(b.kicker)}</p><h3 style="text-align:center;color:#7c3527;font-size:22px;margin:8px 0 0">${esc(b.name)}</h3><p style="text-align:center;color:#6f655c;font-size:13px">${meta}<br>${esc(b.addr)}</p>`;
+}
+function brandModelBits() {
+  const b = brandInfo();
+  return {
+    kicker: b.kicker,
+    companyName: b.name,
+    meta: (b.tax ? "MST: " + b.tax + "  ·  " : "") + "Điện thoại: " + b.phone,
+    addressLine: "Địa chỉ: " + b.addr,
+    logo: b.logo
+  };
+}
+const brandBox = document.getElementById("brand-van");
+if (brandBox) {
+  brandBox.checked = localStorage.getItem(BRAND_KEY) === "van";
+  brandBox.onchange = () => {
+    localStorage.setItem(BRAND_KEY, brandBox.checked ? "van" : "mimi");
+    const sheet = document.getElementById("printSheet");
+    if (sheet) sheet.classList.add("hidden");
+    if (tab === "quote") renderQuote();
+    toast(brandBox.checked ? "Phiếu Vân Vượng, không logo." : "Phiếu Mimi, có logo và địa chỉ shop.");
+  };
+}
 const SHOP = {
   name: "MiMi Shop Hoa Lụa",
   address: "Số 3, ngõ Văn Chi 1, thôn Phù Mã, xã Sóc Sơn, TP Hà Nội",
@@ -214,7 +272,7 @@ let cloudOk = false;
 let sellReady = false;
 let quoteReady = false;
 let draft = { clientName: "", clientPhone: "", clientAddress: "", pay: "Tiền mặt", ship: "0", discount: "0", vat: false, note: "", paidCash: "", paidCard: "" };
-let quoteDraft = { clientName: "", clientPhone: "", clientAddress: "", vat: true, note: "", validDays: "7" };
+let quoteDraft = { clientName: "", clientPhone: "", clientAddress: "", vat: true, note: "", validDays: "7", signRole: "GIÁM ĐỐC" };
 let saving = false;
 
 const $ = (id) => document.getElementById(id);
@@ -985,32 +1043,23 @@ function openPrint(o, paper) {
       <button class="btn ${paper === "a4" ? "" : "soft"}" data-paper="a4" type="button">A4</button>
       <button class="btn ${paper === "a6" ? "" : "soft"}" data-paper="a6" type="button">A6</button>
       <button class="btn ${paper === "a7" ? "" : "soft"}" data-paper="a7" type="button">A7</button>
-      <button class="btn" id="doZalo" type="button">Ảnh Zalo</button>
-      <button class="btn" id="doPrint" type="button">In</button>
+      <button class="btn" id="doWord" type="button">Word</button>
+      <button class="btn soft" id="doExcel" type="button">Excel</button>
+      <button class="btn" id="doZalo" type="button">JPG</button>
+      <button class="btn" id="doPrint" type="button">In A4</button>
       <button class="btn ghost" id="closePrint" type="button">Đóng</button>
     </div>
     <div class="inv-frame">
     <article class="invoice-paper" data-paper="${paper}">
-      <div class="headrow">
-        <img class="inv-logo" alt="Logo MiMi Shop Hoa Lụa" src="${LOGO}">
-        <div class="inv-shop">
-          <h3>${esc(SHOP.name)}</h3>
-          <p>${esc(SHOP.address)}</p>
-          <p>Số điện thoại / Hotline: ${esc(SHOP.phone)}</p>
-          <p class="inv-web">Trang web: ${esc(SHOP.web)}</p>
-        </div>
-      </div>
+      ${paperHead()}
       <hr class="inv-rule">
       <h2>HÓA ĐƠN BÁN HÀNG</h2>
-      <hr class="inv-rule">
-      <div class="inv-meta">
-        <div><b>Số hóa đơn:</b> ${esc(o.orderId || "")}</div>
-        <div><b>Ngày:</b> ${esc(when(o.createdAt) || when({ seconds: Math.floor(Date.now() / 1000) }))}</div>
-        <div><b>Khách hàng:</b> ${esc(o.clientName || "")}</div>
-        <div><b>Thu ngân:</b> ${esc(SHOP.cashier)}</div>
-        <div><b>SĐT:</b> ${esc(phone)}</div>
-        <div><b>Đ/c:</b> ${esc(addr)}</div>
+      <div style="display:flex;justify-content:space-between;gap:24px;font-style:italic;margin-top:8px">
+        <span>Kính gửi: ${esc(o.clientName || "Quý khách")}</span>
+        <span>Số hóa đơn: ${esc(o.orderId || "")}</span>
       </div>
+      <p style="text-align:right;font-style:italic;margin:4px 0 0">${esc(when(o.createdAt) || when({ seconds: Math.floor(Date.now() / 1000) }))}</p>
+      <p style="margin:6px 0 0;font-size:13px">SĐT: ${esc(phone)} · Địa chỉ: ${esc(addr)}</p>
       <table style="margin-top:12px">
         <thead><tr>
           <th style="width:42px">STT</th><th>Tên hàng hóa</th><th style="width:58px">ĐVT</th>
@@ -1031,22 +1080,50 @@ function openPrint(o, paper) {
           <div><b>Khuyến mãi HĐ:</b> ${money(pay.discount)}</div>
           <div style="margin-top:6px"><b>Ghi chú:</b> ${esc(o.note || "")}</div>
           ${o.status === "new" ? `<div class="pill warn" style="margin-top:6px">Đơn chờ</div>` : ""}
-          ${paper === "a7" ? "" : `<div class="qr"><img alt="QR chuyển khoản" src="${esc(qr)}"><div><b>QR thanh toán</b><div>Ngân hàng: <b>${SHOP.bank}</b></div><div>STK: <b>${SHOP.account}</b></div><div>Chủ TK: <b>${SHOP.owner}</b></div><div>Nội dung: <b>${esc(SHOP.note)} ${esc(o.orderId || "")}</b></div></div></div>`}
         </div>
         <table class="paygrid"><tbody>
           ${rows.map(([k, v, cls]) => `<tr class="${cls}"><td class="${cls === "grand" ? "" : "k"}">${k}</td><td class="num">${money(v)}</td></tr>`).join("")}
         </tbody></table>
       </div>
-      <div class="thanks">Xin cảm ơn Quý khách đã mua hàng tại ${esc(SHOP.name)}!<br>Vui lòng kiểm tra hóa đơn trước khi thanh toán.<br>Hàng đã mua vui lòng không đổi trả.</div>
+      <div class="thanks">Rất mong được hợp tác với Quý khách hàng. Trân trọng kính chào!<br>Vui lòng kiểm tra hóa đơn trước khi thanh toán.</div>
     </article>
     </div>
     <style>@media print { @page { size: ${paper === "a4" ? "A4 portrait" : paper === "a6" ? "105mm 148mm" : "74mm 105mm"}; margin: 6mm; } }</style>`;
   $("closePrint").onclick = () => $("printSheet").classList.add("hidden");
   $("doPrint").onclick = () => window.print();
-  $("doZalo").onclick = () => showZalo(o);
+  $("doZalo").onclick = () => capturePaper(".invoice-paper", "Hoa_Don_Van_Vuong_" + (o.orderId || "hoa-don") + ".jpg");
+  $("doWord").onclick = () => paintLogo(vvFromOrder(o)).then((model) => window.VVDoc.docx(model)).catch(() => toast("Không tạo được Word."));
+  $("doExcel").onclick = () => Promise.resolve(window.VVDoc && window.VVDoc.xlsx(vvFromOrder(o))).catch(() => toast("Không tạo được Excel."));
   $("printSheet").querySelectorAll("[data-paper]").forEach((b) => b.onclick = () => openPrint(o, b.dataset.paper));
 }
 
+function capturePaper(selector, name) {
+  const node = $("printSheet").querySelector(selector);
+  if (!node || !window.htmlToImage) return toast("Chưa tạo được ảnh.");
+  const mount = document.createElement("div");
+  mount.style.cssText = "position:fixed;left:-14000px;top:0;width:794px;background:#fff;";
+  const clone = node.cloneNode(true);
+  clone.style.width = "794px";
+  clone.style.maxWidth = "794px";
+  clone.style.minHeight = "1123px";
+  clone.style.boxSizing = "border-box";
+  clone.style.margin = "0";
+  mount.appendChild(clone);
+  document.body.appendChild(mount);
+  window.htmlToImage.toJpeg(clone, {
+    quality: 0.92,
+    pixelRatio: 2,
+    backgroundColor: "#fbf8f3",
+    width: 794,
+    height: Math.max(1123, clone.scrollHeight)
+  }).then((dataUrl) => {
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = name;
+    a.click();
+    toast("Đã tải JPG đủ trang A4.");
+  }).catch(() => toast("Không xuất được ảnh.")).finally(() => mount.remove());
+}
 function qrUrl(orderId, amount) {
   const q = new URLSearchParams({
     amount: String(Math.max(0, Math.round(Number(amount) || 0))),
@@ -1305,6 +1382,7 @@ function pullQuote() {
   quoteDraft.note = $("qNote").value;
   quoteDraft.validDays = $("qDays").value || "7";
   quoteDraft.vat = $("qVat").checked;
+  if ($("qSign")) quoteDraft.signRole = $("qSign").value;
 }
 function quoteCode() {
   const b = vnParts(new Date());
@@ -1339,6 +1417,7 @@ function buildQuote() {
     validDays: days,
     validUntil: quoteUntil(days),
     note: (quoteDraft.note || "").trim(),
+    signRole: quoteDraft.signRole == null ? "GIÁM ĐỐC" : quoteDraft.signRole,
     createdAt: { seconds: Math.floor(Date.now() / 1000) }
   };
 }
@@ -1355,7 +1434,7 @@ function renderQuote() {
       </section>
       <aside class="card pad">
         <strong>Báo giá gửi khách</strong>
-        <p class="meta">Chọn hàng như lúc bán. Giá tự nhập. Không trừ tồn, không vào sổ hóa đơn.</p>
+        <p class="meta">Chọn hàng sỉ. Phiếu đứng tên Vân Vượng, không in tài khoản cá nhân. Hàng bán lẻ dùng <a href="./baogia.html">trang báo giá lẻ</a>.</p>
         <div id="quoteBox"></div>
         <label class="lbl">Kính gửi</label>
         <input class="field" id="qClient" list="quoteCodes" placeholder="Tên khách" value="${esc(quoteDraft.clientName)}">
@@ -1366,6 +1445,8 @@ function renderQuote() {
         <textarea class="area" id="qAddress">${esc(quoteDraft.clientAddress)}</textarea>
         <label class="lbl">Hiệu lực (ngày)</label>
         <input class="field" id="qDays" inputmode="numeric" value="${esc(quoteDraft.validDays)}">
+        <label class="lbl">Chức danh ký, xóa được</label>
+        <input class="field" id="qSign" value="${esc(quoteDraft.signRole == null ? "GIÁM ĐỐC" : quoteDraft.signRole)}" placeholder="GIÁM ĐỐC">
         <label class="row" style="margin-top:8px"><input type="checkbox" id="qVat" ${quoteDraft.vat ? "checked" : ""}> Thêm dòng VAT 8%</label>
         <label class="lbl">Ghi chú thêm</label>
         <textarea class="area" id="qNote" placeholder="Ví dụ: đã gồm chậu xi măng size 30cm">${esc(quoteDraft.note)}</textarea>
@@ -1380,7 +1461,7 @@ function renderQuote() {
     </div>`;
   $("qQuote").oninput = (e) => { qQuote = e.target.value; fillQuoteProducts(); };
   $("addFree").onclick = openFreeQuoteLine;
-  ["qClient", "qPhone", "qAddress", "qDays", "qNote"].forEach((id) => { $(id).oninput = () => pullQuote(); });
+  ["qClient", "qPhone", "qAddress", "qDays", "qNote", "qSign"].forEach((id) => { $(id).oninput = () => pullQuote(); });
   $("qClient").onchange = () => { pullQuote(); fillQuoteClient(); };
   $("qVat").onchange = () => { pullQuote(); updateQuoteTotals(); };
   $("seeQuote").onclick = () => {
@@ -1389,7 +1470,7 @@ function renderQuote() {
   };
   $("fileQuote").onclick = () => {
     if (!Object.keys(quoteCart).length) return toast("Chưa chọn hàng.");
-    showQuoteFile(buildQuote());
+    openQuotePreview(buildQuote());
   };
   quoteReady = true;
   fillQuoteCodes();
@@ -1536,66 +1617,150 @@ function renderQuoteCart() {
 }
 function quoteSheet(q) {
   const items = q.items || [];
+  const role = String(q.signRole == null ? "GIÁM ĐỐC" : q.signRole).trim();
+  const date = when(q.createdAt);
   return `
     <article class="quote-paper">
+      ${paperHead()}
+      <p style="text-align:right;font-style:italic;margin:10px 0 0">Hà Nội, ${esc(date)}</p>
       <div class="quote-band"></div>
-      <div class="headrow">
-        <img class="inv-logo" alt="" src="${LOGO}">
-        <div class="inv-shop">
-          <div class="quote-kicker">HOA LỤA TRANG TRÍ</div>
-          <h3>${esc(SHOP.name)}</h3>
-          <p>${esc(SHOP.address)}</p>
-          <p>Hotline ${esc(SHOP.phone)}</p>
-        </div>
+      <h2>BẢNG BÁO GIÁ</h2>
+      <div style="display:flex;justify-content:space-between;gap:28px;font-style:italic;margin-top:8px">
+        <span>Kính gửi: ${esc(q.clientName || "Quý khách")}</span>
+        <span>Số báo giá: ${esc(q.orderId || "")}</span>
       </div>
-      <h2>BÁO GIÁ</h2>
-      <p class="quote-lead">Kính gửi Quý khách. Giá bên dưới là giá sỉ tại shop.</p>
-      <div class="quote-who">
-        <div><b>Kính gửi:</b> ${esc(q.clientName || "Quý khách")}</div>
-        <div><b>Số:</b> ${esc(q.orderId || "")}</div>
-        <div><b>SĐT:</b> ${esc(q.clientPhone || "—")}</div>
-        <div><b>Ngày:</b> ${esc(when(q.createdAt))}</div>
-        <div><b>Địa chỉ:</b> ${esc(q.clientAddress || "—")}</div>
-        <div><b>Hiệu lực đến:</b> ${esc(q.validUntil || "")}</div>
-      </div>
+      <p class="quote-lead">Trên cơ sở yêu cầu báo giá của Quý khách, chúng tôi báo giá cung cấp sản phẩm như sau:</p>
       <table>
-        <thead><tr><th>Hàng hóa</th><th style="width:54px">SL</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
-        <tbody>${items.map((it) => `<tr>
-          <td>${esc(it.name)}</td>
-          <td class="ctr">${esc(it.quantity)}</td>
-          <td class="num">${money(it.price)}</td>
-          <td class="num">${money(Number(it.quantity) * Number(it.price))}</td>
-        </tr>`).join("")}</tbody>
+        <thead><tr><th style="width:42px">STT</th><th>Tên hàng hóa, dịch vụ</th><th style="width:64px">ĐVT</th><th style="width:54px">SL</th><th class="num">Đơn giá</th><th class="num">Thành tiền</th></tr></thead>
+        <tbody>
+          ${items.map((it, i) => `<tr>
+            <td class="ctr">${i + 1}</td>
+            <td>${esc(it.name)}</td>
+            <td class="ctr">${esc(it.unit || "Cây")}</td>
+            <td class="ctr">${esc(it.quantity)}</td>
+            <td class="num">${money(it.price)}</td>
+            <td class="num">${money(Number(it.quantity) * Number(it.price))}</td>
+          </tr>`).join("")}
+          <tr><td colspan="5" style="text-align:right;font-weight:700">Cộng tiền hàng</td><td class="num">${money(q.subTotal)}</td></tr>
+          <tr><td colspan="5" style="text-align:right">Thuế GTGT 8%</td><td class="num">${money(q.vatFee)}</td></tr>
+          <tr><td colspan="5" style="text-align:right;font-weight:700;background:#7a2e24;color:#fff">Tổng thanh toán</td><td class="num" style="background:#7a2e24;color:#fff">${money(q.finalTotal)}</td></tr>
+        </tbody>
       </table>
-      <div class="quote-sum">
-        <div><span>Tiền hàng</span><b>${money(q.subTotal)} đ</b></div>
-        <div class="vat"><span>VAT 8%</span><b>${money(q.vatFee)} đ</b></div>
-        <div class="grand"><span>Tổng cộng</span><b>${money(q.finalTotal)} đ</b></div>
-      </div>
       <div class="quote-note">
+        ${q.vatOn ? "Giá trên chưa bao gồm thuế GTGT (VAT) 8%." : "Báo giá này chưa tính VAT."}<br>
         ${q.note ? esc(q.note) + "<br>" : ""}
-        ${q.vatOn ? "Đơn giá chưa gồm VAT. Dòng VAT 8% được cộng riêng." : "Báo giá này chưa tính VAT."}
-        <br>Có hiệu lực đến ${esc(q.validUntil || "")}.
-        <br>Chuyển khoản: ${esc(SHOP.bank)} · ${esc(SHOP.account)} · ${esc(SHOP.owner)} · Nội dung: ${esc(SHOP.note)}
+        Thời gian giao hàng: Theo thỏa thuận của hai bên.<br>
+        Địa điểm giao hàng: Theo thỏa thuận của hai bên.<br>
+        Hình thức thanh toán: Chuyển khoản hoặc Tiền mặt.<br>
+        Hiệu lực báo giá: Đến hết ngày ${esc(q.validUntil || "")}.
+      </div>
+      <p class="thanks">Rất mong được hợp tác với Quý khách hàng. Trân trọng kính chào!</p>
+      <div style="width:220px;margin:18px 0 0 auto;text-align:center">
+        <b style="color:#7a2e24;display:block">ĐẠI DIỆN CÔNG TY</b>
+        ${role ? `<div style="margin-top:6px">${esc(role)}</div>` : ""}
       </div>
     </article>`;
+}
+function vvFromQuote(q) {
+  const items = (q.items || []).map((it) => ({
+    name: it.name,
+    unit: it.unit || "Cây",
+    qty: it.quantity,
+    price: it.price,
+    amount: Number(it.quantity) * Number(it.price),
+    priceText: money(it.price),
+    amountText: money(Number(it.quantity) * Number(it.price))
+  }));
+  const bits = brandModelBits();
+  return {
+    ...bits,
+    dateLine: "Hà Nội, " + (when(q.createdAt) || ""),
+    title: "BẢNG BÁO GIÁ",
+    greet: "Kính gửi: " + (q.clientName || "Quý khách"),
+    docNoLine: "Số báo giá: " + (q.orderId || ""),
+    intro: "Trên cơ sở yêu cầu báo giá của Quý khách, chúng tôi báo giá cung cấp sản phẩm như sau:",
+    items,
+    sub: q.subTotal,
+    vat: q.vatFee,
+    total: q.finalTotal,
+    subText: money(q.subTotal),
+    vatText: money(q.vatFee),
+    totalText: money(q.finalTotal),
+    vatLabel: "Thuế GTGT 8%:",
+    notes: [
+      q.vatOn ? "Giá trên chưa bao gồm thuế GTGT (VAT) 8%." : "Báo giá này chưa tính VAT.",
+      q.note || "",
+      "Thời gian giao hàng: Theo thỏa thuận của hai bên.",
+      "Địa điểm giao hàng: Theo thỏa thuận của hai bên.",
+      "Hình thức thanh toán: Chuyển khoản hoặc Tiền mặt.",
+      "Hiệu lực báo giá: Đến hết ngày " + (q.validUntil || "") + "."
+    ].filter(Boolean),
+    thanks: "Rất mong được hợp tác với Quý khách hàng. Trân trọng kính chào!",
+    signRole: String(q.signRole == null ? "GIÁM ĐỐC" : q.signRole).trim(),
+    fileName: "Bang_Bao_Gia_Van_Vuong_" + (q.orderId || "bao-gia")
+  };
+}
+function vvFromOrder(o) {
+  const pay = payParts(o);
+  const items = (o.items || []).map((it) => ({
+    name: it.name,
+    unit: it.unit || "Cây",
+    qty: it.quantity,
+    price: it.price,
+    amount: Number(it.quantity) * Number(it.price),
+    priceText: money(it.price),
+    amountText: money(Number(it.quantity) * Number(it.price))
+  }));
+  const bits = brandModelBits();
+  return {
+    ...bits,
+    dateLine: "Hà Nội, " + (when(o.createdAt) || ""),
+    title: "HÓA ĐƠN BÁN HÀNG",
+    greet: "Kính gửi: " + (o.clientName || "Quý khách"),
+    docNoLine: "Số hóa đơn: " + (o.orderId || ""),
+    intro: "SĐT: " + (o.clientPhone || "") + ". Địa chỉ: " + (o.clientAddress || ""),
+    items,
+    sub: pay.sub,
+    vat: pay.vat,
+    total: pay.total,
+    subText: money(pay.sub),
+    vatText: money(pay.vat),
+    totalText: money(pay.total),
+    subLabel: "Tiền hàng:",
+    vatLabel: "VAT:",
+    totalLabel: "Tổng thanh toán:",
+    notes: [
+      "Ship: " + money(pay.ship),
+      "Khuyến mãi: " + money(pay.discount),
+      "Khách trả: " + money(pay.paid),
+      "Còn nợ: " + money(pay.debt),
+      o.note || ""
+    ].filter(Boolean),
+    thanks: "Rất mong được hợp tác với Quý khách hàng. Trân trọng kính chào!",
+    signRole: "GIÁM ĐỐC",
+    fileName: "Hoa_Don_Van_Vuong_" + (o.orderId || "hoa-don")
+  };
 }
 function openQuotePreview(q) {
   $("printSheet").classList.remove("hidden");
   $("printSheet").innerHTML = `
     <div class="no-print sheet" style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" id="quoteFile" type="button">Ảnh gửi Zalo</button>
-      <button class="btn soft" id="quotePrint" type="button">In</button>
+      <button class="btn" id="quoteWord" type="button">Word</button>
+      <button class="btn soft" id="quoteExcel" type="button">Excel</button>
+      <button class="btn soft" id="quoteFile" type="button">JPG</button>
+      <button class="btn soft" id="quotePrint" type="button">In A4</button>
       <button class="btn ghost" id="quoteClose" type="button">Đóng</button>
     </div>
-    ${quoteSheet(q)}`;
+    ${quoteSheet(q)}
+    <style>@media print { @page { size: A4; margin: 0; } }</style>`;
   $("quoteClose").onclick = () => $("printSheet").classList.add("hidden");
   $("quotePrint").onclick = () => window.print();
-  $("quoteFile").onclick = () => showQuoteFile(q);
+  $("quoteFile").onclick = () => capturePaper(".quote-paper", "Bao_Gia_Van_Vuong_" + (q.orderId || "bao-gia") + ".jpg");
+  $("quoteWord").onclick = () => paintLogo(vvFromQuote(q)).then((model) => window.VVDoc.docx(model)).catch(() => toast("Không tạo được Word."));
+  $("quoteExcel").onclick = () => Promise.resolve(window.VVDoc && window.VVDoc.xlsx(vvFromQuote(q))).catch(() => toast("Không tạo được Excel."));
 }
 async function quoteBlob(q) {
   if (document.fonts && document.fonts.ready) await document.fonts.ready;
-  const logo = await loadImage(LOGO);
   const W = 1080;
   const items = q.items || [];
   const font = (weight, size) => weight + " " + size + "px 'Be Vietnam Pro', sans-serif";
@@ -1623,25 +1788,24 @@ async function quoteBlob(q) {
   ctx.strokeStyle = "#e4c994";
   ctx.lineWidth = 2;
   ctx.strokeRect(28, 40, W - 56, H - 68);
-  if (logo) ctx.drawImage(logo, 64, 64, 120, 120);
   ctx.textAlign = "center";
   ctx.fillStyle = "#a68456";
   ctx.font = font(700, 18);
-  ctx.fillText("HOA LỤA TRANG TRÍ", 640, 86);
+  ctx.fillText("HOA LỤA TRANG TRÍ", W / 2, 78);
   ctx.fillStyle = "#7c3527";
-  ctx.font = font(700, 40);
-  ctx.fillText(SHOP.name, 640, 132);
+  ctx.font = font(700, 36);
+  ctx.fillText("CÔNG TY TNHH HOA LỤA VÂN VƯỢNG", W / 2, 124);
   ctx.fillStyle = "#6f655c";
   ctx.font = font(500, 22);
-  let shopY = 168;
-  wrapLines(ctx, SHOP.address, 700).forEach((line) => { ctx.fillText(line, 640, shopY); shopY += 28; });
-  ctx.fillText("Hotline " + SHOP.phone, 640, shopY);
+  ctx.fillText("MST: 0110660048", W / 2, 162);
+  ctx.fillText("Số 472 Thụy Khuê, Phường Tây Hồ, Thành phố Hà Nội", W / 2, 194);
+  ctx.fillText("Điện thoại: 0376 570 953", W / 2, 226);
   ctx.fillStyle = "#7c3527";
   ctx.font = font(700, 54);
   ctx.fillText("BÁO GIÁ", W / 2, 300);
   ctx.font = font(500, 22);
   ctx.fillStyle = "#6f655c";
-  ctx.fillText("Kính gửi Quý khách. Giá sỉ tại shop.", W / 2, 338);
+  ctx.fillText("Kính gửi Quý khách. Đơn giá chưa gồm VAT.", W / 2, 338);
   ctx.textAlign = "left";
   ctx.fillStyle = "#fff";
   ctx.fillRect(52, 364, W - 104, 110);
@@ -1706,8 +1870,8 @@ async function quoteBlob(q) {
   let ny = y + 24;
   noteLines.forEach((line) => { ctx.fillText(line, 64, ny); ny += 32; });
   ctx.fillText(q.vatOn ? "Đơn giá chưa gồm VAT. VAT 8% cộng riêng." : "Báo giá này chưa tính VAT.", 64, ny + 8);
-  ctx.fillText(SHOP.bank + "  " + SHOP.account, 64, H - 78);
-  ctx.fillText(SHOP.owner + "  ·  " + SHOP.note, 64, H - 46);
+  ctx.textAlign = "center";
+  ctx.fillText("Xin cảm ơn Quý khách.", W / 2, H - 52);
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 async function showQuoteFile(q) {
