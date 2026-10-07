@@ -110,9 +110,10 @@
   .quote-paper h2 { text-align: center; color: #7c3527; letter-spacing: .18em; font-size: 32px; margin: 4px 0 0; }
   .quote-lead { text-align: center; color: #6f655c; margin: 6px 0 14px; }
   .quote-who { background: #fff; border: 1px solid #eadfce; border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
-  .quote-paper table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-  .quote-paper th { background: #7c3527; color: #fff8f3; font-size: 12px; letter-spacing: .04em; padding: 8px; }
-  .quote-paper td { border-bottom: 1px solid #eadfce; padding: 8px; background: #fff; }
+  .quote-paper table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 14px; border: 1px solid #7a2e24; }
+  .quote-paper th, .quote-paper td { border-right: 1px solid #c4a574; border-bottom: 1px solid #c4a574; padding: 7px 8px; background: #fff; box-shadow: inset 0 0 0 1px #c4a574; }
+  .quote-paper th { background: #7a2e24; color: #fff8f3; font-size: 12px; letter-spacing: .04em; border-color: #7a2e24; box-shadow: none; }
+  .quote-paper tr:last-child td { background: #7a2e24; color: #fff; font-weight: 700; border-color: #7a2e24; box-shadow: none; }
   .quote-sum { margin-top: 14px; margin-left: auto; width: min(280px, 100%); background: #fff; border: 1px solid #eadfce; border-radius: 14px; overflow: hidden; }
   .quote-sum div { display: flex; justify-content: space-between; padding: 8px 12px; }
   .quote-sum .vat { background: #fff6ea; color: #7c3527; font-weight: 700; }
@@ -137,12 +138,32 @@
     .sell > aside.card.open, .quote > aside.card.open { display: block; position: fixed; z-index: 25; left: 8px; right: 8px; top: 64px; bottom: 76px; overflow: auto; }
   }
   @media print {
-    body * { visibility: hidden; }
-    #printSheet, #printSheet * { visibility: visible; }
-    #printSheet { position: absolute; inset: 0; background: white; }
-    .no-print { display: none !important; }
-    .invoice-paper[data-paper="a4"], .quote-paper { width: 210mm !important; min-height: 297mm; box-sizing: border-box; border-radius: 0; box-shadow: none; }
-    .inv-frame { border: 0; padding: 0; }
+    @page { size: A4 portrait; margin: 0; }
+    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+    body > *:not(#printSheet) { display: none !important; }
+    #printSheet {
+      display: block !important;
+      position: static !important;
+      inset: auto !important;
+      width: 210mm !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #fff !important;
+      overflow: visible !important;
+    }
+    .no-print, .toast, .dock { display: none !important; }
+    .inv-frame { border: 0 !important; padding: 0 !important; margin: 0 !important; background: transparent !important; }
+    .invoice-paper[data-paper="a4"], .quote-paper {
+      width: 210mm !important;
+      min-height: 297mm !important;
+      margin: 0 !important;
+      padding: 12mm 14mm !important;
+      box-sizing: border-box !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+    }
+    .quote-paper:before { display: none !important; }
     tr, .qr { break-inside: avoid; }
   }
 </style>
@@ -216,9 +237,11 @@ async function paintLogo(model) {
   } catch (_) {}
   return model;
 }
+function brandInfo() { return BRANDS[localStorage.getItem(BRAND_KEY) === "van" ? "van" : "mimi"]; }
 function paperHead() {
   const b = brandInfo();
-  const logo = b.logo ? `<p style="text-align:center;margin:0 0 6px"><img alt="Logo MiMi Shop Hoa Lụa" src="./logo-mimi.png" width="84" height="84" style="object-fit:contain"></p>` : "";
+  const src = (typeof LOGO === "string" && LOGO.indexOf("data:image") === 0) ? LOGO : "./logo-mimi.png";
+  const logo = b.logo ? `<p style="text-align:center;margin:0 0 6px"><img alt="Logo MiMi Shop Hoa Lụa" src="${src}" width="84" height="84" style="width:84px;height:84px;object-fit:contain"></p>` : "";
   const meta = (b.tax ? "MST: " + esc(b.tax) + " · " : "") + "Điện thoại: " + esc(b.phone);
   return `${logo}<p class="quote-kicker">${esc(b.kicker)}</p><h3 style="text-align:center;color:#7c3527;font-size:22px;margin:8px 0 0">${esc(b.name)}</h3><p style="text-align:center;color:#6f655c;font-size:13px">${meta}<br>${esc(b.addr)}</p>`;
 }
@@ -1090,6 +1113,7 @@ function openPrint(o, paper) {
     </div>
     <style>@media print { @page { size: ${paper === "a4" ? "A4 portrait" : paper === "a6" ? "105mm 148mm" : "74mm 105mm"}; margin: 6mm; } }</style>`;
   $("closePrint").onclick = () => $("printSheet").classList.add("hidden");
+  $("printSheet").onclick = (e) => { if (e.target === $("printSheet")) $("printSheet").classList.add("hidden"); };
   $("doPrint").onclick = () => window.print();
   $("doZalo").onclick = () => capturePaper(".invoice-paper", "Hoa_Don_Van_Vuong_" + (o.orderId || "hoa-don") + ".jpg");
   $("doWord").onclick = () => paintLogo(vvFromOrder(o)).then((model) => window.VVDoc.docx(model)).catch(() => toast("Không tạo được Word."));
@@ -1097,32 +1121,48 @@ function openPrint(o, paper) {
   $("printSheet").querySelectorAll("[data-paper]").forEach((b) => b.onclick = () => openPrint(o, b.dataset.paper));
 }
 
-function capturePaper(selector, name) {
+async function capturePaper(selector, name) {
   const node = $("printSheet").querySelector(selector);
   if (!node || !window.htmlToImage) return toast("Chưa tạo được ảnh.");
   const mount = document.createElement("div");
-  mount.style.cssText = "position:fixed;left:-14000px;top:0;width:794px;background:#fff;";
+  mount.style.cssText = "position:fixed;left:-12000px;top:0;width:794px;background:#fbf8f3;";
   const clone = node.cloneNode(true);
   clone.style.width = "794px";
   clone.style.maxWidth = "794px";
   clone.style.minHeight = "1123px";
   clone.style.boxSizing = "border-box";
   clone.style.margin = "0";
+  clone.style.transform = "none";
   mount.appendChild(clone);
   document.body.appendChild(mount);
-  window.htmlToImage.toJpeg(clone, {
+  const imgs = [...clone.querySelectorAll("img")];
+  await Promise.all(imgs.map((img) => (img.decode ? img.decode().catch(() => {}) : Promise.resolve())));
+  const shot = () => window.htmlToImage.toJpeg(clone, {
     quality: 0.92,
     pixelRatio: 2,
     backgroundColor: "#fbf8f3",
     width: 794,
-    height: Math.max(1123, clone.scrollHeight)
-  }).then((dataUrl) => {
+    height: Math.max(1123, clone.offsetHeight, clone.scrollHeight),
+    cacheBust: true
+  });
+  try {
+    let dataUrl;
+    try {
+      dataUrl = await shot();
+    } catch (_) {
+      imgs.forEach((img) => img.remove());
+      dataUrl = await shot();
+    }
     const a = document.createElement("a");
     a.href = dataUrl;
     a.download = name;
     a.click();
     toast("Đã tải JPG đủ trang A4.");
-  }).catch(() => toast("Không xuất được ảnh.")).finally(() => mount.remove());
+  } catch (_) {
+    toast("Không xuất được ảnh.");
+  } finally {
+    mount.remove();
+  }
 }
 function qrUrl(orderId, amount) {
   const q = new URLSearchParams({
@@ -1742,9 +1782,11 @@ function vvFromOrder(o) {
   };
 }
 function openQuotePreview(q) {
-  $("printSheet").classList.remove("hidden");
-  $("printSheet").innerHTML = `
-    <div class="no-print sheet" style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap">
+  const host = $("printSheet");
+  host.classList.remove("hidden");
+  try {
+    host.innerHTML = `
+    <div class="no-print sheet" style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:2">
       <button class="btn" id="quoteWord" type="button">Word</button>
       <button class="btn soft" id="quoteExcel" type="button">Excel</button>
       <button class="btn soft" id="quoteFile" type="button">JPG</button>
@@ -1753,9 +1795,16 @@ function openQuotePreview(q) {
     </div>
     ${quoteSheet(q)}
     <style>@media print { @page { size: A4; margin: 0; } }</style>`;
-  $("quoteClose").onclick = () => $("printSheet").classList.add("hidden");
+  } catch (err) {
+    host.classList.add("hidden");
+    host.innerHTML = "";
+    toast("Không mở được báo giá.");
+    return;
+  }
+  $("quoteClose").onclick = () => host.classList.add("hidden");
+  host.onclick = (e) => { if (e.target === host) host.classList.add("hidden"); };
   $("quotePrint").onclick = () => window.print();
-  $("quoteFile").onclick = () => capturePaper(".quote-paper", "Bao_Gia_Van_Vuong_" + (q.orderId || "bao-gia") + ".jpg");
+  $("quoteFile").onclick = () => capturePaper(".quote-paper", "Bao_Gia_" + (q.orderId || "bao-gia") + ".jpg");
   $("quoteWord").onclick = () => paintLogo(vvFromQuote(q)).then((model) => window.VVDoc.docx(model)).catch(() => toast("Không tạo được Word."));
   $("quoteExcel").onclick = () => Promise.resolve(window.VVDoc && window.VVDoc.xlsx(vvFromQuote(q))).catch(() => toast("Không tạo được Excel."));
 }
