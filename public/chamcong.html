@@ -159,6 +159,11 @@
       border-color: #dbeafe; background: #f8fbff;
     }
     .unit { font-weight: 700; color: var(--blue); }
+    .pay-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: var(--ink); background: #fff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 4px 10px; }
+    .pay-switch input { appearance: none; width: 42px; height: 24px; border-radius: 999px; background: #166534; position: relative; cursor: pointer; margin: 0; }
+    .pay-switch input:before { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+    .pay-switch input:checked { background: #1e3a8a; }
+    .pay-switch input:checked:before { left: 21px; }
     .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
     .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 12px; color: #334155; font-size: 13.5px; }
     .sw { width: 14px; height: 14px; border-radius: 4px; display: inline-block; vertical-align: -2px; margin-right: 6px; border: 1.5px solid #cbd5e1; }
@@ -334,7 +339,13 @@
         <input class="field" name="name" placeholder="Họ và tên" required />
         <input class="field" name="role" placeholder="Vị trí (tuỳ chọn)" />
         <input class="field" name="phone" placeholder="Số điện thoại (tuỳ chọn)" />
-        <input class="field" name="salary" inputmode="numeric" placeholder="Lương cứng tháng, ví dụ 5000000" required />
+        <label class="pay-switch" title="Gạt trái là lương theo ngày, gạt phải là lương cứng tháng">
+          <span>Lương ngày</span>
+          <input type="checkbox" name="payMonthly" aria-label="Đổi sang lương cứng">
+          <span>Lương cứng</span>
+        </label>
+        <input class="field" name="dailyRate" inputmode="numeric" placeholder="Lương 1 ngày, ví dụ 250000" />
+        <input class="field" name="salary" inputmode="numeric" placeholder="Lương cứng tháng, ví dụ 5000000" />
       </div>
       <div class="row-end">
         <button class="btn btn-ghost" type="button" id="closeEmp">Huỷ</button>
@@ -447,15 +458,19 @@
       const x = Math.round(n * 10) / 10;
       return String(x).replace(".", ",");
     }
+    function modeOf(emp) {
+      return emp && emp.payMode === "daily" ? "daily" : "monthly";
+    }
     function payOf(emp) {
       const d = dim(year, month);
       const work = workOf(emp.id);
       const row = rec(emp.id);
-      const rate = d ? Math.round(emp.salary / d) : 0;
-      const gross = d ? Math.round(work * emp.salary / d) : 0;
+      const daily = modeOf(emp) === "daily";
+      const rate = daily ? Math.round(Number(emp.dailyRate) || 0) : (d ? Math.round(Number(emp.salary) / d) : 0);
+      const gross = daily ? Math.round(work * rate) : (d ? Math.round(work * Number(emp.salary) / d) : 0);
       const advance = (row.advances || []).reduce((sum, a) => sum + Number(a.amount || 0), 0);
       const net = gross - advance;
-      return { d, work, rate, gross, advance, total: net };
+      return { d, work, rate, gross, advance, total: net, mode: daily ? "daily" : "monthly" };
     }
     function statusBadge(work, d) {
       if (!work) return '<span class="badge mute">Chưa chấm công</span>';
@@ -502,7 +517,7 @@
       const row = rec(emp.id);
       const advs = row.advances || [];
       let html = '<tr><td style="color:var(--ink);font-weight:700">Tổng số ngày công</td><td style="text-align:right;font-weight:800;font-size:16px;color:var(--blue)">' + dayText(p.work) + " ngày</td></tr>";
-      html += '<tr><td>Đơn giá 1 ngày</td><td style="text-align:right;font-weight:700">' + money(p.rate) + "</td></tr>";
+      html += '<tr><td>Đơn giá 1 ngày' + (p.mode === "monthly" ? ' <span class="hint">(lương cứng / ' + p.d + ' ngày)</span>' : ' <span class="hint">(nhập sẵn, nửa ngày tính một nửa)</span>') + '</td><td style="text-align:right;font-weight:700">' + money(p.rate) + "</td></tr>";
       html += '<tr><td style="border-top:1px dashed #cbd5e1;padding-top:8px">Lương theo công <span class="hint">(' + dayText(p.work) + " × " + money(p.rate) + ')</span></td><td style="text-align:right;font-weight:800;border-top:1px dashed #cbd5e1;padding-top:8px">' + money(p.gross) + "</td></tr>";
       if (!advs.length) {
         html += '<tr><td style="color:var(--muted)">Trừ tạm ứng</td><td style="text-align:right;color:var(--muted)">− 0 đ</td></tr>';
@@ -574,9 +589,17 @@
       const block = summaryBlock(emp);
       const breakdownHtml = block.html;
 
+      const daily = p.mode === "daily";
+      const wage = daily ? Number(emp.dailyRate) || 0 : Number(emp.salary) || 0;
       host.innerHTML =
         '<div class="actions" style="margin-bottom:12px">' +
-          '<label class="hint" style="display:flex;align-items:center;gap:8px">Lương cứng <input class="salary-input" id="salaryInput" value="' + Number(emp.salary).toLocaleString("vi-VN") + '" /></label>' +
+          '<label class="pay-switch" title="Gạt trái là lương theo ngày, gạt phải là lương cứng tháng">' +
+            '<span>Lương ngày</span>' +
+            '<input type="checkbox" id="payMode"' + (daily ? "" : " checked") + ' aria-label="Đổi sang lương cứng">' +
+            '<span>Lương cứng</span>' +
+          '</label>' +
+          '<label class="hint" style="display:flex;align-items:center;gap:8px">' + (daily ? "Đơn giá 1 ngày" : "Lương cứng") +
+            ' <input class="salary-input" id="salaryInput" value="' + wage.toLocaleString("vi-VN") + '" /></label>' +
           '<button class="btn btn-ghost" type="button" id="fillWeek">Chấm T2–T6</button>' +
           '<button class="btn btn-ghost" type="button" id="fillAll">Chấm cả tháng</button>' +
           '<button class="btn btn-danger" type="button" id="clearMonth">Xoá chấm tháng này</button>' +
@@ -589,9 +612,9 @@
             '<div class="mini" style="margin-top:8px;">NHÂN VIÊN — bấm vào tên để sửa</div>' +
             '<input class="name-input" id="nameInput" value="' + esc(emp.name) + '" />' +
             '<p class="sub">Tháng ' + month + ' / Năm ' + year + (emp.role ? " · " + esc(emp.role) : "") + '</p></div>' +
-            '<div class="paybox"><div class="lbl">Mức lương chuẩn</div>' +
-            '<div class="unit" style="font-size:22px;font-weight:800;margin-top:4px">' + money(emp.salary) + ' / tháng</div>' +
-            '<div class="hint">Chia đều cho ' + p.d + ' ngày</div></div>' +
+            '<div class="paybox"><div class="lbl">' + (daily ? "Lương theo ngày" : "Mức lương chuẩn") + '</div>' +
+            '<div class="unit" style="font-size:22px;font-weight:800;margin-top:4px">' + money(daily ? wage : emp.salary) + (daily ? " / ngày" : " / tháng") + '</div>' +
+            '<div class="hint">' + (daily ? "Số công × đơn giá. Nửa ngày tính một nửa." : "Chia đều cho " + p.d + " ngày") + '</div></div>' +
           '</div>' +
           '<div class="legend"><span><i class="sw"></i>Nghỉ</span><span><i class="sw full"></i>1 Ngày (Full)</span><span><i class="sw half"></i>0.5 Ngày (Nửa buổi)</span>' + statusBadge(p.work, p.d) + '</div>' +
           '<div class="week">' + WD.map(x => "<span>" + x + "</span>").join("") + '</div>' +
@@ -642,12 +665,22 @@
       });
       
       // Events cơ bản
+      document.getElementById("payMode").onchange = (ev) => {
+        emp.payMode = ev.target.checked ? "monthly" : "daily";
+        if (emp.payMode === "daily" && !Number(emp.dailyRate)) emp.dailyRate = 250000;
+        emp.updatedAt = Date.now();
+        commitEmployee(emp);
+      };
       document.getElementById("salaryInput").oninput = (ev) => {
-        emp.salary = parseMoney(ev.target.value);
+        const n = parseMoney(ev.target.value);
+        if (modeOf(emp) === "daily") emp.dailyRate = n;
+        else emp.salary = n;
         paintLive(emp);
       };
       document.getElementById("salaryInput").onchange = (ev) => {
-        emp.salary = parseMoney(ev.target.value);
+        const n = parseMoney(ev.target.value);
+        if (modeOf(emp) === "daily") emp.dailyRate = n;
+        else emp.salary = n;
         emp.updatedAt = Date.now();
         commitEmployee(emp);
       };
@@ -748,7 +781,7 @@
         '<button class="btn btn-navy" type="button" id="xlsxAll2">Xuất Excel kế toán</button></div>' +
         '<table><thead><tr><th>Nhân viên</th><th class="num">Ngày công</th><th class="num">Lương chuẩn</th><th class="num">Theo công</th><th class="num">Tạm ứng</th><th class="num">Thực nhận</th></tr></thead><tbody>' +
         rows.map(r => '<tr><td><b>' + esc(r.e.name) + '</b><div class="hint">' + esc(r.e.role || "") + '</div></td>' +
-          '<td class="num">' + dayText(r.p.work) + '</td><td class="num">' + money(r.e.salary) + '</td><td class="num">' + money(r.p.gross) + '</td><td class="num">' + money(r.p.advance) + '</td><td class="num"><b>' + money(r.p.total) + '</b></td></tr>').join("") +
+          '<td class="num">' + dayText(r.p.work) + '</td><td class="num">' + money(r.p.mode === "daily" ? r.e.dailyRate : r.e.salary) + '<div class="hint">' + (r.p.mode === "daily" ? "theo ngày" : "lương cứng") + '</div></td><td class="num">' + money(r.p.gross) + '</td><td class="num">' + money(r.p.advance) + '</td><td class="num"><b>' + money(r.p.total) + '</b></td></tr>').join("") +
         '<tr><td><b>Cộng</b></td><td class="num"><b>' + dayText(totalWork) + '</b></td><td></td><td class="num"><b>' + money(rows.reduce((s, r) => s + r.p.gross, 0)) + '</b></td><td class="num"><b>' + money(rows.reduce((s, r) => s + r.p.advance, 0)) + '</b></td><td class="num"><b>' + money(totalPay) + '</b></td></tr>' +
         '</tbody></table></article>';
       document.getElementById("xlsxAll2").onclick = () => exportXlsx(true);
@@ -814,7 +847,9 @@
       form.name.value = emp?.name || "";
       form.role.value = emp?.role || "";
       form.phone.value = emp?.phone || "";
-      form.salary.value = emp ? emp.salary : 5000000;
+      form.payMonthly.checked = emp ? modeOf(emp) === "monthly" : false;
+      form.dailyRate.value = emp && emp.dailyRate ? Number(emp.dailyRate).toLocaleString("vi-VN") : (emp ? "" : "250.000");
+      form.salary.value = emp && emp.salary ? Number(emp.salary).toLocaleString("vi-VN") : "";
       document.getElementById("empModal").classList.add("show");
     }
     function removeEmp(emp) {
@@ -971,12 +1006,13 @@
         paint("D4", year, { align: "center", font: { bold: true } });
         paint("E4", "Số ngày tháng", { font: { bold: true, color: { argb: muted } }, fill: "FFF1F5F9" });
         paint("F4", { formula: "DAY(EOMONTH(DATE(D4,B4,1),0))" }, { align: "center", font: { bold: true } });
+        const daily = modeOf(emp) === "daily";
         paint("G4", "Đơn giá / ngày", { font: { bold: true, color: { argb: muted } }, fill: "FFF1F5F9" });
-        paint("H4", { formula: "IF(F4=0,0,ROUND(B5/F4,0))" }, { fmt: numFmt, align: "right", font: { bold: true }, fill: "FFEFF6FF" });
+        paint("H4", daily ? { formula: "B5" } : { formula: "IF(F4=0,0,ROUND(B5/F4,0))" }, { fmt: numFmt, align: "right", font: { bold: true }, fill: "FFEFF6FF" });
 
-        paint("A5", "Lương chuẩn", { font: { bold: true, color: { argb: muted } }, fill: "FFF1F5F9" });
+        paint("A5", daily ? "Lương ngày" : "Lương cứng", { font: { bold: true, color: { argb: muted } }, fill: "FFF1F5F9" });
         ws.mergeCells("B5:C5");
-        paint("B5", Number(emp.salary || 0), { fmt: numFmt, font: { bold: true, size: 14, color: { argb: navy } }, fill: "FFEFF6FF" });
+        paint("B5", daily ? Number(emp.dailyRate || 0) : Number(emp.salary || 0), { fmt: numFmt, font: { bold: true, size: 14, color: { argb: navy } }, fill: "FFEFF6FF" });
         paint("D5", "Cách chấm", { font: { bold: true, color: { argb: muted } }, fill: "FFF1F5F9" });
         ws.mergeCells("E5:H5");
         paint("E5", "Hàng trên là số ngày. Hàng dưới chọn: Nghỉ | 1 Ngày | 0.5 Ngày. Sửa thì lương tự tính.", { wrap: true });
@@ -1121,7 +1157,7 @@
         paint("A" + row, "Đơn giá 1 ngày", { fill: "FFF8FAFC" });
         paint("B" + row, { formula: "H4" }, { fmt: numFmt, align: "right", font: { bold: true } });
         ws.mergeCells("C" + row + ":D" + row);
-        paint("C" + row, { formula: '"= lương chuẩn / "&F4&" ngày"' });
+        paint("C" + row, daily ? "đơn giá nhập sẵn, nửa ngày tính một nửa" : { formula: '"= lương cứng / "&F4&" ngày"' });
         shade(row, 3, row, 4);
         row++;
         const grossRow = row;
@@ -1294,15 +1330,20 @@
     document.getElementById("empForm").onsubmit = (ev) => {
       ev.preventDefault();
       const form = ev.target;
+      const daily = !form.payMonthly.checked;
+      const dailyRate = parseMoney(form.dailyRate.value);
       const salary = parseMoney(form.salary.value);
-      if (!form.name.value.trim() || !salary) { toast("Cần tên và lương tháng."); return; }
+      if (!form.name.value.trim()) { toast("Cần tên nhân viên."); return; }
+      if (daily && !dailyRate) { toast("Cần đơn giá 1 ngày."); return; }
+      if (!daily && !salary) { toast("Cần lương cứng tháng."); return; }
       const id = form.dataset.id;
+      const patch = { name: form.name.value.trim(), role: form.role.value.trim(), phone: form.phone.value.trim(), payMode: daily ? "daily" : "monthly", dailyRate, salary, updatedAt: Date.now() };
       if (id) {
         const emp = empById(id);
-        Object.assign(emp, { name: form.name.value.trim(), role: form.role.value.trim(), phone: form.phone.value.trim(), salary, updatedAt: Date.now() });
+        Object.assign(emp, patch);
         commitEmployee(emp);
       } else {
-        const emp = { id: uid(), name: form.name.value.trim(), role: form.role.value.trim(), phone: form.phone.value.trim(), salary, updatedAt: Date.now() };
+        const emp = Object.assign({ id: uid() }, patch);
         state.employees.push(emp);
         selectedId = emp.id;
         saveLocal();
